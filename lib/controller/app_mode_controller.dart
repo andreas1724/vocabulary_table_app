@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+
+enum AppMode { view, drag, edit, play }
+
+extension AppModeX on AppMode {
+  String get title => switch (this) {
+    .view => 'View',
+    .drag => 'Drag',
+    .edit => 'Edit',
+    .play => 'Play (TTS)',
+  };
+
+  IconData get icon => switch (this) {
+    .view => Icons.visibility,
+    .drag => Icons.drag_handle,
+    .edit => Icons.edit,
+    .play => Icons.play_arrow,
+  };
+}
+
+class AppModeController {
+  AppModeController();
+  final _appMode = signal<AppMode>(.view);
+  final _isCommentVisible = signal<bool>(true);
+
+  late final appMode = _appMode.readonly();
+  late final isCommentVisible = _isCommentVisible.readonly();
+
+  void setAppMode(AppMode mode) {
+    _appMode.value = mode;
+  }
+
+  void toggleComment() {
+    _isCommentVisible.value = !_isCommentVisible.value;
+  }
+
+  void dispose() {
+    _appMode.dispose();
+    _isCommentVisible.dispose();
+  }
+}
