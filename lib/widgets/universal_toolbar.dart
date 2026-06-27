@@ -156,7 +156,7 @@ class _ModeSelectorState extends State<_ModeSelector> {
             final isSelected = currentMode == mode;
 
             return MenuItemButton(
-              onPressed: () => appModeController.setAppMode(mode),
+              onPressed: () => appModeController.appMode.value = mode,
               child: Row(
                 mainAxisSize: .min,
                 children: [

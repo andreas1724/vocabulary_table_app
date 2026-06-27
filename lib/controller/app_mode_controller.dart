@@ -20,16 +20,9 @@ extension AppModeX on AppMode {
 }
 
 class AppModeController {
-  AppModeController();
-  final _appMode = signal<AppMode>(.view);
-
-  late final appMode = _appMode.readonly();
-
-  void setAppMode(AppMode mode) {
-    _appMode.value = mode;
-  }
+  final appMode = signal<AppMode>(.view);
 
   void dispose() {
-    _appMode.dispose();
+    appMode.dispose();
   }
 }
