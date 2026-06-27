@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:vocabulary_table_app/app_constants.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
+/// Size for the drag area between columns.
+const _dragHandleWidth = 48.0;
+
 class HeaderRow extends StatefulWidget {
-  const HeaderRow({super.key, required this.controller, required this.tableWidth});
+  const HeaderRow({
+    super.key,
+    required this.controller,
+    required this.tableWidth,
+  });
 
   final TableLayoutController controller;
   final double tableWidth;
@@ -15,7 +21,7 @@ class HeaderRow extends StatefulWidget {
 
 class _HeaderRowState extends State<HeaderRow> {
   final _containerKey = GlobalKey();
-  
+
   // Cache the RenderBox to avoid tree-walking during 60fps drag updates
   RenderBox? _cachedRenderBox;
 
@@ -78,7 +84,9 @@ class _HeaderRowState extends State<HeaderRow> {
                 if (widget.tableWidth <= 0) return;
                 final localX = _getLocalX(globalPosition);
                 if (localX != null) {
-                  widget.controller.updateFirstHandle(localX / widget.tableWidth);
+                  widget.controller.updateFirstHandle(
+                    localX / widget.tableWidth,
+                  );
                 }
               },
             ),
@@ -92,7 +100,9 @@ class _HeaderRowState extends State<HeaderRow> {
                   if (widget.tableWidth <= 0) return;
                   final localX = _getLocalX(globalPosition);
                   if (localX != null) {
-                    widget.controller.updateSecondHandle(localX / widget.tableWidth);
+                    widget.controller.updateSecondHandle(
+                      localX / widget.tableWidth,
+                    );
                   }
                 },
               ),
@@ -124,19 +134,19 @@ class _DragHandleState extends State<_DragHandle> {
 
   @override
   Widget build(BuildContext context) {
-
     return Positioned(
-      left: widget.leftPosition - AppDimens.dragHandleWidth / 2,
+      left: widget.leftPosition - _dragHandleWidth / 2,
       top: 0,
       bottom: 0,
-      width: AppDimens.dragHandleWidth,
+      width: _dragHandleWidth,
       child: GestureDetector(
         behavior: .opaque,
         onHorizontalDragDown: (details) {
           setState(() => _isDragging = true);
           widget.onDragStart(details);
         },
-        onHorizontalDragUpdate: (details) => widget.onDragUpdate(details.globalPosition),
+        onHorizontalDragUpdate: (details) =>
+            widget.onDragUpdate(details.globalPosition),
         onHorizontalDragEnd: (_) => setState(() => _isDragging = false),
         onHorizontalDragCancel: () => setState(() => _isDragging = false),
         child: MouseRegion(
@@ -150,7 +160,9 @@ class _DragHandleState extends State<_DragHandle> {
               // Highlight with primary color when active
               color: _isDragging
                   ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.primary.withValues(alpha: 0.0), 
+                  : Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.0),
             ),
           ),
         ),
