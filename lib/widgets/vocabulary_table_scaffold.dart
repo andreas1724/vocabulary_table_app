@@ -6,12 +6,12 @@ import 'package:vocabulary_table_app/widgets/table_scope.dart';
 import 'package:vocabulary_table_app/widgets/universal_toolbar.dart';
 
 class VocabularyTableScaffold extends StatelessWidget {
-  VocabularyTableScaffold({super.key});
-  final _tableLayoutController = TableLayoutController();
+  const VocabularyTableScaffold({super.key});
 
   @override
   Widget build(BuildContext context) {
     final orientationController = TableScope.of(context).orientationController;
+    final tableLayoutController = TableScope.of(context).tableLayoutController;
 
     return Scaffold(
       body: SafeArea(
@@ -23,8 +23,6 @@ class VocabularyTableScaffold extends StatelessWidget {
               padding: const EdgeInsets.all(4.0),
               child: Flex(
                 direction: isLandscape ? .horizontal : .vertical,
-                crossAxisAlignment: isLandscape ? .start : .center,
-                mainAxisAlignment: isLandscape ? .center : .start,
                 children: [
                   UniversalToolbar(isVertical: isLandscape),
                   Expanded(
@@ -33,7 +31,7 @@ class VocabularyTableScaffold extends StatelessWidget {
                         LayoutBuilder(
                           builder: (context, constraints) {
                             return HeaderRow(
-                              controller: _tableLayoutController,
+                              controller: tableLayoutController,
                               tableWidth: constraints.maxWidth,
                             );
                           }

@@ -22,21 +22,14 @@ extension AppModeX on AppMode {
 class AppModeController {
   AppModeController();
   final _appMode = signal<AppMode>(.view);
-  final _isCommentVisible = signal<bool>(true);
 
   late final appMode = _appMode.readonly();
-  late final isCommentVisible = _isCommentVisible.readonly();
 
   void setAppMode(AppMode mode) {
     _appMode.value = mode;
   }
 
-  void toggleComment() {
-    _isCommentVisible.value = !_isCommentVisible.value;
-  }
-
   void dispose() {
     _appMode.dispose();
-    _isCommentVisible.dispose();
   }
 }

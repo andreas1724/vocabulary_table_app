@@ -92,14 +92,14 @@ class _CommentsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appModeController = TableScope.of(context).appModeController;
+    final tableLayoutController = TableScope.of(context).tableLayoutController;
     return SignalBuilder(
       builder: (context) {
-        final isVisible = appModeController.isCommentVisible.value;
+        final isVisible = tableLayoutController.showComment.value;
         return IconButton(
           icon: Icon(isVisible ? Icons.speaker_notes : Icons.speaker_notes_off),
           tooltip: 'Toggle Comments',
-          onPressed: () => appModeController.toggleComment(),
+          onPressed: () => tableLayoutController.toggleComment(),
         );
       },
     );
