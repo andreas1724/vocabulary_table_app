@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:vocabulary_table_app/app_constants.dart';
 
 class WindowMetricsService with WidgetsBindingObserver {
   WindowMetricsService({required this.onLayoutChanged});
@@ -29,8 +30,8 @@ class WindowMetricsService with WidgetsBindingObserver {
     final logicalSize = view.physicalSize / view.devicePixelRatio;
 
     final isLandscapeLayout =
-        logicalSize.width > 1.25 * logicalSize.height &&
-        logicalSize.height < 500;
+        logicalSize.width > AppDimens.landscapeThreshold * logicalSize.height &&
+        logicalSize.height < AppDimens.portraitHeightThreshold;
 
     onLayoutChanged(isLandscape: isLandscapeLayout);
   }

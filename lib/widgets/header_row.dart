@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
+import 'package:vocabulary_table_app/app_constants.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
 class HeaderRow extends StatefulWidget {
@@ -123,14 +124,12 @@ class _DragHandleState extends State<_DragHandle> {
 
   @override
   Widget build(BuildContext context) {
-    // 48.0 is the recommended minimum touch target size (Material Design)
-    const dragHandleWidth = 48.0;
 
     return Positioned(
-      left: widget.leftPosition - dragHandleWidth / 2,
+      left: widget.leftPosition - AppDimens.dragHandleWidth / 2,
       top: 0,
       bottom: 0,
-      width: dragHandleWidth,
+      width: AppDimens.dragHandleWidth,
       child: GestureDetector(
         behavior: .opaque,
         onHorizontalDragDown: (details) {

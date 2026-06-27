@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/widgets/header_row.dart';
 import 'package:vocabulary_table_app/widgets/table_scope.dart';
 import 'package:vocabulary_table_app/widgets/universal_toolbar.dart';

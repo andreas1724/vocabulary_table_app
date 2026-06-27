@@ -1,9 +1,8 @@
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:meta/meta.dart';
+import 'package:vocabulary_table_app/app_constants.dart';
 
 class TableLayoutController {
-  static const double minColumnRatio = 0.05;
-
   final _ratio1 = signal(1.0 / 3.0);
   final _ratio2 = signal(1.0 / 3.0);
   final _savedRatio3 = signal(1.0 / 3.0);
@@ -43,7 +42,7 @@ class TableLayoutController {
         // HIDING COMMENT
         final currentR3 = 1.0 - r1 - r2;
         // Securely save the ratio, ensuring it respects our min limits
-        _savedRatio3.value = currentR3.clamp(minColumnRatio, 1.0);
+        _savedRatio3.value = currentR3.clamp(AppDimens.minColumnRatio, 1.0);
 
         // Scale up r1 and r2 proportional to fill the whole 1.0 space.
         // Since r1 + r2 is guaranteed to be > 0 by minColumnRatio, this is perfectly safe.
@@ -68,8 +67,8 @@ class TableLayoutController {
     final combined = r1 + r2;
 
     final clampedR1 = targetRatio.clamp(
-      minColumnRatio,
-      combined - minColumnRatio,
+      AppDimens.minColumnRatio,
+      combined - AppDimens.minColumnRatio,
     );
 
     batch(() {
@@ -82,8 +81,8 @@ class TableLayoutController {
     final r1 = _ratio1.peek();
 
     final clampedBoundary = targetRatio.clamp(
-      r1 + minColumnRatio,
-      1.0 - minColumnRatio,
+      r1 + AppDimens.minColumnRatio,
+      1.0 - AppDimens.minColumnRatio,
     );
 
     _ratio2.value = clampedBoundary - r1;
