@@ -1,10 +1,29 @@
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:meta/meta.dart';
+import 'dart:math' show log, ln2;
 
 /// The minimum width of a column as a fraction of the total row width.
 const _minColumnRatio = 0.05;
 
 class TableLayoutController {
+  static const minScale = 0.5;
+  static const maxScale = 2.0;
+
+  /// For use in Slider (2^minScaleExp = minScale).
+  static final minScaleExp = log(minScale) / ln2;
+
+  /// For use in Slider (2^maxScaleExp = maxScale).
+  static final maxScaleExp = log(maxScale) / ln2;
+
+  static const _initialScale = 1.0;
+
+  static const _standardBorderWidth = 1.0;
+
+  final scale = signal(_initialScale);
+  double _baseScale = _initialScale;
+
+  late final borderWidth = computed(() => scale.value * _standardBorderWidth);
+
   final _ratio1 = signal(1.0 / 3.0);
   final _ratio2 = signal(1.0 / 3.0);
   final _savedRatio3 = signal(1.0 / 3.0);
@@ -26,10 +45,26 @@ class TableLayoutController {
   );
 
   void dispose() {
+    scale.dispose();
+    borderWidth.dispose();
     _ratio1.dispose();
     _ratio2.dispose();
     _showComment.dispose();
     _savedRatio3.dispose();
+    col1Ratio.dispose();
+    col2Ratio.dispose();
+    col3Ratio.dispose();
+  }
+
+  /// Call in GestureDetectors onScaleStart.
+  void scaleStart() {
+    _baseScale = scale.peek();
+  }
+
+  /// Call in GestureDetectors onScaleUpdate.
+  void scaleUpdate(double factor) {
+    final newScale = _baseScale * factor;
+    scale.value = newScale.clamp(minScale, maxScale);
   }
 
   void toggleComment() {
