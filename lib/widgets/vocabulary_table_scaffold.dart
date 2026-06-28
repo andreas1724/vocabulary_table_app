@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
+import 'package:vocabulary_table_app/controller/orientation_controller.dart';
+import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/widgets/header_row.dart';
-import 'package:vocabulary_table_app/widgets/table_scope.dart';
 import 'package:vocabulary_table_app/widgets/universal_toolbar.dart';
 
 class VocabularyTableScaffold extends StatelessWidget {
@@ -9,8 +11,8 @@ class VocabularyTableScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orientationController = TableScope.of(context).orientationController;
-    final tableLayoutController = TableScope.of(context).tableLayoutController;
+    final orientationController = GetIt.I<OrientationController>();
+    final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return Scaffold(
       body: SafeArea(
@@ -33,7 +35,7 @@ class VocabularyTableScaffold extends StatelessWidget {
                               controller: tableLayoutController,
                               tableWidth: constraints.maxWidth,
                             );
-                          }
+                          },
                         ),
                       ],
                     ),

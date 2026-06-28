@@ -1,29 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:vocabulary_table_app/controller/app_mode_controller.dart';
 import 'package:vocabulary_table_app/controller/orientation_controller.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
-class TableScope extends InheritedWidget {
-  const TableScope({
-    super.key,
-    required this.orientationController,
-    required this.tableLayoutController,
-    required this.appModeController,
-    required super.child,
-  });
+class TableScope extends StatefulWidget {
+  const TableScope({super.key, required this.child});
 
-  final OrientationController orientationController;
-  final TableLayoutController tableLayoutController;
-  final AppModeController appModeController;
+  final Widget child;
 
-  static TableScope of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<TableScope>();
-    if (scope == null) {
-      throw StateError('TableScope missing in context tree.');
-    }
-    return scope;
+  @override
+  State<TableScope> createState() => _TableScopeState();
+}
+
+class _TableScopeState extends State<TableScope> {
+  @override
+  void initState() {
+    super.initState();
+
+    GetIt.I.pushNewScope(scopeName: 'TableScope');
+
+    GetIt.I.registerLazySingleton<OrientationController>(
+      () => OrientationController()..init(),
+      dispose: (controller) => controller.dispose(),
+    );
+
+    GetIt.I.registerLazySingleton<TableLayoutController>(
+      () => TableLayoutController(),
+      dispose: (controller) => controller.dispose,
+    );
+
+    GetIt.I.registerLazySingleton<AppModeController>(
+      () => AppModeController(),
+      dispose: (controller) => controller.dispose,
+    );
   }
 
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) => false;
+  void dispose() {
+    GetIt.I.popScope();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/app_mode_controller.dart';
-import 'package:vocabulary_table_app/widgets/table_scope.dart';
+import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
 class UniversalToolbar extends StatelessWidget {
   const UniversalToolbar({super.key, required this.isVertical});
@@ -92,7 +93,7 @@ class _CommentsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tableLayoutController = TableScope.of(context).tableLayoutController;
+    final tableLayoutController = GetIt.I<TableLayoutController>();
     return SignalBuilder(
       builder: (context) {
         final isVisible = tableLayoutController.showComment.value;
@@ -126,7 +127,7 @@ class _ModeSelectorState extends State<_ModeSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final appModeController = TableScope.of(context).appModeController;
+    final appModeController = GetIt.I<AppModeController>();
     final theme = Theme.of(context);
     const iconWidth = 40.0;
 

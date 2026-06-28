@@ -38,7 +38,6 @@ class WindowMetricsService with WidgetsBindingObserver {
     final isLandscapeLayout =
         logicalSize.width > _landscapeThreshold * logicalSize.height &&
         logicalSize.height < _portraitHeightThreshold;
-
     onLayoutChanged(isLandscape: isLandscapeLayout);
   }
 }
