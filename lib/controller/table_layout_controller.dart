@@ -22,6 +22,8 @@ class TableLayoutController {
   final scale = signal(_initialScale);
   double _baseScale = _initialScale;
 
+  final tableWidth = signal(0.0);
+
   late final borderWidth = computed(() => scale.value * _standardBorderWidth);
 
   final _ratio1 = signal(1.0 / 3.0);

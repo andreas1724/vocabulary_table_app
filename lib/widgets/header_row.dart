@@ -6,11 +6,7 @@ import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 const _dragHandleWidth = 48.0;
 
 class HeaderRow extends StatefulWidget {
-  const HeaderRow({
-    super.key,
-    required this.controller,
-    required this.tableWidth,
-  });
+  HeaderRow({super.key, required this.controller}) : tableWidth = controller.tableWidth.peek();
 
   final TableLayoutController controller;
   final double tableWidth;

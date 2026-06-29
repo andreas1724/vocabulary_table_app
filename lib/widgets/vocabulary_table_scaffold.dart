@@ -31,9 +31,9 @@ class VocabularyTableScaffold extends StatelessWidget {
                       children: [
                         LayoutBuilder(
                           builder: (context, constraints) {
+                            tableLayoutController.tableWidth.value = constraints.maxWidth;
                             return HeaderRow(
                               controller: tableLayoutController,
-                              tableWidth: constraints.maxWidth,
                             );
                           },
                         ),
