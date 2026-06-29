@@ -127,13 +127,13 @@ class _ModeSelectorState extends State<_ModeSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final appModeController = GetIt.I<AppModeController>();
+    final tableLayoutController = GetIt.I<TableLayoutController>();
     final theme = Theme.of(context);
     const iconWidth = 40.0;
 
     return SignalBuilder(
       builder: (context) {
-        final currentMode = appModeController.appMode.value;
+        final currentMode = tableLayoutController.appMode.value;
 
         return MenuAnchor(
           alignmentOffset: widget.isVertical
@@ -157,7 +157,7 @@ class _ModeSelectorState extends State<_ModeSelector> {
             final isSelected = currentMode == mode;
 
             return MenuItemButton(
-              onPressed: () => appModeController.appMode.value = mode,
+              onPressed: () => tableLayoutController.appMode.value = mode,
               child: Row(
                 mainAxisSize: .min,
                 children: [

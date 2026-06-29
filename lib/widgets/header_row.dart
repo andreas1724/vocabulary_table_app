@@ -37,6 +37,8 @@ class _HeaderRowState extends State<HeaderRow> {
     return SignalBuilder(
       builder: (context) {
         final tableWidth = widget.controller.tableWidth.value;
+        final borderColor = widget.controller.borderColor.value;
+        final borderWidth = widget.controller.borderWidth.value;
 
         final r1 = widget.controller.col1Ratio.value;
         final r2 = widget.controller.col2Ratio.value;
@@ -47,11 +49,13 @@ class _HeaderRowState extends State<HeaderRow> {
         final w2 = tableWidth * r2;
         final w3 = tableWidth * r3;
 
+        final scale = widget.controller.scale.value;
+
         return Stack(
           key: _containerKey,
           children: [
             Table(
-              border: TableBorder.all(),
+              border: TableBorder.all(color: borderColor, width: borderWidth),
               columnWidths: {
                 0: FixedColumnWidth(w1),
                 1: FixedColumnWidth(w2),
@@ -64,7 +68,14 @@ class _HeaderRowState extends State<HeaderRow> {
                         (text) => ClipRect(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text(text),
+                            child: Text(
+                              text,
+                              style: TextStyle(
+                                fontSize:
+                                    TableLayoutController.fontSize * scale,
+                                fontWeight: .bold,
+                              ),
+                            ),
                           ),
                         ),
                       )
@@ -81,9 +92,7 @@ class _HeaderRowState extends State<HeaderRow> {
                 if (tableWidth <= 0) return;
                 final localX = _getLocalX(globalPosition);
                 if (localX != null) {
-                  widget.controller.updateFirstHandle(
-                    localX / tableWidth,
-                  );
+                  widget.controller.updateFirstHandle(localX / tableWidth);
                 }
               },
             ),
@@ -97,9 +106,7 @@ class _HeaderRowState extends State<HeaderRow> {
                   if (tableWidth <= 0) return;
                   final localX = _getLocalX(globalPosition);
                   if (localX != null) {
-                    widget.controller.updateSecondHandle(
-                      localX / tableWidth,
-                    );
+                    widget.controller.updateSecondHandle(localX / tableWidth);
                   }
                 },
               ),

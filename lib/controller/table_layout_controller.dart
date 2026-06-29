@@ -1,11 +1,33 @@
+import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:meta/meta.dart';
 import 'dart:math' show log, ln2;
 
 /// The minimum width of a column as a fraction of the total row width.
 const _minColumnRatio = 0.05;
+const _standardBorderColor = Colors.black54;
+
+enum AppMode { view, drag, edit, play }
+
+extension AppModeX on AppMode {
+  String get title => switch (this) {
+    .view => 'View',
+    .drag => 'Drag',
+    .edit => 'Edit',
+    .play => 'Play (TTS)',
+  };
+
+  IconData get icon => switch (this) {
+    .view => Icons.visibility,
+    .drag => Icons.drag_handle,
+    .edit => Icons.edit,
+    .play => Icons.play_arrow,
+  };
+}
 
 class TableLayoutController {
+  TableLayoutController({Color borderColor = _standardBorderColor})
+    : borderColor = signal(borderColor);
+  static const fontSize = 14.0;
   static const minScale = 0.5;
   static const maxScale = 2.0;
 
@@ -23,6 +45,8 @@ class TableLayoutController {
   double _baseScale = _initialScale;
 
   final tableWidth = signal(0.0);
+  final appMode = signal<AppMode>(.view);
+  final Signal<Color> borderColor;
 
   late final borderWidth = computed(() => scale.value * _standardBorderWidth);
 
@@ -49,6 +73,9 @@ class TableLayoutController {
   void dispose() {
     scale.dispose();
     borderWidth.dispose();
+    tableWidth.dispose();
+    borderColor.dispose();
+    appMode.dispose();
     _ratio1.dispose();
     _ratio2.dispose();
     _showComment.dispose();

@@ -29,11 +29,6 @@ class _TableScopeState extends State<TableScope> {
       () => TableLayoutController(),
       dispose: (controller) => controller.dispose,
     );
-
-    GetIt.I.registerLazySingleton<AppModeController>(
-      () => AppModeController(),
-      dispose: (controller) => controller.dispose,
-    );
   }
 
   @override
