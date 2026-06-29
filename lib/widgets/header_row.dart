@@ -6,9 +6,14 @@ import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 const _dragHandleWidth = 48.0;
 
 class HeaderRow extends StatefulWidget {
-  const HeaderRow({super.key, required this.controller});
+  const HeaderRow({
+    super.key,
+    required this.controller,
+    required this.tableWidth,
+  });
 
   final TableLayoutController controller;
+  final double tableWidth;
 
   @override
   State<HeaderRow> createState() => _HeaderRowState();
@@ -36,18 +41,14 @@ class _HeaderRowState extends State<HeaderRow> {
   Widget build(BuildContext context) {
     return SignalBuilder(
       builder: (context) {
-        final tableWidth = widget.controller.tableWidth.value;
-        final borderColor = widget.controller.borderColor.value;
+        final tableWidth = widget.tableWidth;
         final borderWidth = widget.controller.borderWidth.value;
-
-        final r1 = widget.controller.col1Ratio.value;
-        final r2 = widget.controller.col2Ratio.value;
-        final r3 = widget.controller.col3Ratio.value;
+        final borderColor = widget.controller.borderColor.value;
         final showComment = widget.controller.showComment.value;
 
-        final w1 = tableWidth * r1;
-        final w2 = tableWidth * r2;
-        final w3 = tableWidth * r3;
+        final w1 = tableWidth * widget.controller.col1Ratio.value;
+        final w2 = tableWidth * widget.controller.col2Ratio.value;
+        final w3 = tableWidth * widget.controller.col3Ratio.value;
 
         final scale = widget.controller.scale.value;
 
@@ -67,7 +68,9 @@ class _HeaderRowState extends State<HeaderRow> {
                       .map(
                         (text) => ClipRect(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8 * scale,
+                            ),
                             child: Text(
                               text,
                               style: TextStyle(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
-import 'package:vocabulary_table_app/controller/app_mode_controller.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
 class UniversalToolbar extends StatelessWidget {

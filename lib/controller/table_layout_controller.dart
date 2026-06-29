@@ -28,6 +28,7 @@ class TableLayoutController {
   TableLayoutController({Color borderColor = _standardBorderColor})
     : borderColor = signal(borderColor);
   static const fontSize = 14.0;
+
   static const minScale = 0.5;
   static const maxScale = 2.0;
 
@@ -44,7 +45,6 @@ class TableLayoutController {
   final scale = signal(_initialScale);
   double _baseScale = _initialScale;
 
-  final tableWidth = signal(0.0);
   final appMode = signal<AppMode>(.view);
   final Signal<Color> borderColor;
 
@@ -73,7 +73,6 @@ class TableLayoutController {
   void dispose() {
     scale.dispose();
     borderWidth.dispose();
-    tableWidth.dispose();
     borderColor.dispose();
     appMode.dispose();
     _ratio1.dispose();

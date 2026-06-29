@@ -5,7 +5,6 @@ import 'package:vocabulary_table_app/controller/orientation_controller.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
-import 'package:vocabulary_table_app/widgets/header_row.dart';
 import 'package:vocabulary_table_app/widgets/universal_toolbar.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table.dart';
 
