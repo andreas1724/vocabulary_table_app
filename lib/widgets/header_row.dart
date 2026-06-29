@@ -6,10 +6,9 @@ import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 const _dragHandleWidth = 48.0;
 
 class HeaderRow extends StatefulWidget {
-  HeaderRow({super.key, required this.controller}) : tableWidth = controller.tableWidth.peek();
+  const HeaderRow({super.key, required this.controller});
 
   final TableLayoutController controller;
-  final double tableWidth;
 
   @override
   State<HeaderRow> createState() => _HeaderRowState();
@@ -37,14 +36,16 @@ class _HeaderRowState extends State<HeaderRow> {
   Widget build(BuildContext context) {
     return SignalBuilder(
       builder: (context) {
+        final tableWidth = widget.controller.tableWidth.value;
+
         final r1 = widget.controller.col1Ratio.value;
         final r2 = widget.controller.col2Ratio.value;
         final r3 = widget.controller.col3Ratio.value;
         final showComment = widget.controller.showComment.value;
 
-        final w1 = widget.tableWidth * r1;
-        final w2 = widget.tableWidth * r2;
-        final w3 = widget.tableWidth * r3;
+        final w1 = tableWidth * r1;
+        final w2 = tableWidth * r2;
+        final w3 = tableWidth * r3;
 
         return Stack(
           key: _containerKey,
@@ -77,11 +78,11 @@ class _HeaderRowState extends State<HeaderRow> {
               leftPosition: w1,
               onDragStart: _cacheRenderBox, // Cache when dragging begins
               onDragUpdate: (globalPosition) {
-                if (widget.tableWidth <= 0) return;
+                if (tableWidth <= 0) return;
                 final localX = _getLocalX(globalPosition);
                 if (localX != null) {
                   widget.controller.updateFirstHandle(
-                    localX / widget.tableWidth,
+                    localX / tableWidth,
                   );
                 }
               },
@@ -93,11 +94,11 @@ class _HeaderRowState extends State<HeaderRow> {
                 leftPosition: w1 + w2,
                 onDragStart: _cacheRenderBox,
                 onDragUpdate: (globalPosition) {
-                  if (widget.tableWidth <= 0) return;
+                  if (tableWidth <= 0) return;
                   final localX = _getLocalX(globalPosition);
                   if (localX != null) {
                     widget.controller.updateSecondHandle(
-                      localX / widget.tableWidth,
+                      localX / tableWidth,
                     );
                   }
                 },
