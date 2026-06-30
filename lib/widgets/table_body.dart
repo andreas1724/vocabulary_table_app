@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -24,6 +25,9 @@ class TableBody extends StatefulWidget {
 class _TableBodyState extends State<TableBody> {
   bool _isDragging = false;
 
+  // Track active pointers to resolve gesture collisions.
+  final _activePointers = signal(0);
+
   @override
   void initState() {
     super.initState();
@@ -36,58 +40,75 @@ class _TableBodyState extends State<TableBody> {
 
   @override
   void dispose() {
+    _activePointers.dispose();
     GetIt.I.popScope();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SignalBuilder(
-      builder: (context) {
-        final vocabularyItems =
-            widget.vocabularyController.vocabularyItems.value;
-        final borderWidth = widget.tableLayoutController.borderWidth.value;
-        final borderColor = widget.tableLayoutController.borderColor.value;
+    // 1. Wrap the widget tree with a Listener to count screen touches.
+    return Listener(
+      onPointerDown: (_) => _activePointers.value++,
+      // Clamp prevents the count from becoming negative if an event is dropped.
+      onPointerUp: (_) =>
+          _activePointers.value = (_activePointers.value - 1).clamp(0, 10),
+      onPointerCancel: (_) =>
+          _activePointers.value = (_activePointers.value - 1).clamp(0, 10),
+      child: SignalBuilder(
+        builder: (context) {
+          final vocabularyItems =
+              widget.vocabularyController.vocabularyItems.value;
+          final borderWidth = widget.tableLayoutController.borderWidth.value;
+          final borderColor = widget.tableLayoutController.borderColor.value;
 
-        return ReorderableListView.builder(
-          buildDefaultDragHandles: false,
-          itemCount: vocabularyItems.length,
-          onReorderStart: (index) => setState(() => _isDragging = true),
-          onReorderEnd: (index) => setState(() => _isDragging = false),
-          onReorderItem: (int oldIndex, int newIndex) =>
-              widget.vocabularyController.reorderItem(oldIndex, newIndex),
-          proxyDecorator: _proxyDecorator,
+          final pointers = _activePointers.value;
 
-          itemBuilder: (context, index) {
-            final vocabularyItem = vocabularyItems[index];
+          return ReorderableListView.builder(
+            // 2. Kill list scrolling dynamically if multiple fingers are on screen.
+            // This hands control back to the outer GestureDetector's onScaleUpdate.
+            physics: pointers > 1
+                ? const NeverScrollableScrollPhysics()
+                : const AlwaysScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: vocabularyItems.length,
+            onReorderStart: (index) => setState(() => _isDragging = true),
+            onReorderEnd: (index) => setState(() => _isDragging = false),
+            onReorderItem: (int oldIndex, int newIndex) =>
+                widget.vocabularyController.reorderItem(oldIndex, newIndex),
+            proxyDecorator: _proxyDecorator,
 
-            return Stack(
-              key: ValueKey(vocabularyItem.id),
+            itemBuilder: (context, index) {
+              final vocabularyItem = vocabularyItems[index];
 
-              // Allows drawing the top line outside the box
-              clipBehavior: .none,
-              children: [
-                // 1. The actual row as an optimized single-row table
-                _TableRowWithoutTopBorder(
-                  vocabularyItem,
-                  index,
-                  widget.tableWidth,
-                ),
-                // 2. The "border-collapse" line, which lies exactly on the bottom border
-                // of the previous row or closes the gap below.
-                if (_isDragging)
-                  Positioned(
-                    top: -borderWidth,
-                    left: 0,
-                    right: 0,
-                    height: borderWidth,
-                    child: Container(color: borderColor),
+              return Stack(
+                key: ValueKey(vocabularyItem.id),
+
+                // Allows drawing the top line outside the box
+                clipBehavior: .none,
+                children: [
+                  // 1. The actual row as an optimized single-row table
+                  _TableRowWithoutTopBorder(
+                    vocabularyItem,
+                    index,
+                    widget.tableWidth,
                   ),
-              ],
-            );
-          },
-        );
-      },
+                  // 2. The "border-collapse" line, which lies exactly on the bottom border
+                  // of the previous row or closes the gap below.
+                  if (_isDragging)
+                    Positioned(
+                      top: -borderWidth,
+                      left: 0,
+                      right: 0,
+                      height: borderWidth,
+                      child: Container(color: borderColor),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -156,15 +177,17 @@ class _TableRowWithoutTopBorder extends StatelessWidget {
           children: [
             TableRow(
               children: [
-                _VocabularyTableCell(text: vocabularyItem.termA),
+                _VocabularyTableCell(text: vocabularyItem.termA, index: index),
                 _VocabularyTableCell(
                   text: vocabularyItem.termB,
-                  index: showComment ? null : index,
+                  index: index,
+                  draggable: showComment ? false : true,
                 ),
                 if (showComment)
                   _VocabularyTableCell(
                     text: vocabularyItem.comment,
                     index: index,
+                    draggable: true,
                   ),
               ],
             ),
@@ -175,54 +198,86 @@ class _TableRowWithoutTopBorder extends StatelessWidget {
   }
 }
 
-/// Only cells, who could have a drag handle, should have an index.
 class _VocabularyTableCell extends StatelessWidget {
-  _VocabularyTableCell({required this.text, this.index});
+  _VocabularyTableCell({
+    required this.text,
+    required this.index,
+    this.draggable = false,
+  });
 
   final tableLayoutController = GetIt.I<TableLayoutController>();
   final String text;
-  final int? index;
+  final int index;
+  final bool draggable;
 
   @override
   Widget build(BuildContext context) {
     const padding = 6.0;
-    const dragHandleSize = 18.0;
-    final dragHandleColor = Colors.grey[700];
 
     return SignalBuilder(
       builder: (context) {
         final scale = tableLayoutController.scale.value;
         final isDragMode = tableLayoutController.appMode.value == .drag;
-        return Padding(
-          padding: EdgeInsets.all(scale * padding),
-          child: Row(
-            crossAxisAlignment: .start,
-            children: [
-              Expanded(
-                child: SelectableText(
-                  text,
-                  minLines: 1,
-                  maxLines: isDragMode ? 3 : null,
-                  style: TextStyle(
-                    fontSize: TableLayoutController.fontSize * scale,
-                  ),
-                ),
-              ),
-              if (isDragMode && index != null)
-                ReorderableDragStartListener(
-                  index: index!,
-                  child: Center(
-                    child: Icon(
-                      Icons.drag_handle,
-                      size: dragHandleSize * scale,
-                      color: dragHandleColor,
+        return Container(
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+          child: Padding(
+            padding: EdgeInsets.all(scale * padding),
+            child: Row(
+              crossAxisAlignment: .start,
+              children: [
+                Expanded(
+                  child: SelectableText(
+                    text,
+                    minLines: 1,
+                    maxLines: isDragMode ? 3 : null,
+                    style: TextStyle(
+                      fontSize: TableLayoutController.fontSize * scale,
                     ),
                   ),
                 ),
-            ],
+                if (isDragMode && draggable)
+                  ResponsiveDragHandle(index: index, scale: scale),
+              ],
+            ),
           ),
         );
       },
+    );
+  }
+}
+
+class ResponsiveDragHandle extends StatelessWidget {
+  const ResponsiveDragHandle({
+    super.key,
+    required this.index,
+    required this.scale,
+  });
+
+  final int index;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    const dragHandleSize = 18.0;
+    final dragHandleColor = Colors.grey[700];
+    final isMobile =
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);
+
+    return ReorderableDragStartListener(
+      index: index,
+      child: Container(
+        color: Colors.transparent,
+        // Apply responsive padding for the hit area.
+        padding: EdgeInsets.only(left: isMobile ? 32.0 : scale * 4.0),
+        child: Center(
+          child: Icon(
+            Icons.drag_handle,
+            size: dragHandleSize * scale,
+            color: dragHandleColor,
+          ),
+        ),
+      ),
     );
   }
 }

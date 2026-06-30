@@ -17,8 +17,8 @@ class VocabularyTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: .opaque,
       onScaleStart: (details) => tableLayoutController.scaleStart(),
-      onScaleEnd: (details) => tableLayoutController.scaleStart(),
       onScaleUpdate: (details) =>
           tableLayoutController.scaleUpdate(details.scale),
       child: LayoutBuilder(

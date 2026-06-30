@@ -13,7 +13,7 @@ class UniversalToolbar extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Material(
-      color: theme.colorScheme.surfaceContainerLow,
+      color: theme.colorScheme.surfaceContainer,
       elevation: 0,
       child: Container(
         width: isVertical ? kToolbarHeight : double.infinity,

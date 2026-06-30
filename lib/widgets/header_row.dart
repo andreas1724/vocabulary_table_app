@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
 /// Size for the drag area between columns.
-const _dragHandleWidth = 48.0;
+const _dragHandleWidthMobile = 48.0;
+const _dragHandleWidthDesktop = 24.0;
 
 class HeaderRow extends StatefulWidget {
   const HeaderRow({
@@ -55,36 +57,39 @@ class _HeaderRowState extends State<HeaderRow> {
         return Stack(
           key: _containerKey,
           children: [
-            Table(
-              border: TableBorder.all(color: borderColor, width: borderWidth),
-              columnWidths: {
-                0: FixedColumnWidth(w1),
-                1: FixedColumnWidth(w2),
-                if (showComment) 2: FixedColumnWidth(w3),
-              },
-              children: [
-                TableRow(
-                  children: ['English', 'German', if (showComment) 'Comment']
-                      .map(
-                        (text) => ClipRect(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8 * scale,
-                            ),
-                            child: Text(
-                              text,
-                              style: TextStyle(
-                                fontSize:
-                                    TableLayoutController.fontSize * scale,
-                                fontWeight: .bold,
+            Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Table(
+                border: TableBorder.all(color: borderColor, width: borderWidth),
+                columnWidths: {
+                  0: FixedColumnWidth(w1),
+                  1: FixedColumnWidth(w2),
+                  if (showComment) 2: FixedColumnWidth(w3),
+                },
+                children: [
+                  TableRow(
+                    children: ['English', 'German', if (showComment) 'Comment']
+                        .map(
+                          (text) => ClipRect(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8 * scale,
+                              ),
+                              child: Text(
+                                text,
+                                style: TextStyle(
+                                  fontSize:
+                                      TableLayoutController.fontSize * scale,
+                                  fontWeight: .bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+                        )
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
 
             // Handle 1
@@ -98,6 +103,7 @@ class _HeaderRowState extends State<HeaderRow> {
                   widget.controller.updateFirstHandle(localX / tableWidth);
                 }
               },
+              scale: scale,
             ),
 
             // Handle 2
@@ -112,6 +118,7 @@ class _HeaderRowState extends State<HeaderRow> {
                     widget.controller.updateSecondHandle(localX / tableWidth);
                   }
                 },
+                scale: scale,
               ),
           ],
         );
@@ -125,9 +132,11 @@ class _DragHandle extends StatefulWidget {
     required this.leftPosition,
     required this.onDragStart,
     required this.onDragUpdate,
+    required this.scale,
   });
 
   final double leftPosition;
+  final double scale;
   final void Function(DragDownDetails) onDragStart;
   final void Function(Offset) onDragUpdate;
 
@@ -141,11 +150,18 @@ class _DragHandleState extends State<_DragHandle> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile =
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);
     return Positioned(
-      left: widget.leftPosition - _dragHandleWidth / 2,
+      left: isMobile
+          ? widget.leftPosition - _dragHandleWidthMobile / 2
+          : widget.leftPosition - widget.scale * _dragHandleWidthDesktop / 2,
       top: 0,
       bottom: 0,
-      width: _dragHandleWidth,
+      width: isMobile
+          ? _dragHandleWidthMobile
+          : widget.scale * _dragHandleWidthDesktop,
       child: GestureDetector(
         behavior: .opaque,
         onHorizontalDragDown: (details) {
