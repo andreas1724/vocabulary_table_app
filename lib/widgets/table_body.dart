@@ -80,18 +80,23 @@ class _TableBodyState extends State<TableBody> {
 
             itemBuilder: (context, index) {
               final vocabularyItem = vocabularyItems[index];
+              final id = vocabularyItem.peek().id;
 
               return Stack(
-                key: ValueKey(vocabularyItem.id),
+                key: ValueKey(id),
 
                 // Allows drawing the top line outside the box
                 clipBehavior: .none,
                 children: [
                   // 1. The actual row as an optimized single-row table
-                  _TableRowWithoutTopBorder(
-                    vocabularyItem,
-                    index,
-                    widget.tableWidth,
+                  SignalBuilder(
+                    builder: (context) {
+                      return _TableRowWithoutTopBorder(
+                        vocabularyItem.value,
+                        index,
+                        widget.tableWidth,
+                      );
+                    }
                   ),
                   // 2. The "border-collapse" line, which lies exactly on the bottom border
                   // of the previous row or closes the gap below.
