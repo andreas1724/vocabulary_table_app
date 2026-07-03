@@ -38,6 +38,7 @@ class _TableBodyState extends State<TableBody> {
           final vocabularyItems = _vocabularyController.vocabularyItems.value;
           final borderWidth = _tableLayoutController.borderWidth.value;
           final borderColor = _tableLayoutController.borderColor.value;
+
           final pointers = _activePointers.value;
 
           return ReorderableListView.builder(
@@ -87,13 +88,15 @@ class _TableBodyState extends State<TableBody> {
   }
 
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
+    const elevation = 6.0;
+
     return SignalBuilder(
       builder: (context) {
         final scale = _tableLayoutController.scale.value;
         final borderWidth = _tableLayoutController.borderWidth.value;
         final borderColor = _tableLayoutController.borderColor.value;
         return Material(
-          elevation: 6 * scale,
+          elevation: elevation * scale,
           color: Colors.blue[50],
           child: Stack(
             clipBehavior: .none,

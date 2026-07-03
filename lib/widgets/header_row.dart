@@ -94,7 +94,7 @@ class _HeaderRowState extends State<HeaderRow> {
             ),
 
             // Handle 1
-            _DragHandle(
+            _ColumnResizer(
               leftPosition: w1,
               onDragStart: _cacheRenderBox, // Cache when dragging begins
               onDragUpdate: (globalPosition) {
@@ -109,7 +109,7 @@ class _HeaderRowState extends State<HeaderRow> {
 
             // Handle 2
             if (showComment)
-              _DragHandle(
+              _ColumnResizer(
                 leftPosition: w1 + w2,
                 onDragStart: _cacheRenderBox,
                 onDragUpdate: (globalPosition) {
@@ -128,8 +128,8 @@ class _HeaderRowState extends State<HeaderRow> {
   }
 }
 
-class _DragHandle extends StatefulWidget {
-  const _DragHandle({
+class _ColumnResizer extends StatefulWidget {
+  const _ColumnResizer({
     required this.leftPosition,
     required this.onDragStart,
     required this.onDragUpdate,
@@ -142,10 +142,10 @@ class _DragHandle extends StatefulWidget {
   final void Function(Offset) onDragUpdate;
 
   @override
-  State<_DragHandle> createState() => _DragHandleState();
+  State<_ColumnResizer> createState() => _ColumnResizerState();
 }
 
-class _DragHandleState extends State<_DragHandle> {
+class _ColumnResizerState extends State<_ColumnResizer> {
   // Track drag state to provide visual feedback on touch devices
   bool _isDragging = false;
 

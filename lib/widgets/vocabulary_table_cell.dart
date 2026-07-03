@@ -4,7 +4,8 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
-/// Content of the cell with optional drag handle
+/// Content of the cell with optional drag handle. [draggable] indicates, if the
+/// cell has a drag handle, when the app is in drag mode.
 class VocabularyTableCell extends StatefulWidget {
   const VocabularyTableCell({
     super.key,
