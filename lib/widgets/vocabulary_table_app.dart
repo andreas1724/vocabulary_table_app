@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vocabulary_table_app/widgets/table_scope.dart';
+import 'package:vocabulary_table_app/widgets/vocabulary_table.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table_scaffold.dart';
 
 class VocabularyTableApp extends StatelessWidget {
@@ -7,6 +8,10 @@ class VocabularyTableApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TableScope(child: VocabularyTableScaffold());
+    return const TableScope(
+      child: VocabularyTableScaffold(
+        child: VocabularyTable(),
+      ),
+    );
   }
 }

@@ -10,14 +10,14 @@ enum AppMode { view, drag, edit, play }
 
 extension AppModeX on AppMode {
   String get title => switch (this) {
-    .view => '',
+    .view => 'Read',
     .drag => 'Drag',
     .edit => 'Edit',
     .play => 'Play (TTS)',
   };
 
   IconData get icon => switch (this) {
-    .view => Icons.check_box_outline_blank,
+    .view => Icons.auto_stories,
     .drag => Icons.drag_handle,
     .edit => Icons.edit,
     .play => Icons.play_arrow,
