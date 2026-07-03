@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 import 'package:vocabulary_table_app/utils/list_signal_extension.dart';
@@ -11,6 +12,25 @@ class VocabularyController {
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
 
   late final vocabularyItems = _vocabularyItems.readonly();
+
+  // Cache for active text controllers to preserve state and avoid memory leaks
+  final Map<String, TextEditingController> _textControllers = {};
+
+  /// Lazily retrieves or creates a TextEditingController for a specific item id.
+  TextEditingController getControllerFor(String itemId, String initialText) {
+    return _textControllers.putIfAbsent(
+      itemId,
+      () => TextEditingController(text: initialText),
+    );
+  }
+
+  /// IMPORTANT: Call this when the list is destroyed or items are permanently removed.
+  void _disposeControllers() {
+    for (final controller in _textControllers.values) {
+      controller.dispose();
+    }
+    _textControllers.clear();
+  }
 
   void addVocabulary(VocabularyItem item) {
     _vocabularyItems.add(signal(item));
@@ -55,6 +75,7 @@ class VocabularyController {
 
   void clear() {
     _vocabularyItems.clearAndDispose();
+    _disposeControllers();
   }
 
   void dispose() {

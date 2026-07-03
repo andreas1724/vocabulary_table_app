@@ -46,20 +46,26 @@ class TableRowWithoutTopBorder extends StatelessWidget {
           children: [
             TableRow(
               children: [
-                _SelectableTextCell(
+                _DynamicCell(
+                  itemId: vocabularyItem.id,
                   text: vocabularyItem.termA,
-                  index: index,
+                  rowIndex: index,
+                  colIndex: 0,
                   draggable: false,
                 ),
-                _SelectableTextCell(
-                  index: index,
+                _DynamicCell(
+                  itemId: vocabularyItem.id,
                   text: vocabularyItem.termB,
+                  rowIndex: index,
+                  colIndex: 1,
                   draggable: !showComment,
                 ),
                 if (showComment)
-                  _SelectableTextCell(
+                  _DynamicCell(
+                    itemId: vocabularyItem.id,
                     text: vocabularyItem.comment,
-                    index: index,
+                    rowIndex: index,
+                    colIndex: 2,
                     draggable: true,
                   ),
               ],
@@ -71,14 +77,59 @@ class TableRowWithoutTopBorder extends StatelessWidget {
   }
 }
 
+class _DynamicCell extends StatelessWidget {
+  const _DynamicCell({
+    required this.itemId,
+    required this.text,
+    required this.rowIndex,
+    required this.colIndex,
+    required this.draggable,
+  });
+
+  final String itemId;
+  final String text;
+  final int rowIndex;
+  final int colIndex;
+  final bool draggable;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = GetIt.I<TableLayoutController>();
+
+    // Isolated reactivity: Only the specific cell redraws on mode changes
+    return SignalBuilder(
+      builder: (context) {
+        return switch (controller.appMode.value) {
+          .view => _SelectableTextCell(
+              text: text,
+              rowIndex: rowIndex,
+              draggable: draggable,
+            ),
+          // .edit => _EditableTextCell(
+          //     itemId: itemId,
+          //     initialText: text,
+          //     colIndex: colIndex,
+          //     draggable: draggable,
+          //   ),
+          _ => _PlainTextCell(
+              text: text,
+              rowIndex: rowIndex,
+              draggable: draggable,
+            ),
+        };
+      },
+    );
+  }
+}
+
 class _SelectableTextCell extends StatelessWidget {
   const _SelectableTextCell({
     required this.text,
-    required this.index,
+    required this.rowIndex,
     required this.draggable,
   });
   final bool draggable;
-  final int index;
+  final int rowIndex;
   final String text;
 
   @override
@@ -89,11 +140,42 @@ class _SelectableTextCell extends StatelessWidget {
         final isDragMode = controller.appMode.value == .drag;
         final scale = controller.scale.value;
         return VocabularyTableCell(
-          index: index,
+          index: rowIndex,
           draggable: draggable,
           child: SelectableText(
             text,
             minLines: 1,
+            maxLines: isDragMode ? 3 : null,
+            style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PlainTextCell extends StatelessWidget {
+  const _PlainTextCell({
+    required this.text,
+    required this.rowIndex,
+    required this.draggable,
+  });
+  final bool draggable;
+  final int rowIndex;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = GetIt.I<TableLayoutController>();
+    return SignalBuilder(
+      builder: (context) {
+        final isDragMode = controller.appMode.value == .drag;
+        final scale = controller.scale.value;
+        return VocabularyTableCell(
+          index: rowIndex,
+          draggable: draggable,
+          child: Text(
+            text,
             maxLines: isDragMode ? 3 : null,
             style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
           ),
