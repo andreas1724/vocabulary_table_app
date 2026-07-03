@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
@@ -10,11 +11,9 @@ const _dragHandleWidthDesktop = 24.0;
 class HeaderRow extends StatefulWidget {
   const HeaderRow({
     super.key,
-    required this.controller,
     required this.tableWidth,
   });
 
-  final TableLayoutController controller;
   final double tableWidth;
 
   @override
@@ -22,6 +21,8 @@ class HeaderRow extends StatefulWidget {
 }
 
 class _HeaderRowState extends State<HeaderRow> {
+  late final _tableLayoutController = GetIt.I<TableLayoutController>();
+
   final _containerKey = GlobalKey();
 
   // Cache the RenderBox to avoid tree-walking during 60fps drag updates
@@ -44,15 +45,15 @@ class _HeaderRowState extends State<HeaderRow> {
     return SignalBuilder(
       builder: (context) {
         final tableWidth = widget.tableWidth;
-        final borderWidth = widget.controller.borderWidth.value;
-        final borderColor = widget.controller.borderColor.value;
-        final showComment = widget.controller.showComment.value;
+        final borderWidth = _tableLayoutController.borderWidth.value;
+        final borderColor = _tableLayoutController.borderColor.value;
+        final showComment = _tableLayoutController.showComment.value;
 
-        final w1 = tableWidth * widget.controller.col1Ratio.value;
-        final w2 = tableWidth * widget.controller.col2Ratio.value;
-        final w3 = tableWidth * widget.controller.col3Ratio.value;
+        final w1 = tableWidth * _tableLayoutController.col1Ratio.value;
+        final w2 = tableWidth * _tableLayoutController.col2Ratio.value;
+        final w3 = tableWidth * _tableLayoutController.col3Ratio.value;
 
-        final scale = widget.controller.scale.value;
+        final scale = _tableLayoutController.scale.value;
 
         return Stack(
           key: _containerKey,
@@ -100,7 +101,7 @@ class _HeaderRowState extends State<HeaderRow> {
                 if (tableWidth <= 0) return;
                 final localX = _getLocalX(globalPosition);
                 if (localX != null) {
-                  widget.controller.updateFirstHandle(localX / tableWidth);
+                  _tableLayoutController.updateFirstHandle(localX / tableWidth);
                 }
               },
               scale: scale,
@@ -115,7 +116,7 @@ class _HeaderRowState extends State<HeaderRow> {
                   if (tableWidth <= 0) return;
                   final localX = _getLocalX(globalPosition);
                   if (localX != null) {
-                    widget.controller.updateSecondHandle(localX / tableWidth);
+                    _tableLayoutController.updateSecondHandle(localX / tableWidth);
                   }
                 },
                 scale: scale,

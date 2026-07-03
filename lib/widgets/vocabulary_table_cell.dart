@@ -1,25 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 
 /// Content of the cell with optional drag handle
-class VocabularyTableCell extends StatelessWidget {
+class VocabularyTableCell extends StatefulWidget {
   const VocabularyTableCell({
     super.key,
-    required this.text,
     required this.index,
-    required this.controller,
-    this.draggable = false,
+    required this.draggable,
+    required this.child,
   });
 
-  final TableLayoutController controller;
-  final String text;
   final int index;
   final bool draggable;
+  final Widget child;
 
   @override
+  State<VocabularyTableCell> createState() => _VocabularyTableCellState();
+}
+
+class _VocabularyTableCellState extends State<VocabularyTableCell> {
+  @override
   Widget build(BuildContext context) {
+    final controller = GetIt.I<TableLayoutController>();
     const padding = 6.0;
 
     return SignalBuilder(
@@ -35,21 +40,12 @@ class VocabularyTableCell extends StatelessWidget {
                 return Row(
                   crossAxisAlignment: .start,
                   children: [
-                    Expanded(
-                      child: SelectableText(
-                        text,
-                        minLines: 1,
-                        maxLines: isDragMode ? 3 : null,
-                        style: TextStyle(
-                          fontSize: TableLayoutController.fontSize * scale,
-                        ),
-                      ),
-                    ),
-                    if (isDragMode && draggable)
-                      _ResponsiveDragHandle(index: index, scale: scale),
+                    Expanded(child: widget.child),
+                    if (isDragMode && widget.draggable)
+                      _ResponsiveDragHandle(index: widget.index, scale: scale),
                   ],
                 );
-              }
+              },
             ),
           ),
         );
