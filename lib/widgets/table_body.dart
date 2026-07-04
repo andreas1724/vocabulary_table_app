@@ -1,12 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
+import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
+import 'package:vocabulary_table_app/physics/multi_touch_blocker_scroll_physics.dart';
 
 class TableBody extends StatefulWidget {
-  const TableBody({super.key, required this.tableWidth});
+  const TableBody({
+    super.key,
+    required this.tableWidth,
+  });
 
   final double tableWidth;
 
@@ -17,9 +23,14 @@ class TableBody extends StatefulWidget {
 class _TableBodyState extends State<TableBody> {
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
+  
   bool _isDragging = false;
-
   final _activePointers = signal(0);
+  
+  late final _scrollPhysics = MultiTouchBlockerScrollPhysics(
+    activePointers: _activePointers,
+  ).applyTo(const AlwaysScrollableScrollPhysics());
+
 
   @override
   Widget build(BuildContext context) {
@@ -29,22 +40,19 @@ class _TableBodyState extends State<TableBody> {
           _activePointers.value = (_activePointers.value - 1).clamp(0, 10),
       onPointerCancel: (_) =>
           _activePointers.value = (_activePointers.value - 1).clamp(0, 10),
+      onPointerPanZoomStart: (_) => _activePointers.value += 2,
+      onPointerPanZoomEnd: (_) =>
+          _activePointers.value = (_activePointers.value - 2).clamp(0, 10),
+      onPointerSignal: _handlePointerSignal,
       child: SignalBuilder(
         builder: (context) {
-          // Explicitly read the signal to register this builder as a dependency.
-          // This forces the ReorderableListView to recalculate child extents on mode switch.
-          final _ = _tableLayoutController.appMode.value;
-
+          final mode = _tableLayoutController.appMode.value;
           final vocabularyItems = _vocabularyController.vocabularyItems.value;
           final borderWidth = _tableLayoutController.borderWidth.value;
           final borderColor = _tableLayoutController.borderColor.value;
 
-          final pointers = _activePointers.value;
-
-          return ReorderableListView.builder(
-            physics: pointers > 1
-                ? const NeverScrollableScrollPhysics()
-                : const AlwaysScrollableScrollPhysics(),
+          final listView = ReorderableListView.builder(
+            physics: _scrollPhysics,
             buildDefaultDragHandles: false,
             itemCount: vocabularyItems.length,
             onReorderStart: (index) => setState(() => _isDragging = true),
@@ -58,17 +66,19 @@ class _TableBodyState extends State<TableBody> {
 
               return Stack(
                 key: ValueKey(id),
-                clipBehavior: .none,
+                clipBehavior: Clip.none,
                 children: [
-                  SignalBuilder(
-                    builder: (context) {
-                      final item = vocabularyItem.value;
-                      return TableRowWithoutTopBorder(
-                        vocabularyItem: item,
-                        index: index,
-                        tableWidth: widget.tableWidth,
-                      );
-                    },
+                  RowIndexScope(
+                    rowIndex: index,
+                    child: SignalBuilder(
+                      builder: (context) {
+                        final item = vocabularyItem.value;
+                        return TableRowWithoutTopBorder(
+                          vocabularyItem: item,
+                          tableWidth: widget.tableWidth,
+                        );
+                      },
+                    ),
                   ),
                   if (_isDragging)
                     Positioned(
@@ -82,9 +92,23 @@ class _TableBodyState extends State<TableBody> {
               );
             },
           );
+
+          // Use SelectionArea for high-performance text selection instead of SelectableText
+          return mode == AppMode.view
+              ? SelectionArea(child: listView)
+              : listView;
         },
       ),
     );
+  }
+
+void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is PointerScaleEvent) {
+      final current = _tableLayoutController.scale.peek();
+      
+      _tableLayoutController.scale.value =
+          (current * event.scale).clamp(0.5, 4.0);
+    }
   }
 
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
@@ -95,11 +119,12 @@ class _TableBodyState extends State<TableBody> {
         final scale = _tableLayoutController.scale.value;
         final borderWidth = _tableLayoutController.borderWidth.value;
         final borderColor = _tableLayoutController.borderColor.value;
+
         return Material(
           elevation: elevation * scale,
           color: Colors.blue[50],
           child: Stack(
-            clipBehavior: .none,
+            clipBehavior: Clip.none,
             children: [
               child,
               Positioned(

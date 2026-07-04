@@ -9,11 +9,10 @@ class TableRowWithoutTopBorder extends StatelessWidget {
   const TableRowWithoutTopBorder({
     super.key,
     required this.vocabularyItem,
-    required this.index,
     required this.tableWidth,
   });
+  
   final VocabularyItem vocabularyItem;
-  final int index;
   final double tableWidth;
 
   @override
@@ -36,7 +35,7 @@ class TableRowWithoutTopBorder extends StatelessWidget {
             1: FixedColumnWidth(w2),
             if (showComment) 2: FixedColumnWidth(w3),
           },
-          defaultVerticalAlignment: .intrinsicHeight,
+          defaultVerticalAlignment: TableCellVerticalAlignment.intrinsicHeight,
           border: TableBorder(
             left: BorderSide(color: borderColor, width: borderWidth),
             right: BorderSide(color: borderColor, width: borderWidth),
@@ -49,14 +48,12 @@ class TableRowWithoutTopBorder extends StatelessWidget {
                 _DynamicCell(
                   itemId: vocabularyItem.id,
                   text: vocabularyItem.termA,
-                  rowIndex: index,
                   colIndex: 0,
                   draggable: false,
                 ),
                 _DynamicCell(
                   itemId: vocabularyItem.id,
                   text: vocabularyItem.termB,
-                  rowIndex: index,
                   colIndex: 1,
                   draggable: !showComment,
                 ),
@@ -64,7 +61,6 @@ class TableRowWithoutTopBorder extends StatelessWidget {
                   _DynamicCell(
                     itemId: vocabularyItem.id,
                     text: vocabularyItem.comment,
-                    rowIndex: index,
                     colIndex: 2,
                     draggable: true,
                   ),
@@ -81,14 +77,12 @@ class _DynamicCell extends StatelessWidget {
   const _DynamicCell({
     required this.itemId,
     required this.text,
-    required this.rowIndex,
     required this.colIndex,
     required this.draggable,
   });
 
   final String itemId;
   final String text;
-  final int rowIndex;
   final int colIndex;
   final bool draggable;
 
@@ -96,72 +90,58 @@ class _DynamicCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = GetIt.I<TableLayoutController>();
 
-    // Isolated reactivity: Only the specific cell redraws on mode changes
-    return SignalBuilder(
-      builder: (context) {
-        return switch (controller.appMode.value) {
-          .view => _SelectableTextCell(
-              text: text,
-              rowIndex: rowIndex,
-              draggable: draggable,
-            ),
-          // .edit => _EditableTextCell(
-          //     itemId: itemId,
-          //     initialText: text,
-          //     colIndex: colIndex,
-          //     draggable: draggable,
-          //   ),
-          _ => _PlainTextCell(
-              text: text,
-              rowIndex: rowIndex,
-              draggable: draggable,
-            ),
-        };
-      },
-    );
-  }
-}
-
-class _SelectableTextCell extends StatelessWidget {
-  const _SelectableTextCell({
-    required this.text,
-    required this.rowIndex,
-    required this.draggable,
-  });
-  final bool draggable;
-  final int rowIndex;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final controller = GetIt.I<TableLayoutController>();
-    return SignalBuilder(
-      builder: (context) {
-        final isDragMode = controller.appMode.value == .drag;
-        final scale = controller.scale.value;
-        return VocabularyTableCell(
-          index: rowIndex,
+    // Removed redundant SignalBuilder. TableBody already listens to appMode.value
+    // Rebuilding the whole tree from above covers this logic automatically.
+    return switch (controller.appMode.peek()) {
+      // AppMode.view => _SelectableTextCell(
+      //     text: text,
+      //     draggable: draggable,
+      //   ),
+      _ => _PlainTextCell(
+          text: text,
           draggable: draggable,
-          child: SelectableText(
-            text,
-            minLines: 1,
-            maxLines: isDragMode ? 3 : null,
-            style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
-          ),
-        );
-      },
-    );
+        ),
+    };
   }
 }
+
+// class _SelectableTextCell extends StatelessWidget {
+//   const _SelectableTextCell({
+//     required this.text,
+//     required this.draggable,
+//   });
+  
+//   final bool draggable;
+//   final String text;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final controller = GetIt.I<TableLayoutController>();
+//     return SignalBuilder(
+//       builder: (context) {
+//         final isDragMode = controller.appMode.value == AppMode.drag;
+//         final scale = controller.scale.value;
+//         return VocabularyTableCell(
+//           draggable: draggable,
+//           child: SelectableText(
+//             text,
+//             minLines: 1,
+//             maxLines: isDragMode ? 3 : null,
+//             style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
 
 class _PlainTextCell extends StatelessWidget {
   const _PlainTextCell({
     required this.text,
-    required this.rowIndex,
     required this.draggable,
   });
+  
   final bool draggable;
-  final int rowIndex;
   final String text;
 
   @override
@@ -169,10 +149,9 @@ class _PlainTextCell extends StatelessWidget {
     final controller = GetIt.I<TableLayoutController>();
     return SignalBuilder(
       builder: (context) {
-        final isDragMode = controller.appMode.value == .drag;
+        final isDragMode = controller.appMode.value == AppMode.drag;
         final scale = controller.scale.value;
         return VocabularyTableCell(
-          index: rowIndex,
           draggable: draggable,
           child: Text(
             text,

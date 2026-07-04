@@ -3,18 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 
-/// Content of the cell with optional drag handle. [draggable] indicates, if the
-/// cell has a drag handle, when the app is in drag mode.
 class VocabularyTableCell extends StatefulWidget {
   const VocabularyTableCell({
     super.key,
-    required this.index,
     required this.draggable,
     required this.child,
   });
 
-  final int index;
   final bool draggable;
   final Widget child;
 
@@ -31,22 +28,21 @@ class _VocabularyTableCellState extends State<VocabularyTableCell> {
     return SignalBuilder(
       builder: (context) {
         final scale = controller.scale.value;
-        final isDragMode = controller.appMode.value == .drag;
+        final isDragMode = controller.appMode.value == AppMode.drag;
+        
         return Container(
           color: Theme.of(context).colorScheme.surfaceContainerLowest,
           child: Padding(
             padding: EdgeInsets.all(scale * padding),
-            child: SignalBuilder(
-              builder: (context) {
-                return Row(
-                  crossAxisAlignment: .start,
-                  children: [
-                    Expanded(child: widget.child),
-                    if (isDragMode && widget.draggable)
-                      _ResponsiveDragHandle(index: widget.index, scale: scale),
-                  ],
-                );
-              },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: widget.child),
+                if (isDragMode && widget.draggable)
+                  _ResponsiveDragHandle(
+                    scale: scale,
+                  ),
+              ],
             ),
           ),
         );
@@ -56,9 +52,10 @@ class _VocabularyTableCellState extends State<VocabularyTableCell> {
 }
 
 class _ResponsiveDragHandle extends StatelessWidget {
-  const _ResponsiveDragHandle({required this.index, required this.scale});
+  const _ResponsiveDragHandle({
+    required this.scale,
+  });
 
-  final int index;
   final double scale;
 
   @override
@@ -66,15 +63,16 @@ class _ResponsiveDragHandle extends StatelessWidget {
     const dragHandleSize = 18.0;
     final dragHandleColor = Colors.grey[700];
 
-    final isMobile =
-        (defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.android);
+    final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
+
+    // Fetch the index directly from the nearest RowIndexScope
+    final rowIndex = RowIndexScope.of(context);
 
     return ReorderableDragStartListener(
-      index: index,
+      index: rowIndex,
       child: Container(
         color: Colors.transparent,
-        // Apply responsive padding for the hit area.
         padding: EdgeInsets.only(left: isMobile ? 32.0 : scale * 4.0),
         child: Center(
           child: Icon(
