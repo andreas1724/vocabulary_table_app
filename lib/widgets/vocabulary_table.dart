@@ -17,10 +17,9 @@ class _VocabularyTableState extends State<VocabularyTable> {
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
 
   final _activePointerIds = <int>{};
-  bool _isPanZooming = false;
-  
+
   late final _activePointers = signal<int>(0);
-  
+
   // Memoized derived state: Only notifies listeners when the boolean result changes.
   late final _isMultiTouch = computed(() => _activePointers.value > 1);
 
@@ -31,9 +30,9 @@ class _VocabularyTableState extends State<VocabularyTable> {
     super.dispose();
   }
 
-void _handlePointerEvent(PointerEvent event, {required bool isAdding}) {
-    // Optional, aber sicherer: Wir filtern explizit nach Touch-Events, 
-    // damit z.B. Maus-Klicks nicht als "Finger" gezählt werden.
+  void _handlePointerEvent(PointerEvent event, {required bool isAdding}) {
+    // Optional but safer: explicitly filter for touch events
+    // to ensure mouse clicks are not counted as fingers.
     if (event.kind != PointerDeviceKind.touch) return;
 
     if (isAdding) {
@@ -41,8 +40,7 @@ void _handlePointerEvent(PointerEvent event, {required bool isAdding}) {
     } else {
       _activePointerIds.remove(event.pointer);
     }
-    
-    // Einfache, strikte Zuweisung. Kein PanZoom-Fake mehr.
+
     _activePointers.value = _activePointerIds.length;
   }
 
@@ -52,12 +50,14 @@ void _handlePointerEvent(PointerEvent event, {required bool isAdding}) {
       onPointerDown: (e) => _handlePointerEvent(e, isAdding: true),
       onPointerUp: (e) => _handlePointerEvent(e, isAdding: false),
       onPointerCancel: (e) => _handlePointerEvent(e, isAdding: false),
-      
-      onPointerSignal: (event) => _handlePointerSignal(event, _tableLayoutController.scale),
+
+      onPointerSignal: (event) =>
+          _handlePointerSignal(event, _tableLayoutController.scale),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onScaleStart: (details) => _tableLayoutController.scaleStart(),
-        onScaleUpdate: (details) => _tableLayoutController.scaleUpdate(details.scale),
+        onScaleUpdate: (details) =>
+            _tableLayoutController.scaleUpdate(details.scale),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final tableWidth = constraints.maxWidth;

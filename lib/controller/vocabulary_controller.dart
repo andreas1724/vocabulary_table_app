@@ -41,7 +41,7 @@ class VocabularyController {
 
     // 1. Remove reference to trigger ListSignal updates
     final removedSignal = _vocabularyItems.removeAt(index);
-    
+
     // 2. Explicitly dispose the inner signal to prevent memory leaks
     removedSignal.dispose();
   }
@@ -49,10 +49,38 @@ class VocabularyController {
   void updateVocabularyAt(int index, VocabularyItem item) {
     if (index < 0 || index >= _vocabularyItems.length) return;
 
-    // Mutate inner value. Does not trigger a list rebuild, 
+    // Mutate inner value. Does not trigger a list rebuild,
     // only rebuilds the specific widget reading this signal.
     _vocabularyItems[index].value = item;
   }
+
+  void updateVocabularyAtIndexColumn(
+    int index,
+    int colIndex,
+    String updateText,
+  ) {
+    if (index < 0 || index >= _vocabularyItems.length) return;
+    if (colIndex < 0 || colIndex > 2) return;
+
+    final vocabularyItem = _vocabularyItems[index].peek();
+    final updatedItem = _updateVocabularyItemAtColumn(
+      vocabularyItem,
+      colIndex,
+      updateText,
+    );
+    updateVocabularyAt(index, updatedItem);
+  }
+
+  VocabularyItem _updateVocabularyItemAtColumn(
+    VocabularyItem item,
+    int colIndex,
+    String updateText,
+  ) => switch (colIndex) {
+    0 => item.copyWith(termA: updateText),
+    1 => item.copyWith(termB: updateText),
+    2 => item.copyWith(comment: updateText),
+    _ => throw RangeError('$colIndex out of range (0..2)'),
+  };
 
   /// oldIndex refers to the item's original position before removal.
   /// newIndex points to the exact target position in the cleaned list after removal.
