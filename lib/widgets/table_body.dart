@@ -10,11 +10,11 @@ class TableBody extends StatefulWidget {
   const TableBody({
     super.key,
     required this.tableWidth,
-    required this.isMultiTouch, 
+    required this.isMultiTouch,
   });
 
   final double tableWidth;
-  final ReadonlySignal<bool> isMultiTouch; 
+  final ReadonlySignal<bool> isMultiTouch;
 
   @override
   State<TableBody> createState() => _TableBodyState();
@@ -28,7 +28,7 @@ class _TableBodyState extends State<TableBody> {
     return SignalBuilder(
       builder: (context) {
         final mode = _tableLayoutController.appMode.value;
-        
+
         // Non-view modes don't require text selection logic
         if (mode != AppMode.view) {
           return _TableListView(
@@ -42,7 +42,7 @@ class _TableBodyState extends State<TableBody> {
             builder: (context) {
               final isMultiTouch = widget.isMultiTouch.value;
 
-              // THE FIX: Use SelectionContainer.disabled to safely unregister the 
+              // THE FIX: Use SelectionContainer.disabled to safely unregister the
               // scrollable hierarchy from the SelectionArea during active multi-touch gestures.
               if (isMultiTouch) {
                 return SelectionContainer.disabled(
@@ -81,9 +81,22 @@ class _TableListView extends StatefulWidget {
 }
 
 class _TableListViewState extends State<_TableListView> {
+  late final ScrollController _scrollController;
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
   bool _isDragging = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,13 +105,15 @@ class _TableListViewState extends State<_TableListView> {
         final vocabularyItems = _vocabularyController.vocabularyItems.value;
         final borderWidth = _tableLayoutController.borderWidth.value;
         final borderColor = _tableLayoutController.borderColor.value;
-        
+
         final isMultiTouch = widget.isMultiTouch.value;
-        final dynamicPhysics = isMultiTouch 
-            ? const NeverScrollableScrollPhysics() 
+        final dynamicPhysics = isMultiTouch
+            ? const NeverScrollableScrollPhysics()
             : const AlwaysScrollableScrollPhysics();
 
         return ReorderableListView.builder(
+          key: const PageStorageKey('TableListView'),
+          scrollController: _scrollController,
           physics: dynamicPhysics,
           buildDefaultDragHandles: false,
           itemCount: vocabularyItems.length,

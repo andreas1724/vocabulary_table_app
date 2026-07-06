@@ -7,6 +7,9 @@ import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table_cell.dart';
 
+const _heightFactor = 1.2;
+const _letterSpacing = 0.0;
+
 class TableRowWithoutTopBorder extends StatelessWidget {
   const TableRowWithoutTopBorder({
     super.key,
@@ -92,17 +95,21 @@ class _DynamicCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = GetIt.I<TableLayoutController>();
 
-    // Removed redundant SignalBuilder. TableBody already listens to appMode.value
-    // Rebuilding the whole tree from above covers this logic automatically.
-    return switch (controller.appMode.peek()) {
-      .edit => _EditableTextCell(
-        itemId: itemId,
-        initialText: text,
-        colIndex: colIndex,
-        draggable: draggable,
-      ),
-      _ => _PlainTextCell(text: text, draggable: draggable),
-    };
+    // Read .value instead of .peek() to properly register the dependency.
+    // This ensures _DynamicCell updates independently of its parent's state.
+    return SignalBuilder(
+      builder: (context) {
+        return switch (controller.appMode.value) {
+          .edit => _EditableTextCell(
+            itemId: itemId,
+            initialText: text,
+            colIndex: colIndex,
+            draggable: draggable,
+          ),
+          _ => _PlainTextCell(text: text, draggable: draggable),
+        };
+      },
+    );
   }
 }
 
@@ -124,7 +131,11 @@ class _PlainTextCell extends StatelessWidget {
           child: Text(
             text,
             maxLines: isDragMode ? 3 : null,
-            style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
+            style: TextStyle(
+              fontSize: TableLayoutController.fontSize * scale,
+              height: _heightFactor,
+              letterSpacing: _letterSpacing,
+            ),
           ),
         );
       },
@@ -162,15 +173,17 @@ class _EditableTextCell extends StatelessWidget {
         final scale = tableLayoutController.scale.value;
         return VocabularyTableCell(
           draggable: draggable,
-          // Note: If VocabularyTableCell requires `index`, pass it down from the top
           child: TextField(
             controller: textController,
             maxLines: null,
-            style: TextStyle(fontSize: TableLayoutController.fontSize * scale),
+            style: TextStyle(
+              fontSize: TableLayoutController.fontSize * scale,
+              height: _heightFactor,
+              letterSpacing: _letterSpacing,
+            ),
             decoration: const InputDecoration(
               border: InputBorder.none,
-              isDense: true,
-              contentPadding: EdgeInsets.zero,
+              isCollapsed: true,
             ),
             onChanged: (value) {
               final rowIndex = RowIndexScope.of(context);
