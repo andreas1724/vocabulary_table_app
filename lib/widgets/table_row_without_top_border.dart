@@ -94,13 +94,18 @@ class _EditableItemCellState extends State<_EditableItemCell> {
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
 
-  String _previousText = '';
-
   // Getters to always use the most current widget.rowIndex
   (int, int) get _currentLocation => (widget.rowIndex, widget.colIndex);
-  
+
+  String get _currentText => _vocabularyController.vocabularyItems
+      .peek()[widget.rowIndex]
+      .peek()
+      .at(widget.colIndex);
+
   String get _currentCacheKey {
-    final item = _vocabularyController.vocabularyItems.peek()[widget.rowIndex].peek();
+    final item = _vocabularyController.vocabularyItems
+        .peek()[widget.rowIndex]
+        .peek();
     return '${item.id}_${widget.colIndex}';
   }
 
@@ -114,17 +119,6 @@ class _EditableItemCellState extends State<_EditableItemCell> {
     _editableTextFocus = FocusNode(
       onKeyEvent: (node, event) {
         if (event.logicalKey == .escape) {
-          final cachedController = _vocabularyController.getControllerFor(
-            _currentCacheKey,
-            _previousText,
-          );
-          cachedController.text = _previousText;
-
-          _vocabularyController.updateVocabularyAtIndexColumn(
-            widget.rowIndex,
-            widget.colIndex,
-            _previousText,
-          );
           _editableTextFocus.unfocus();
           return .handled;
         }
@@ -145,12 +139,11 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
       final cachedController = _vocabularyController.getControllerFor(
         _currentCacheKey,
-        _previousText,
+        _currentText,
       );
 
-      _vocabularyController.updateVocabularyAtIndexColumn(
-        widget.rowIndex,
-        widget.colIndex,
+      _vocabularyController.updateVocabularyAtLocation(
+        (rowIndex: widget.rowIndex, colIndex: widget.colIndex),
         cachedController.text,
       );
 
@@ -161,19 +154,7 @@ class _EditableItemCellState extends State<_EditableItemCell> {
   }
 
   void _startEditing() {
-    _previousText = _vocabularyController.vocabularyItems[widget.rowIndex]
-        .peek()
-        .at(widget.colIndex);
-
-    final cachedController = _vocabularyController.getControllerFor(
-      _currentCacheKey,
-      _previousText,
-    );
-    cachedController.text = _previousText;
-
     _vocabularyController.selectedCell.value = _currentLocation;
-
-    _editableTextFocus.unfocus();
     _editableTextFocus.requestFocus();
   }
 
@@ -192,12 +173,14 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
     return SignalBuilder(
       builder: (context) {
-        final item = _vocabularyController.vocabularyItems.value[widget.rowIndex];
+        final item =
+            _vocabularyController.vocabularyItems.value[widget.rowIndex];
         final text = item.value.at(widget.colIndex);
         final itemId = item.value.id;
-        
+
         // Evaluate selection state directly during build to guarantee fresh row indices
-        final isSelected = _vocabularyController.selectedCell.value == _currentLocation;
+        final isSelected =
+            _vocabularyController.selectedCell.value == _currentLocation;
         final appMode = tableLayoutController.appMode.value;
 
         if (isSelected && appMode == .edit) {

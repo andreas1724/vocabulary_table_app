@@ -57,22 +57,21 @@ class VocabularyController {
     _vocabularyItems[index].value = item;
   }
 
-  void updateVocabularyAtIndexColumn(
-    int index,
-    int colIndex,
+  void updateVocabularyAtLocation(
+    ({int rowIndex, int colIndex}) location,
     String updateText,
   ) {
-    if (index < 0 || index >= _vocabularyItems.length) return;
-    if (colIndex < 0 || colIndex > 2) return;
+    if (location.rowIndex < 0 || location.rowIndex >= _vocabularyItems.length) return;
+    if (location.colIndex  < 0 || location.colIndex > 2) return;
 
-    final vocabularyItem = _vocabularyItems[index].peek();
-    final updatedItem = switch (colIndex) {
+    final vocabularyItem = _vocabularyItems[location.rowIndex].peek();
+    final updatedItem = switch (location.colIndex) {
       0 => vocabularyItem.copyWith(termA: updateText),
       1 => vocabularyItem.copyWith(termB: updateText),
       2 => vocabularyItem.copyWith(comment: updateText),
-      _ => throw RangeError('$colIndex out of range (0..2)'),
+      _ => throw RangeError('${location.colIndex} out of range (0..2)'),
     };
-    updateVocabularyAt(index, updatedItem);
+    updateVocabularyAt(location.rowIndex, updatedItem);
   }
 
   /// oldIndex refers to the item's original position before removal.
