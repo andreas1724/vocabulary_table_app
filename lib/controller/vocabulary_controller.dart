@@ -11,6 +11,9 @@ class VocabularyController {
 
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
 
+  /// (rowIndex, colIndex).
+  final selectedCell = signal<(int, int)?>(null);
+
   late final vocabularyItems = _vocabularyItems.readonly();
 
   // Cache for active text controllers to preserve state and avoid memory leaks
@@ -63,24 +66,14 @@ class VocabularyController {
     if (colIndex < 0 || colIndex > 2) return;
 
     final vocabularyItem = _vocabularyItems[index].peek();
-    final updatedItem = _updateVocabularyItemAtColumn(
-      vocabularyItem,
-      colIndex,
-      updateText,
-    );
+    final updatedItem = switch (colIndex) {
+      0 => vocabularyItem.copyWith(termA: updateText),
+      1 => vocabularyItem.copyWith(termB: updateText),
+      2 => vocabularyItem.copyWith(comment: updateText),
+      _ => throw RangeError('$colIndex out of range (0..2)'),
+    };
     updateVocabularyAt(index, updatedItem);
   }
-
-  VocabularyItem _updateVocabularyItemAtColumn(
-    VocabularyItem item,
-    int colIndex,
-    String updateText,
-  ) => switch (colIndex) {
-    0 => item.copyWith(termA: updateText),
-    1 => item.copyWith(termB: updateText),
-    2 => item.copyWith(comment: updateText),
-    _ => throw RangeError('$colIndex out of range (0..2)'),
-  };
 
   /// oldIndex refers to the item's original position before removal.
   /// newIndex points to the exact target position in the cleaned list after removal.

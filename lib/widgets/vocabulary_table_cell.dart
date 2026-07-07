@@ -3,23 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
-import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 
-class VocabularyTableCell extends StatefulWidget {
+class VocabularyTableCell extends StatelessWidget {
   const VocabularyTableCell({
     super.key,
+    required this.rowIndex,
     required this.draggable,
     required this.child,
   });
 
   final bool draggable;
+  final int rowIndex;
   final Widget child;
 
-  @override
-  State<VocabularyTableCell> createState() => _VocabularyTableCellState();
-}
-
-class _VocabularyTableCellState extends State<VocabularyTableCell> {
   @override
   Widget build(BuildContext context) {
     final controller = GetIt.I<TableLayoutController>();
@@ -37,10 +33,11 @@ class _VocabularyTableCellState extends State<VocabularyTableCell> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: widget.child),
-                if (isDragMode && widget.draggable)
+                Expanded(child: child),
+                if (isDragMode && draggable)
                   _ResponsiveDragHandle(
                     scale: scale,
+                    rowIndex: rowIndex,
                   ),
               ],
             ),
@@ -54,9 +51,11 @@ class _VocabularyTableCellState extends State<VocabularyTableCell> {
 class _ResponsiveDragHandle extends StatelessWidget {
   const _ResponsiveDragHandle({
     required this.scale,
+    required this.rowIndex,
   });
 
   final double scale;
+  final int rowIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +64,6 @@ class _ResponsiveDragHandle extends StatelessWidget {
 
     final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.android;
-
-    // Fetch the index directly from the nearest RowIndexScope
-    final rowIndex = RowIndexScope.of(context);
 
     return ReorderableDragStartListener(
       index: rowIndex,

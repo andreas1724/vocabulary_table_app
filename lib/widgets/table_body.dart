@@ -29,14 +29,6 @@ class _TableBodyState extends State<TableBody> {
       builder: (context) {
         final mode = _tableLayoutController.appMode.value;
 
-        // Non-view modes don't require text selection logic
-        if (mode != AppMode.view) {
-          return _TableListView(
-            tableWidth: widget.tableWidth,
-            isMultiTouch: widget.isMultiTouch,
-          );
-        }
-
         return SelectionArea(
           child: SignalBuilder(
             builder: (context) {
@@ -130,18 +122,10 @@ class _TableListViewState extends State<_TableListView> {
               key: ValueKey(id),
               clipBehavior: Clip.none,
               children: [
-                RowIndexScope(
-                  rowIndex: index,
-                  child: SignalBuilder(
-                    builder: (context) {
-                      final item = vocabularyItem.value;
-                      return TableRowWithoutTopBorder(
-                        vocabularyItem: item,
-                        tableWidth: widget.tableWidth,
-                      );
-                    },
+                  TableRowWithoutTopBorder(
+                    rowIndex: index,
+                    tableWidth: widget.tableWidth,
                   ),
-                ),
                 if (_isDragging)
                   Positioned(
                     top: -borderWidth,

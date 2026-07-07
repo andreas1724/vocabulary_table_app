@@ -6,18 +6,16 @@ import 'dart:math' show log, ln2;
 const _minColumnRatio = 0.05;
 const _standardBorderColor = Colors.black54;
 
-enum AppMode { view, drag, edit, play }
+enum AppMode { edit, drag, play }
 
 extension AppModeX on AppMode {
   String get title => switch (this) {
-    .view => 'Read',
     .drag => 'Drag',
     .edit => 'Edit',
     .play => 'Play (TTS)',
   };
 
   IconData get icon => switch (this) {
-    .view => Icons.auto_stories,
     .drag => Icons.drag_handle,
     .edit => Icons.edit,
     .play => Icons.play_arrow,
@@ -45,7 +43,7 @@ class TableLayoutController {
   final scale = signal(_initialScale);
   double _baseScale = _initialScale;
 
-  final appMode = signal<AppMode>(.view);
+  final appMode = signal<AppMode>(.edit);
   final Signal<Color> borderColor;
 
   late final borderWidth = computed(() => scale.value * _standardBorderWidth);
