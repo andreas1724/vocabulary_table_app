@@ -94,48 +94,36 @@ class _EditableItemCellState extends State<_EditableItemCell> {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
-  late final Computed<bool> _isSelected;
-  late final (int, int) _cellLocation;
 
-  // No local TextEditingController here anymore to avoid state duplication!
-  late String _previousText;
-  late final String _cacheKey;
+  String _previousText = '';
+
+  // Getters to always use the most current widget.rowIndex
+  (int, int) get _currentLocation => (widget.rowIndex, widget.colIndex);
+  
+  String get _currentCacheKey {
+    final item = _vocabularyController.vocabularyItems.peek()[widget.rowIndex].peek();
+    return '${item.id}_${widget.colIndex}';
+  }
 
   @override
   void initState() {
     super.initState();
-    _cellLocation = (widget.rowIndex, widget.colIndex);
     _vocabularyController = GetIt.I<VocabularyController>();
-
-    // FIX: Initialize _previousText BEFORE it is used for any operations
-    final currentItem = _vocabularyController.vocabularyItems
-        .peek()[widget.rowIndex]
-        .peek();
-
-    _previousText = currentItem.at(widget.colIndex);
-
-    // Globally unique key matching the one in _EditableTextCell
-    _cacheKey = '${currentItem.id}_${widget.colIndex}';
-
-    _isSelected = computed(
-      () => _vocabularyController.selectedCell.value == _cellLocation,
-    );
 
     _plainTextFocus = FocusNode()..addListener(_plainTextFocusChanged);
 
     _editableTextFocus = FocusNode(
       onKeyEvent: (node, event) {
         if (event.logicalKey == .escape) {
-          // Revert text using the centrally cached controller
           final cachedController = _vocabularyController.getControllerFor(
-            _cacheKey,
+            _currentCacheKey,
             _previousText,
           );
           cachedController.text = _previousText;
 
           _vocabularyController.updateVocabularyAtIndexColumn(
-            _cellLocation.$1,
-            _cellLocation.$2,
+            widget.rowIndex,
+            widget.colIndex,
             _previousText,
           );
           _editableTextFocus.unfocus();
@@ -157,35 +145,34 @@ class _EditableItemCellState extends State<_EditableItemCell> {
       debugPrint('edit finished');
 
       final cachedController = _vocabularyController.getControllerFor(
-        _cacheKey,
+        _currentCacheKey,
         _previousText,
       );
 
       _vocabularyController.updateVocabularyAtIndexColumn(
-        _cellLocation.$1,
-        _cellLocation.$2,
+        widget.rowIndex,
+        widget.colIndex,
         cachedController.text,
       );
 
-      if (_vocabularyController.selectedCell.peek() == _cellLocation) {
+      if (_vocabularyController.selectedCell.peek() == _currentLocation) {
         _vocabularyController.selectedCell.value = null;
       }
     }
   }
 
   void _startEditing() {
-    _previousText = _vocabularyController.vocabularyItems[_cellLocation.$1]
+    _previousText = _vocabularyController.vocabularyItems[widget.rowIndex]
         .peek()
-        .at(_cellLocation.$2);
+        .at(widget.colIndex);
 
-    // Update the centrally cached controller to reflect the current signal state
     final cachedController = _vocabularyController.getControllerFor(
-      _cacheKey,
+      _currentCacheKey,
       _previousText,
     );
     cachedController.text = _previousText;
 
-    _vocabularyController.selectedCell.value = _cellLocation;
+    _vocabularyController.selectedCell.value = _currentLocation;
 
     _editableTextFocus.unfocus();
     _editableTextFocus.requestFocus();
@@ -193,12 +180,10 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
   @override
   void dispose() {
-    _isSelected.dispose();
     _editableTextFocus.removeListener(_editableTextFocusChanged);
     _plainTextFocus.removeListener(_plainTextFocusChanged);
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
-    // Removed local text controller disposal since it's now fully managed by VocabularyController
     super.dispose();
   }
 
@@ -208,11 +193,12 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
     return SignalBuilder(
       builder: (context) {
-        final item =
-            _vocabularyController.vocabularyItems.value[widget.rowIndex];
+        final item = _vocabularyController.vocabularyItems.value[widget.rowIndex];
         final text = item.value.at(widget.colIndex);
         final itemId = item.value.id;
-        final isSelected = _isSelected.value;
+        
+        // Evaluate selection state directly during build to guarantee fresh row indices
+        final isSelected = _vocabularyController.selectedCell.value == _currentLocation;
         final appMode = tableLayoutController.appMode.value;
 
         if (isSelected && appMode == .edit) {
@@ -313,29 +299,31 @@ class _EditableTextCell extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final scale = tableLayoutController.scale.value;
+        final fontSize = TableLayoutController.fontSize * scale;
+        final singleLineHeight = fontSize * _heightFactor;
+
         return VocabularyTableCell(
           rowIndex: rowIndex,
           draggable: draggable,
-          child: TextField(
-            focusNode: focusNode,
-            controller: textController,
-            maxLines: null,
-            style: TextStyle(
-              fontSize: TableLayoutController.fontSize * scale,
-              height: _heightFactor,
-              letterSpacing: _letterSpacing,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
+            child: TextField(
+              focusNode: focusNode,
+              controller: textController,
+              minLines: 2,
+              maxLines: null,
+              selectAllOnFocus: true,
+              style: TextStyle(
+                fontSize: fontSize,
+                height: _heightFactor,
+                letterSpacing: _letterSpacing,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isCollapsed: true,
+                isDense: true,
+              ),
             ),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              isCollapsed: true,
-            ),
-            onChanged: (value) {
-              vocabularyController.updateVocabularyAtIndexColumn(
-                rowIndex,
-                colIndex,
-                value,
-              );
-            },
           ),
         );
       },

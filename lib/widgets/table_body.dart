@@ -4,7 +4,6 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
-import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 
 class TableBody extends StatefulWidget {
   const TableBody({
@@ -21,38 +20,11 @@ class TableBody extends StatefulWidget {
 }
 
 class _TableBodyState extends State<TableBody> {
-  late final _tableLayoutController = GetIt.I<TableLayoutController>();
-
   @override
   Widget build(BuildContext context) {
-    return SignalBuilder(
-      builder: (context) {
-        final mode = _tableLayoutController.appMode.value;
-
-        return SelectionArea(
-          child: SignalBuilder(
-            builder: (context) {
-              final isMultiTouch = widget.isMultiTouch.value;
-
-              // THE FIX: Use SelectionContainer.disabled to safely unregister the
-              // scrollable hierarchy from the SelectionArea during active multi-touch gestures.
-              if (isMultiTouch) {
-                return SelectionContainer.disabled(
-                  child: _TableListView(
-                    tableWidth: widget.tableWidth,
-                    isMultiTouch: widget.isMultiTouch,
-                  ),
-                );
-              }
-
-              return _TableListView(
-                tableWidth: widget.tableWidth,
-                isMultiTouch: widget.isMultiTouch,
-              );
-            },
-          ),
-        );
-      },
+    return _TableListView(
+      tableWidth: widget.tableWidth,
+      isMultiTouch: widget.isMultiTouch,
     );
   }
 }
@@ -73,22 +45,9 @@ class _TableListView extends StatefulWidget {
 }
 
 class _TableListViewState extends State<_TableListView> {
-  late final ScrollController _scrollController;
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
   bool _isDragging = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +63,6 @@ class _TableListViewState extends State<_TableListView> {
             : const AlwaysScrollableScrollPhysics();
 
         return ReorderableListView.builder(
-          key: const PageStorageKey('TableListView'),
-          scrollController: _scrollController,
           physics: dynamicPhysics,
           buildDefaultDragHandles: false,
           itemCount: vocabularyItems.length,
@@ -122,17 +79,17 @@ class _TableListViewState extends State<_TableListView> {
               key: ValueKey(id),
               clipBehavior: Clip.none,
               children: [
-                  TableRowWithoutTopBorder(
-                    rowIndex: index,
-                    tableWidth: widget.tableWidth,
-                  ),
+                TableRowWithoutTopBorder(
+                  rowIndex: index,
+                  tableWidth: widget.tableWidth,
+                ),
                 if (_isDragging)
                   Positioned(
                     top: -borderWidth,
                     left: 0,
                     right: 0,
                     height: borderWidth,
-                    child: Container(color: borderColor),
+                    child: ColoredBox(color: borderColor),
                   ),
               ],
             );
@@ -143,30 +100,40 @@ class _TableListViewState extends State<_TableListView> {
   }
 
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
-    const elevation = 6.0;
+    const targetElevation = 6.0;
 
-    return SignalBuilder(
-      builder: (context) {
-        final scale = _tableLayoutController.scale.value;
-        final borderWidth = _tableLayoutController.borderWidth.value;
-        final borderColor = _tableLayoutController.borderColor.value;
+    return AnimatedBuilder(
+      animation: animation,
+      child: child, // Pass child here to avoid rebuilding the dragged row on every frame
+      builder: (context, animatedChild) {
+        return SignalBuilder(
+          builder: (context) {
+            final scale = _tableLayoutController.scale.value;
+            final borderWidth = _tableLayoutController.borderWidth.value;
+            final borderColor = _tableLayoutController.borderColor.value;
 
-        return Material(
-          elevation: elevation * scale,
-          color: Colors.blue[50],
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              child,
-              Positioned(
-                top: -borderWidth,
-                left: 0,
-                right: 0,
-                height: borderWidth,
-                child: Container(color: borderColor),
+            // Interpolate elevation smoothly during the pickup animation
+            final currentElevation = targetElevation * scale * animation.value;
+
+            return Material(
+              elevation: currentElevation,
+              color: Colors.blue[50],
+              shadowColor: Colors.black45,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  animatedChild!,
+                  Positioned(
+                    top: -borderWidth,
+                    left: 0,
+                    right: 0,
+                    height: borderWidth,
+                    child: ColoredBox(color: borderColor),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
