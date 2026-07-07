@@ -76,7 +76,6 @@ class TableRowWithoutTopBorder extends StatelessWidget {
 
 class _EditableItemCell extends StatefulWidget {
   const _EditableItemCell({
-    super.key, // Best Practice: Forward key to super
     required this.rowIndex,
     required this.colIndex,
     required this.draggable,

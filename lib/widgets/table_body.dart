@@ -32,7 +32,6 @@ class _TableBodyState extends State<TableBody> {
 /// Extracted private widget class for high-performance rendering and clear structure
 class _TableListView extends StatefulWidget {
   const _TableListView({
-    super.key,
     required this.tableWidth,
     required this.isMultiTouch,
   });
