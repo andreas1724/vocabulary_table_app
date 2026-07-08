@@ -68,15 +68,6 @@ class _TableListViewState extends State<_TableListView> {
           slivers: [
             SliverReorderableList(
               itemCount: vocabularyItems.length,
-              // O(1) index resolution during dynamic list updates
-              findChildIndexCallback: (Key key) {
-                if (key is! ValueKey<String>) return null;
-
-                final index = vocabularyItems.indexWhere(
-                  (item) => item.peek().id == key.value,
-                );
-                return index >= 0 ? index : null;
-              },
               onReorderItem: (oldIndex, newIndex) =>
                   _vocabularyController.reorderItem,
               onReorderStart: (index) => _draggedItemIndex.value = index,
@@ -168,7 +159,6 @@ class _DraggableRowWrapper extends StatelessWidget {
         TableRowWithoutTopBorder(rowIndex: index, tableWidth: tableWidth),
         SignalBuilder(
           builder: (context) {
-
             // If NO item is being dragged, hide all top borders to prevent overlaps.
             // If ANY item is dragged, show top borders on all items to ensure the
             // empty gap in the ReorderableListView maintains a top border.
