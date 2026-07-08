@@ -29,11 +29,15 @@ class TableRowWithoutTopBorder extends StatelessWidget {
         final borderColor = tableLayoutController.borderColor.value;
         final showComment = tableLayoutController.showComment.value;
 
+        // Read appMode to trigger rebuild on mode change
+        final appMode = tableLayoutController.appMode.value;
+
         final w1 = tableWidth * tableLayoutController.col1Ratio.value;
         final w2 = tableWidth * tableLayoutController.col2Ratio.value;
         final w3 = tableWidth * tableLayoutController.col3Ratio.value;
 
         return Table(
+          key: ValueKey(appMode),
           columnWidths: {
             0: FixedColumnWidth(w1),
             1: FixedColumnWidth(w2),
@@ -135,17 +139,15 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
   void _editableTextFocusChanged() {
     if (!_editableTextFocus.hasFocus) {
-      debugPrint('edit finished');
-
       final cachedController = _vocabularyController.getControllerFor(
         _currentCacheKey,
         _currentText,
       );
 
-      _vocabularyController.updateVocabularyAtLocation(
-        (rowIndex: widget.rowIndex, colIndex: widget.colIndex),
-        cachedController.text,
-      );
+      _vocabularyController.updateVocabularyAtLocation((
+        rowIndex: widget.rowIndex,
+        colIndex: widget.colIndex,
+      ), cachedController.text);
 
       if (_vocabularyController.selectedCell.peek() == _currentLocation) {
         _vocabularyController.selectedCell.value = null;
@@ -173,10 +175,10 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
     return SignalBuilder(
       builder: (context) {
-        final item =
-            _vocabularyController.vocabularyItems.value[widget.rowIndex];
-        final text = item.value.at(widget.colIndex);
-        final itemId = item.value.id;
+        final itemSignal = _vocabularyController.vocabularyItems
+            .peek()[widget.rowIndex];
+        final text = itemSignal.value.at(widget.colIndex);
+        final itemId = itemSignal.value.id;
 
         // Evaluate selection state directly during build to guarantee fresh row indices
         final isSelected =
@@ -226,11 +228,11 @@ class _PlainTextCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = GetIt.I<TableLayoutController>();
+    final tableLayoutController = GetIt.I<TableLayoutController>();
     return SignalBuilder(
       builder: (context) {
-        final isDragMode = controller.appMode.value == AppMode.drag;
-        final scale = controller.scale.value;
+        final isDragMode = tableLayoutController.appMode.value == AppMode.drag;
+        final scale = tableLayoutController.scale.value;
         return VocabularyTableCell(
           rowIndex: rowIndex,
           draggable: draggable,

@@ -31,10 +31,7 @@ class _TableBodyState extends State<TableBody> {
 
 /// Extracted private widget class for high-performance rendering and clear structure
 class _TableListView extends StatefulWidget {
-  const _TableListView({
-    required this.tableWidth,
-    required this.isMultiTouch,
-  });
+  const _TableListView({required this.tableWidth, required this.isMultiTouch});
 
   final double tableWidth;
   final ReadonlySignal<bool> isMultiTouch;
@@ -53,8 +50,6 @@ class _TableListViewState extends State<_TableListView> {
     return SignalBuilder(
       builder: (context) {
         final vocabularyItems = _vocabularyController.vocabularyItems.value;
-        final borderWidth = _tableLayoutController.borderWidth.value;
-        final borderColor = _tableLayoutController.borderColor.value;
 
         final isMultiTouch = widget.isMultiTouch.value;
         final dynamicPhysics = isMultiTouch
@@ -83,12 +78,20 @@ class _TableListViewState extends State<_TableListView> {
                   tableWidth: widget.tableWidth,
                 ),
                 if (_isDragging)
-                  Positioned(
-                    top: -borderWidth,
-                    left: 0,
-                    right: 0,
-                    height: borderWidth,
-                    child: ColoredBox(color: borderColor),
+                  SignalBuilder(
+                    builder: (context) {
+                      final borderWidth =
+                          _tableLayoutController.borderWidth.value;
+                      final borderColor =
+                          _tableLayoutController.borderColor.value;
+                      return Positioned(
+                        top: -borderWidth,
+                        left: 0,
+                        right: 0,
+                        height: borderWidth,
+                        child: ColoredBox(color: borderColor),
+                      );
+                    },
                   ),
               ],
             );
@@ -103,7 +106,8 @@ class _TableListViewState extends State<_TableListView> {
 
     return AnimatedBuilder(
       animation: animation,
-      child: child, // Pass child here to avoid rebuilding the dragged row on every frame
+      child:
+          child, // Pass child here to avoid rebuilding the dragged row on every frame
       builder: (context, animatedChild) {
         return SignalBuilder(
           builder: (context) {

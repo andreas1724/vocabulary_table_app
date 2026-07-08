@@ -13,8 +13,15 @@ void main(List<String> args) {
   setUpDependencies();
 
   runApp(
-    const MaterialApp(
+    MaterialApp(
       home: VocabularyTableApp(),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.orangeAccent,
+          brightness: .light,
+        ),
+      ),
       debugShowCheckedModeBanner: false,
     ),
   );
