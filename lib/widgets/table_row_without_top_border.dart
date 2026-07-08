@@ -97,8 +97,10 @@ class _EditableItemCellState extends State<_EditableItemCell> {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
+  
+  // Create the controller locally to bind it strictly to the Widget lifecycle.
+  late final TextEditingController _textController;
 
-  // Getters to always use the most current widget.rowIndex
   (int, int) get _currentLocation => (widget.rowIndex, widget.colIndex);
 
   String get _currentText => _vocabularyController.vocabularyItems
@@ -106,17 +108,11 @@ class _EditableItemCellState extends State<_EditableItemCell> {
       .peek()
       .at(widget.colIndex);
 
-  String get _currentCacheKey {
-    final item = _vocabularyController.vocabularyItems
-        .peek()[widget.rowIndex]
-        .peek();
-    return '${item.id}_${widget.colIndex}';
-  }
-
   @override
   void initState() {
     super.initState();
     _vocabularyController = GetIt.I<VocabularyController>();
+    _textController = TextEditingController();
 
     _plainTextFocus = FocusNode()..addListener(_plainTextFocusChanged);
 
@@ -139,15 +135,11 @@ class _EditableItemCellState extends State<_EditableItemCell> {
 
   void _editableTextFocusChanged() {
     if (!_editableTextFocus.hasFocus) {
-      final cachedController = _vocabularyController.getControllerFor(
-        _currentCacheKey,
-        _currentText,
+      // Save changes immediately back to the model upon losing focus.
+      _vocabularyController.updateVocabularyAtLocation(
+        (rowIndex: widget.rowIndex, colIndex: widget.colIndex),
+        _textController.text,
       );
-
-      _vocabularyController.updateVocabularyAtLocation((
-        rowIndex: widget.rowIndex,
-        colIndex: widget.colIndex,
-      ), cachedController.text);
 
       if (_vocabularyController.selectedCell.peek() == _currentLocation) {
         _vocabularyController.selectedCell.value = null;
@@ -156,6 +148,8 @@ class _EditableItemCellState extends State<_EditableItemCell> {
   }
 
   void _startEditing() {
+    // Populate UI controller with fresh state before granting focus.
+    _textController.text = _currentText;
     _vocabularyController.selectedCell.value = _currentLocation;
     _editableTextFocus.requestFocus();
   }
@@ -166,6 +160,9 @@ class _EditableItemCellState extends State<_EditableItemCell> {
     _plainTextFocus.removeListener(_plainTextFocusChanged);
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
+    
+    // Crucial: dispose UI element locally.
+    _textController.dispose();
     super.dispose();
   }
 
@@ -178,21 +175,17 @@ class _EditableItemCellState extends State<_EditableItemCell> {
         final itemSignal = _vocabularyController.vocabularyItems
             .peek()[widget.rowIndex];
         final text = itemSignal.value.at(widget.colIndex);
-        final itemId = itemSignal.value.id;
 
-        // Evaluate selection state directly during build to guarantee fresh row indices
         final isSelected =
             _vocabularyController.selectedCell.value == _currentLocation;
         final appMode = tableLayoutController.appMode.value;
 
         if (isSelected && appMode == .edit) {
           return _EditableTextCell(
-            itemId: itemId,
-            initialText: text,
             rowIndex: widget.rowIndex,
-            colIndex: widget.colIndex,
             draggable: widget.draggable,
             focusNode: _editableTextFocus,
+            textController: _textController, // Pass the managed instance down
           );
         } else {
           return InkWell(
@@ -210,6 +203,58 @@ class _EditableItemCellState extends State<_EditableItemCell> {
             ),
           );
         }
+      },
+    );
+  }
+}
+
+class _EditableTextCell extends StatelessWidget {
+  const _EditableTextCell({
+    required this.rowIndex,
+    required this.draggable,
+    required this.focusNode,
+    required this.textController,
+  });
+
+  final int rowIndex;
+  final bool draggable;
+  final FocusNode focusNode;
+  final TextEditingController textController;
+
+  @override
+  Widget build(BuildContext context) {
+    final tableLayoutController = GetIt.I<TableLayoutController>();
+
+    return SignalBuilder(
+      builder: (context) {
+        final scale = tableLayoutController.scale.value;
+        final fontSize = TableLayoutController.fontSize * scale;
+        final singleLineHeight = fontSize * _heightFactor;
+
+        return VocabularyTableCell(
+          rowIndex: rowIndex,
+          draggable: draggable,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
+            child: TextField(
+              focusNode: focusNode,
+              controller: textController,
+              minLines: 2,
+              maxLines: null,
+              selectAllOnFocus: true,
+              style: TextStyle(
+                fontSize: fontSize,
+                height: _heightFactor,
+                letterSpacing: _letterSpacing,
+              ),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                isCollapsed: true,
+                isDense: true,
+              ),
+            ),
+          ),
+        );
       },
     );
   }
@@ -243,70 +288,6 @@ class _PlainTextCell extends StatelessWidget {
               fontSize: TableLayoutController.fontSize * scale,
               height: _heightFactor,
               letterSpacing: _letterSpacing,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _EditableTextCell extends StatelessWidget {
-  const _EditableTextCell({
-    required this.itemId,
-    required this.initialText,
-    required this.rowIndex,
-    required this.colIndex,
-    required this.draggable,
-    required this.focusNode,
-  });
-
-  final String itemId;
-  final String initialText;
-  final int rowIndex;
-  final int colIndex;
-  final bool draggable;
-  final FocusNode focusNode;
-
-  @override
-  Widget build(BuildContext context) {
-    final vocabularyController = GetIt.I<VocabularyController>();
-    final tableLayoutController = GetIt.I<TableLayoutController>();
-
-    // Globally unique key per exact field
-    final cacheKey = '${itemId}_$colIndex';
-    final textController = vocabularyController.getControllerFor(
-      cacheKey,
-      initialText,
-    );
-
-    return SignalBuilder(
-      builder: (context) {
-        final scale = tableLayoutController.scale.value;
-        final fontSize = TableLayoutController.fontSize * scale;
-        final singleLineHeight = fontSize * _heightFactor;
-
-        return VocabularyTableCell(
-          rowIndex: rowIndex,
-          draggable: draggable,
-          child: Padding(
-            padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
-            child: TextField(
-              focusNode: focusNode,
-              controller: textController,
-              minLines: 2,
-              maxLines: null,
-              selectAllOnFocus: true,
-              style: TextStyle(
-                fontSize: fontSize,
-                height: _heightFactor,
-                letterSpacing: _letterSpacing,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isCollapsed: true,
-                isDense: true,
-              ),
             ),
           ),
         );

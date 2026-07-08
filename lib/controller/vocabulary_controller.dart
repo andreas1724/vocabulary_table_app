@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 import 'package:vocabulary_table_app/utils/list_signal_extension.dart';
@@ -10,30 +9,9 @@ class VocabularyController {
       );
 
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
-
-  /// (rowIndex, colIndex).
   final selectedCell = signal<(int, int)?>(null);
 
   late final vocabularyItems = _vocabularyItems.readonly();
-
-  // Cache for active text controllers to preserve state and avoid memory leaks
-  final Map<String, TextEditingController> _textControllers = {};
-
-  /// Lazily retrieves or creates a TextEditingController for a specific item id.
-  TextEditingController getControllerFor(String itemId, String initialText) {
-    return _textControllers.putIfAbsent(
-      itemId,
-      () => TextEditingController(text: initialText),
-    );
-  }
-
-  /// IMPORTANT: Call this when the list is destroyed or items are permanently removed.
-  void _disposeControllers() {
-    for (final controller in _textControllers.values) {
-      controller.dispose();
-    }
-    _textControllers.clear();
-  }
 
   void addVocabulary(VocabularyItem item) {
     _vocabularyItems.add(signal(item));
@@ -41,19 +19,12 @@ class VocabularyController {
 
   void removeVocabularyAt(int index) {
     if (index < 0 || index >= _vocabularyItems.length) return;
-
-    // 1. Remove reference to trigger ListSignal updates
     final removedSignal = _vocabularyItems.removeAt(index);
-
-    // 2. Explicitly dispose the inner signal to prevent memory leaks
     removedSignal.dispose();
   }
 
   void updateVocabularyAt(int index, VocabularyItem item) {
     if (index < 0 || index >= _vocabularyItems.length) return;
-
-    // Mutate inner value. Does not trigger a list rebuild,
-    // only rebuilds the specific widget reading this signal.
     _vocabularyItems[index].value = item;
   }
 
@@ -61,8 +32,12 @@ class VocabularyController {
     ({int rowIndex, int colIndex}) location,
     String updateText,
   ) {
-    if (location.rowIndex < 0 || location.rowIndex >= _vocabularyItems.length) return;
-    if (location.colIndex  < 0 || location.colIndex > 2) return;
+    if (location.rowIndex < 0 || location.rowIndex >= _vocabularyItems.length) {
+      return;
+    }
+    if (location.colIndex < 0 || location.colIndex > 2) {
+      return;
+    }
 
     final vocabularyItem = _vocabularyItems[location.rowIndex].peek();
     final updatedItem = switch (location.colIndex) {
@@ -95,7 +70,6 @@ class VocabularyController {
 
   void clear() {
     _vocabularyItems.clearAndDispose();
-    _disposeControllers();
   }
 
   void dispose() {
