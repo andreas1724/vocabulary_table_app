@@ -189,6 +189,7 @@ class _EditableItemCellState extends State<_EditableItemCell> {
           );
         } else {
           return InkWell(
+            mouseCursor: SystemMouseCursors.basic,
             focusNode: _plainTextFocus,
             onTap: () {
               if (!_plainTextFocus.hasFocus && !_editableTextFocus.hasFocus) {

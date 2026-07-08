@@ -43,15 +43,21 @@ class _TableListView extends StatefulWidget {
 class _TableListViewState extends State<_TableListView> {
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
-  bool _isDragging = false;
+  final _draggedItemIndex = signal<int?>(null);
+
+  @override
+  void dispose() {
+    _draggedItemIndex.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SignalBuilder(
       builder: (context) {
         final vocabularyItems = _vocabularyController.vocabularyItems.value;
-
         final isMultiTouch = widget.isMultiTouch.value;
+
         final dynamicPhysics = isMultiTouch
             ? const NeverScrollableScrollPhysics()
             : const AlwaysScrollableScrollPhysics();
@@ -60,40 +66,19 @@ class _TableListViewState extends State<_TableListView> {
           physics: dynamicPhysics,
           buildDefaultDragHandles: false,
           itemCount: vocabularyItems.length,
-          onReorderStart: (index) => setState(() => _isDragging = true),
-          onReorderEnd: (index) => setState(() => _isDragging = false),
-          onReorderItem: (int oldIndex, int newIndex) =>
-              _vocabularyController.reorderItem(oldIndex, newIndex),
+          onReorderStart: (index) => _draggedItemIndex.value = index,
+          onReorderEnd: (index) => _draggedItemIndex.value = null,
+          onReorderItem: _vocabularyController.reorderItem,
           proxyDecorator: _proxyDecorator,
           itemBuilder: (context, index) {
             final vocabularyItem = vocabularyItems[index];
             final id = vocabularyItem.peek().id;
 
-            return Stack(
+            return _DraggableRowWrapper(
               key: ValueKey(id),
-              clipBehavior: Clip.none,
-              children: [
-                TableRowWithoutTopBorder(
-                  rowIndex: index,
-                  tableWidth: widget.tableWidth,
-                ),
-                if (_isDragging)
-                  SignalBuilder(
-                    builder: (context) {
-                      final borderWidth =
-                          _tableLayoutController.borderWidth.value;
-                      final borderColor =
-                          _tableLayoutController.borderColor.value;
-                      return Positioned(
-                        top: -borderWidth,
-                        left: 0,
-                        right: 0,
-                        height: borderWidth,
-                        child: ColoredBox(color: borderColor),
-                      );
-                    },
-                  ),
-              ],
+              index: index,
+              tableWidth: widget.tableWidth,
+              draggedItemIndex: _draggedItemIndex,
             );
           },
         );
@@ -139,6 +124,50 @@ class _TableListViewState extends State<_TableListView> {
           },
         );
       },
+    );
+  }
+}
+
+class _DraggableRowWrapper extends StatelessWidget {
+  const _DraggableRowWrapper({
+    super.key,
+    required this.index,
+    required this.tableWidth,
+    required this.draggedItemIndex,
+  });
+
+  final int index;
+  final double tableWidth;
+  final ReadonlySignal<int?> draggedItemIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final tableLayoutController = GetIt.I<TableLayoutController>();
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        TableRowWithoutTopBorder(rowIndex: index, tableWidth: tableWidth),
+        // Isolated rebuild: only reacts if this specific index is dragged
+        SignalBuilder(
+          builder: (context) {
+            if (draggedItemIndex.value != index) {
+              return const SizedBox.shrink();
+            }
+
+            final borderWidth = tableLayoutController.borderWidth.value;
+            final borderColor = tableLayoutController.borderColor.value;
+
+            return Positioned(
+              top: -borderWidth,
+              left: 0,
+              right: 0,
+              height: borderWidth,
+              child: ColoredBox(color: borderColor),
+            );
+          },
+        ),
+      ],
     );
   }
 }
