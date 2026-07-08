@@ -43,6 +43,7 @@ class _TableListView extends StatefulWidget {
 class _TableListViewState extends State<_TableListView> {
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
+
   final _draggedItemIndex = signal<int?>(null);
 
   @override
@@ -62,25 +63,42 @@ class _TableListViewState extends State<_TableListView> {
             ? const NeverScrollableScrollPhysics()
             : const AlwaysScrollableScrollPhysics();
 
-        return ReorderableListView.builder(
+        return CustomScrollView(
           physics: dynamicPhysics,
-          buildDefaultDragHandles: false,
-          itemCount: vocabularyItems.length,
-          onReorderStart: (index) => _draggedItemIndex.value = index,
-          onReorderEnd: (index) => _draggedItemIndex.value = null,
-          onReorderItem: _vocabularyController.reorderItem,
-          proxyDecorator: _proxyDecorator,
-          itemBuilder: (context, index) {
-            final vocabularyItem = vocabularyItems[index];
-            final id = vocabularyItem.peek().id;
+          slivers: [
+            SliverReorderableList(
+              itemCount: vocabularyItems.length,
+              // O(1) index resolution during dynamic list updates
+              findChildIndexCallback: (Key key) {
+                if (key is! ValueKey<String>) return null;
 
-            return _DraggableRowWrapper(
-              key: ValueKey(id),
-              index: index,
-              tableWidth: widget.tableWidth,
-              draggedItemIndex: _draggedItemIndex,
-            );
-          },
+                final index = vocabularyItems.indexWhere(
+                  (item) => item.peek().id == key.value,
+                );
+                return index >= 0 ? index : null;
+              },
+              onReorderItem: (oldIndex, newIndex) =>
+                  _vocabularyController.reorderItem,
+              onReorderStart: (index) => _draggedItemIndex.value = index,
+              onReorderEnd: (index) => _draggedItemIndex.value = null,
+              proxyDecorator: _proxyDecorator,
+              itemBuilder: (context, index) {
+                final vocabularyItem = vocabularyItems[index];
+                final id = vocabularyItem.peek().id;
+
+                // Explicit DragStartListener is required when building custom sliver lists
+                return ReorderableDelayedDragStartListener(
+                  key: ValueKey(id),
+                  index: index,
+                  child: _DraggableRowWrapper(
+                    index: index,
+                    tableWidth: widget.tableWidth,
+                    draggedItemIndex: _draggedItemIndex,
+                  ),
+                );
+              },
+            ),
+          ],
         );
       },
     );
@@ -148,10 +166,13 @@ class _DraggableRowWrapper extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         TableRowWithoutTopBorder(rowIndex: index, tableWidth: tableWidth),
-        // Isolated rebuild: only reacts if this specific index is dragged
         SignalBuilder(
           builder: (context) {
-            if (draggedItemIndex.value != index) {
+
+            // If NO item is being dragged, hide all top borders to prevent overlaps.
+            // If ANY item is dragged, show top borders on all items to ensure the
+            // empty gap in the ReorderableListView maintains a top border.
+            if (draggedItemIndex.value == null) {
               return const SizedBox.shrink();
             }
 
