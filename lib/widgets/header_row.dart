@@ -73,9 +73,7 @@ class _HeaderRowState extends State<HeaderRow> {
                         .map(
                           (text) => ClipRect(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8 * scale,
-                              ),
+                              padding: EdgeInsets.all(8 * scale),
                               child: Text(
                                 text,
                                 style: TextStyle(
