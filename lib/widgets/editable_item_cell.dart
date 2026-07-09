@@ -10,7 +10,8 @@ const _heightFactor = 1.2;
 const _letterSpacing = 0.0;
 
 class EditableItemCell extends StatefulWidget {
-  const EditableItemCell({super.key, 
+  const EditableItemCell({
+    super.key,
     required this.rowIndex,
     required this.column,
     required this.draggable,
@@ -59,14 +60,9 @@ class _EditableItemCellState extends State<EditableItemCell> {
           .vocabularyItems[widget.rowIndex]
           .value[widget.column];
 
+      // Update text only if it differs from the controller to prevent feedback loops
       if (_textController.text != currentText) {
-        // Retain cursor position when updating text programmatically
-        final selection = _textController.selection;
         _textController.text = currentText;
-        
-        if (selection.isValid) {
-          _textController.selection = selection;
-        }
       }
     });
   }
@@ -75,7 +71,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
   void didUpdateWidget(EditableItemCell oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Handle structural changes (e.g., row shifted via ReorderableListView)
-    if (oldWidget.rowIndex != widget.rowIndex || oldWidget.column != widget.column) {
+    if (oldWidget.rowIndex != widget.rowIndex ||
+        oldWidget.column != widget.column) {
       if (_editableTextFocus.hasFocus) {
         _vocabularyController.selectedCell.value = _currentLocation;
       }
@@ -91,10 +88,10 @@ class _EditableItemCellState extends State<EditableItemCell> {
   void _editableTextFocusChanged() {
     if (!_editableTextFocus.hasFocus) {
       // Save changes immediately back to the model upon losing focus.
-      _vocabularyController.updateVocabularyAtLocation(
-        (rowIndex: widget.rowIndex, column: widget.column),
-        _textController.text,
-      );
+      _vocabularyController.updateVocabularyAtLocation((
+        rowIndex: widget.rowIndex,
+        column: widget.column,
+      ), _textController.text);
 
       if (_vocabularyController.selectedCell.peek() == _currentLocation) {
         _vocabularyController.selectedCell.value = null;
@@ -103,6 +100,9 @@ class _EditableItemCellState extends State<EditableItemCell> {
   }
 
   void _startEditing() {
+    _textController.selection = TextSelection.collapsed(
+      offset: _textController.text.length,
+    );
     _vocabularyController.selectedCell.value = _currentLocation;
     _editableTextFocus.requestFocus();
   }
@@ -114,7 +114,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
     _plainTextFocus.removeListener(_plainTextFocusChanged);
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
-    
+
     // Crucial: dispose UI element locally.
     _textController.dispose();
     super.dispose();
