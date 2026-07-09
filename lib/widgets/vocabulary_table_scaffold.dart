@@ -25,22 +25,26 @@ class _VocabularyTableScaffoldState extends State<VocabularyTableScaffold> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SignalBuilder(
-          builder: (context) {
-            final isLandscape = _orientationController.isLandscape.value;
-
-            return Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Flex(
-                direction: isLandscape ? .horizontal : .vertical,
-                children: [
-                  UniversalToolbar(isVertical: isLandscape),
-                  Expanded(child: widget.child),
-                ],
-              ),
-            );
-          },
+      body: GestureDetector(
+        behavior: .opaque,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SafeArea(
+          child: SignalBuilder(
+            builder: (context) {
+              final isLandscape = _orientationController.isLandscape.value;
+        
+              return Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Flex(
+                  direction: isLandscape ? .horizontal : .vertical,
+                  children: [
+                    UniversalToolbar(isVertical: isLandscape),
+                    Expanded(child: widget.child),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -42,7 +42,7 @@ class _EditableItemCellState extends State<EditableItemCell>
     _vocabularyController = GetIt.I<VocabularyController>();
     _textController = TextEditingController();
 
-    _plainTextFocus = FocusNode()..addListener(_plainTextFocusChanged);
+    _plainTextFocus = FocusNode()..addListener(_onPlainTextFocusChanged);
 
     _editableTextFocus = FocusNode(
       onKeyEvent: (node, event) {
@@ -52,7 +52,7 @@ class _EditableItemCellState extends State<EditableItemCell>
         }
         return .ignored;
       },
-    )..addListener(_editableTextFocusChanged);
+    )..addListener(_onEditableTextFocusChanged);
 
     // do not call before all late variables are initialized!
     super.initState();
@@ -85,13 +85,13 @@ class _EditableItemCellState extends State<EditableItemCell>
     }
   }
 
-  void _plainTextFocusChanged() {
+  void _onPlainTextFocusChanged() {
     if (_plainTextFocus.hasFocus) {
       _startEditing();
     }
   }
 
-  void _editableTextFocusChanged() {
+  void _onEditableTextFocusChanged() {
     updateKeepAlive();
     if (!_editableTextFocus.hasFocus) {
       // Save changes immediately back to the model upon losing focus.
@@ -117,8 +117,8 @@ class _EditableItemCellState extends State<EditableItemCell>
   @override
   void dispose() {
     _syncEffectCleanup?.call();
-    _editableTextFocus.removeListener(_editableTextFocusChanged);
-    _plainTextFocus.removeListener(_plainTextFocusChanged);
+    _editableTextFocus.removeListener(_onEditableTextFocusChanged);
+    _plainTextFocus.removeListener(_onPlainTextFocusChanged);
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
 
@@ -203,6 +203,8 @@ class _EditableTextCell extends StatelessWidget {
             child: TextField(
               focusNode: focusNode,
               controller: textController,
+              onTapOutside: (event) {},
+              minLines: 2,
               maxLines: null,
               style: TextStyle(
                 fontSize: fontSize,
