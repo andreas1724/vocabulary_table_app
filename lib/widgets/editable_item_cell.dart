@@ -203,6 +203,7 @@ class _EditableTextCell extends StatelessWidget {
             child: TextField(
               focusNode: focusNode,
               controller: textController,
+              // override (event) => unfocus()
               onTapOutside: (event) {},
               minLines: 2,
               maxLines: null,
