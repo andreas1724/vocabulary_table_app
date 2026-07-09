@@ -28,15 +28,12 @@ class _EditableItemCellState extends State<EditableItemCell> {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
-  
-  // Create the controller locally to bind it strictly to the Widget lifecycle.
   late final TextEditingController _textController;
 
-  (int, ColumnName) get _currentLocation => (widget.rowIndex, widget.column);
+  // Stores the cleanup function for the signal effect
+  EffectCleanup? _syncEffectCleanup;
 
-  String get _currentText => _vocabularyController.vocabularyItems
-      .peek()[widget.rowIndex]
-      .peek()[widget.column];
+  (int, ColumnName) get _currentLocation => (widget.rowIndex, widget.column);
 
   @override
   void initState() {
@@ -55,6 +52,34 @@ class _EditableItemCellState extends State<EditableItemCell> {
         return .ignored;
       },
     )..addListener(_editableTextFocusChanged);
+
+    // Setup an effect to automatically sync the controller when the signal changes externally
+    _syncEffectCleanup = effect(() {
+      final currentText = _vocabularyController
+          .vocabularyItems[widget.rowIndex]
+          .value[widget.column];
+
+      if (_textController.text != currentText) {
+        // Retain cursor position when updating text programmatically
+        final selection = _textController.selection;
+        _textController.text = currentText;
+        
+        if (selection.isValid) {
+          _textController.selection = selection;
+        }
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(EditableItemCell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Handle structural changes (e.g., row shifted via ReorderableListView)
+    if (oldWidget.rowIndex != widget.rowIndex || oldWidget.column != widget.column) {
+      if (_editableTextFocus.hasFocus) {
+        _vocabularyController.selectedCell.value = _currentLocation;
+      }
+    }
   }
 
   void _plainTextFocusChanged() {
@@ -78,14 +103,13 @@ class _EditableItemCellState extends State<EditableItemCell> {
   }
 
   void _startEditing() {
-    // Populate UI controller with fresh state before granting focus.
-    _textController.text = _currentText;
     _vocabularyController.selectedCell.value = _currentLocation;
     _editableTextFocus.requestFocus();
   }
 
   @override
   void dispose() {
+    _syncEffectCleanup?.call();
     _editableTextFocus.removeListener(_editableTextFocusChanged);
     _plainTextFocus.removeListener(_plainTextFocusChanged);
     _editableTextFocus.dispose();
