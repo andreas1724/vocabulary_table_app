@@ -5,6 +5,7 @@ import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
+/// Extracted private widget class for high-performance rendering and clear structure
 class TableBody extends StatefulWidget {
   const TableBody({
     super.key,
@@ -20,27 +21,6 @@ class TableBody extends StatefulWidget {
 }
 
 class _TableBodyState extends State<TableBody> {
-  @override
-  Widget build(BuildContext context) {
-    return _TableListView(
-      tableWidth: widget.tableWidth,
-      isMultiTouch: widget.isMultiTouch,
-    );
-  }
-}
-
-/// Extracted private widget class for high-performance rendering and clear structure
-class _TableListView extends StatefulWidget {
-  const _TableListView({required this.tableWidth, required this.isMultiTouch});
-
-  final double tableWidth;
-  final ReadonlySignal<bool> isMultiTouch;
-
-  @override
-  State<_TableListView> createState() => _TableListViewState();
-}
-
-class _TableListViewState extends State<_TableListView> {
   late final _vocabularyController = GetIt.I<VocabularyController>();
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
 
@@ -139,6 +119,7 @@ class _TableListViewState extends State<_TableListView> {
 
 class _DraggableRowWrapper extends StatelessWidget {
   const _DraggableRowWrapper({
+    // ignore: unused_element_parameter
     super.key,
     required this.index,
     required this.tableWidth,
