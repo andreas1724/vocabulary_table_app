@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
 import 'package:vocabulary_table_app/widgets/editable_item_cell.dart';
 
 class TableRowWithoutTopBorder extends StatelessWidget {
@@ -21,7 +22,7 @@ class TableRowWithoutTopBorder extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final borderWidth = tableLayoutController.borderWidth.value;
-        final borderColor = tableLayoutController.borderColor.value;
+        final borderColor = context.colors.borderColor;
         final showComment = tableLayoutController.showComment.value;
 
         // Read appMode to trigger rebuild on mode change

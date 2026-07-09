@@ -25,7 +25,7 @@ class _TableScopeState extends State<TableScope> {
     );
 
     GetIt.I.registerLazySingleton<TableLayoutController>(
-      () => TableLayoutController(borderColor: Theme.of(context).colorScheme.outlineVariant),
+      () => TableLayoutController(),
       dispose: (controller) => controller.dispose,
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
 
 /// Size for the drag area between columns.
 const _dragHandleWidthMobile = 48.0;
@@ -46,7 +47,7 @@ class _HeaderRowState extends State<HeaderRow> {
       builder: (context) {
         final tableWidth = widget.tableWidth;
         final borderWidth = _tableLayoutController.borderWidth.value;
-        final borderColor = _tableLayoutController.borderColor.value;
+        final borderColor = context.colors.borderColor;
         final showComment = _tableLayoutController.showComment.value;
 
         final w1 = tableWidth * _tableLayoutController.col1Ratio.value;

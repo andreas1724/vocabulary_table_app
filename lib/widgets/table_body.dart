@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
+import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
+import 'package:vocabulary_table_app/utils/custom_delayed_drag_start_listener.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
 /// Extracted private widget class for high-performance rendering and clear structure
@@ -57,9 +59,10 @@ class _TableBodyState extends State<TableBody> {
                 final id = vocabularyItem.peek().id;
 
                 // Explicit DragStartListener is required when building custom sliver lists
-                return ReorderableDelayedDragStartListener(
+                return CustomDelayedDragStartListener(
                   key: ValueKey(id),
                   index: index,
+                  delay: const Duration(milliseconds: 0),
                   child: _DraggableRowWrapper(
                     index: index,
                     tableWidth: widget.tableWidth,
@@ -86,7 +89,7 @@ class _TableBodyState extends State<TableBody> {
           builder: (context) {
             final scale = _tableLayoutController.scale.value;
             final borderWidth = _tableLayoutController.borderWidth.value;
-            final borderColor = _tableLayoutController.borderColor.value;
+            final borderColor = context.colors.borderColor;
 
             // Interpolate elevation smoothly during the pickup animation
             final currentElevation = targetElevation * scale * animation.value;
@@ -147,7 +150,7 @@ class _DraggableRowWrapper extends StatelessWidget {
             }
 
             final borderWidth = tableLayoutController.borderWidth.value;
-            final borderColor = tableLayoutController.borderColor.value;
+            final borderColor = context.colors.borderColor;
 
             return Positioned(
               top: -borderWidth,
