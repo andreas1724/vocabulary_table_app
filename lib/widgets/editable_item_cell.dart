@@ -25,7 +25,8 @@ class EditableItemCell extends StatefulWidget {
   State<EditableItemCell> createState() => _EditableItemCellState();
 }
 
-class _EditableItemCellState extends State<EditableItemCell> {
+class _EditableItemCellState extends State<EditableItemCell>
+    with AutomaticKeepAliveClientMixin {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
@@ -38,7 +39,6 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   @override
   void initState() {
-    super.initState();
     _vocabularyController = GetIt.I<VocabularyController>();
     _textController = TextEditingController();
 
@@ -54,6 +54,9 @@ class _EditableItemCellState extends State<EditableItemCell> {
       },
     )..addListener(_editableTextFocusChanged);
 
+    // do not call before all late variables are initialized!
+    super.initState();
+
     // Setup an effect to automatically sync the controller when the signal changes externally
     _syncEffectCleanup = effect(() {
       final currentText = _vocabularyController
@@ -66,6 +69,9 @@ class _EditableItemCellState extends State<EditableItemCell> {
       }
     });
   }
+
+  @override
+  bool get wantKeepAlive => _editableTextFocus.hasFocus;
 
   @override
   void didUpdateWidget(EditableItemCell oldWidget) {
@@ -86,6 +92,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
   }
 
   void _editableTextFocusChanged() {
+    updateKeepAlive();
     if (!_editableTextFocus.hasFocus) {
       // Save changes immediately back to the model upon losing focus.
       _vocabularyController.updateVocabularyAtLocation((
@@ -122,6 +129,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   @override
   Widget build(BuildContext context) {
+    // required in this Mixin
+    super.build(context);
     final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return SignalBuilder(
@@ -194,9 +203,7 @@ class _EditableTextCell extends StatelessWidget {
             child: TextField(
               focusNode: focusNode,
               controller: textController,
-              minLines: 2,
               maxLines: null,
-              selectAllOnFocus: true,
               style: TextStyle(
                 fontSize: fontSize,
                 height: _heightFactor,

@@ -32,13 +32,4 @@ extension VocabularyItemX on VocabularyItem {
     .termB => termB,
     .comment => comment,
   };
-
-  // String at(int colIndex) {
-  //   return switch (colIndex) {
-  //     0 => termA,
-  //     1 => termB,
-  //     2 => comment,
-  //     _ => throw RangeError('$colIndex out of range (0..2)'),
-  //   };
-  // }
 }
