@@ -12,12 +12,12 @@ const _letterSpacing = 0.0;
 class EditableItemCell extends StatefulWidget {
   const EditableItemCell({super.key, 
     required this.rowIndex,
-    required this.colIndex,
+    required this.column,
     required this.draggable,
   });
 
-  final int colIndex;
   final int rowIndex;
+  final ColumnName column;
   final bool draggable;
 
   @override
@@ -32,12 +32,11 @@ class _EditableItemCellState extends State<EditableItemCell> {
   // Create the controller locally to bind it strictly to the Widget lifecycle.
   late final TextEditingController _textController;
 
-  (int, int) get _currentLocation => (widget.rowIndex, widget.colIndex);
+  (int, ColumnName) get _currentLocation => (widget.rowIndex, widget.column);
 
   String get _currentText => _vocabularyController.vocabularyItems
       .peek()[widget.rowIndex]
-      .peek()
-      .at(widget.colIndex);
+      .peek()[widget.column];
 
   @override
   void initState() {
@@ -68,7 +67,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
     if (!_editableTextFocus.hasFocus) {
       // Save changes immediately back to the model upon losing focus.
       _vocabularyController.updateVocabularyAtLocation(
-        (rowIndex: widget.rowIndex, colIndex: widget.colIndex),
+        (rowIndex: widget.rowIndex, column: widget.column),
         _textController.text,
       );
 
@@ -105,7 +104,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
       builder: (context) {
         final itemSignal = _vocabularyController.vocabularyItems
             .peek()[widget.rowIndex];
-        final text = itemSignal.value.at(widget.colIndex);
+        final text = itemSignal.value[widget.column];
 
         final isSelected =
             _vocabularyController.selectedCell.value == _currentLocation;

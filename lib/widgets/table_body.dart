@@ -48,8 +48,7 @@ class _TableBodyState extends State<TableBody> {
           slivers: [
             SliverReorderableList(
               itemCount: vocabularyItems.length,
-              onReorderItem: (oldIndex, newIndex) =>
-                  _vocabularyController.reorderItem,
+              onReorderItem: _vocabularyController.reorderItem,
               onReorderStart: (index) => _draggedItemIndex.value = index,
               onReorderEnd: (index) => _draggedItemIndex.value = null,
               proxyDecorator: _proxyDecorator,

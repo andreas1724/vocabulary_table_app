@@ -50,18 +50,18 @@ class TableRowWithoutTopBorder extends StatelessWidget {
               children: [
                 EditableItemCell(
                   rowIndex: rowIndex,
-                  colIndex: 0,
+                  column: .termA,
                   draggable: false,
                 ),
                 EditableItemCell(
                   rowIndex: rowIndex,
-                  colIndex: 1,
+                  column: .termB,
                   draggable: !showComment,
                 ),
                 if (showComment)
                   EditableItemCell(
                     rowIndex: rowIndex,
-                    colIndex: 2,
+                    column: .comment,
                     draggable: true,
                   ),
               ],

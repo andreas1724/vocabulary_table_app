@@ -9,7 +9,7 @@ class VocabularyController {
       );
 
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
-  final selectedCell = signal<(int, int)?>(null);
+  final selectedCell = signal<(int, ColumnName)?>(null);
 
   late final vocabularyItems = _vocabularyItems.readonly();
 
@@ -29,22 +29,18 @@ class VocabularyController {
   }
 
   void updateVocabularyAtLocation(
-    ({int rowIndex, int colIndex}) location,
+    ({int rowIndex, ColumnName column}) location,
     String updateText,
   ) {
     if (location.rowIndex < 0 || location.rowIndex >= _vocabularyItems.length) {
       return;
     }
-    if (location.colIndex < 0 || location.colIndex > 2) {
-      return;
-    }
 
     final vocabularyItem = _vocabularyItems[location.rowIndex].peek();
-    final updatedItem = switch (location.colIndex) {
-      0 => vocabularyItem.copyWith(termA: updateText),
-      1 => vocabularyItem.copyWith(termB: updateText),
-      2 => vocabularyItem.copyWith(comment: updateText),
-      _ => throw RangeError('${location.colIndex} out of range (0..2)'),
+    final updatedItem = switch (location.column) {
+      .termA => vocabularyItem.copyWith(termA: updateText),
+      .termB => vocabularyItem.copyWith(termB: updateText),
+      .comment => vocabularyItem.copyWith(comment: updateText),
     };
     updateVocabularyAt(location.rowIndex, updatedItem);
   }
@@ -63,7 +59,7 @@ class VocabularyController {
       return;
     }
     batch(() {
-      final item = _vocabularyItems.value.removeAt(oldIndex);
+      final item = _vocabularyItems.removeAt(oldIndex);
       _vocabularyItems.value.insert(newIndex, item);
     });
   }

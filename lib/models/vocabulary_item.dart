@@ -1,12 +1,16 @@
 import 'package:uuid/uuid.dart';
 
+enum ColumnName { termA, termB, comment }
+
+const _uuid = Uuid();
+
 class VocabularyItem {
   VocabularyItem({
     String? id,
     required this.termA,
     required this.termB,
     this.comment = '',
-  }) : id = id ?? const Uuid().v4();
+  }) : id = id ?? _uuid.v4();
 
   final String id;
   final String termA;
@@ -23,12 +27,18 @@ extension VocabularyItemX on VocabularyItem {
         comment: comment ?? this.comment,
       );
 
-  String at(int colIndex) {
-    return switch (colIndex) {
-      0 => termA,
-      1 => termB,
-      2 => comment,
-      _ => throw RangeError('$colIndex out of range (0..2)'),
-    };
-  }
+  String operator [](ColumnName column) => switch (column) {
+    .termA => termA,
+    .termB => termB,
+    .comment => comment,
+  };
+
+  // String at(int colIndex) {
+  //   return switch (colIndex) {
+  //     0 => termA,
+  //     1 => termB,
+  //     2 => comment,
+  //     _ => throw RangeError('$colIndex out of range (0..2)'),
+  //   };
+  // }
 }
