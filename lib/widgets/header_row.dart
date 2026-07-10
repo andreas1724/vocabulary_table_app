@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
-import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
 
 /// Size for the drag area between columns.
 const _dragHandleWidthMobile = 48.0;
@@ -47,7 +46,6 @@ class _HeaderRowState extends State<HeaderRow> {
       builder: (context) {
         final tableWidth = widget.tableWidth;
         final borderWidth = _tableLayoutController.borderWidth.value;
-        final borderColor = context.colors.borderColor;
         final showComment = _tableLayoutController.showComment.value;
 
         final w1 = tableWidth * _tableLayoutController.col1Ratio.value;
@@ -56,11 +54,15 @@ class _HeaderRowState extends State<HeaderRow> {
 
         final scale = _tableLayoutController.scale.value;
 
+        final borderColor = Theme.of(context).colorScheme.outlineVariant;
+        final headerBackground = Theme.of(context).colorScheme.primaryContainer;
+        final headerFontColor = Theme.of(context).colorScheme.onPrimaryContainer;
+
         return Stack(
           key: _containerKey,
           children: [
             Container(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: headerBackground,
               child: Table(
                 border: TableBorder.all(color: borderColor, width: borderWidth),
                 columnWidths: {
@@ -78,6 +80,7 @@ class _HeaderRowState extends State<HeaderRow> {
                               child: Text(
                                 text,
                                 style: TextStyle(
+                                  color: headerFontColor,
                                   fontSize:
                                       TableLayoutController.fontSize * scale,
                                   fontWeight: .bold,

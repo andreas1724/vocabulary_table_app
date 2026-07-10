@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
-import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
 import 'package:vocabulary_table_app/utils/custom_delayed_drag_start_listener.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
@@ -62,7 +61,7 @@ class _TableBodyState extends State<TableBody> {
                 return CustomDelayedDragStartListener(
                   key: ValueKey(id),
                   index: index,
-                  delay: const Duration(milliseconds: 0),
+                  delay: const Duration(milliseconds: 50),
                   child: _DraggableRowWrapper(
                     index: index,
                     tableWidth: widget.tableWidth,
@@ -89,15 +88,15 @@ class _TableBodyState extends State<TableBody> {
           builder: (context) {
             final scale = _tableLayoutController.scale.value;
             final borderWidth = _tableLayoutController.borderWidth.value;
-            final borderColor = context.colors.borderColor;
+            final borderColor = Theme.of(context).colorScheme.outlineVariant;
 
             // Interpolate elevation smoothly during the pickup animation
             final currentElevation = targetElevation * scale * animation.value;
 
             return Material(
               elevation: currentElevation,
-              color: Colors.blue[50],
-              shadowColor: Colors.black45,
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              shadowColor: Theme.of(context).colorScheme.shadow,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -148,10 +147,10 @@ class _DraggableRowWrapper extends StatelessWidget {
             if (draggedItemIndex.value == null) {
               return const SizedBox.shrink();
             }
-
+    
             final borderWidth = tableLayoutController.borderWidth.value;
-            final borderColor = context.colors.borderColor;
-
+            final borderColor = Theme.of(context).colorScheme.outlineVariant;
+    
             return Positioned(
               top: -borderWidth,
               left: 0,

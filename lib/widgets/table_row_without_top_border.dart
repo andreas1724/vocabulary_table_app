@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
-import 'package:vocabulary_table_app/utils/app_colors_extension.dart';
 import 'package:vocabulary_table_app/widgets/editable_item_cell.dart';
 
 class TableRowWithoutTopBorder extends StatelessWidget {
@@ -22,18 +21,14 @@ class TableRowWithoutTopBorder extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final borderWidth = tableLayoutController.borderWidth.value;
-        final borderColor = context.colors.borderColor;
+        final borderColor = Theme.of(context).colorScheme.outlineVariant;
         final showComment = tableLayoutController.showComment.value;
-
-        // Read appMode to trigger rebuild on mode change
-        final appMode = tableLayoutController.appMode.value;
 
         final w1 = tableWidth * tableLayoutController.col1Ratio.value;
         final w2 = tableWidth * tableLayoutController.col2Ratio.value;
         final w3 = tableWidth * tableLayoutController.col3Ratio.value;
 
         return Table(
-          key: ValueKey(appMode),
           columnWidths: {
             0: FixedColumnWidth(w1),
             1: FixedColumnWidth(w2),
@@ -52,18 +47,15 @@ class TableRowWithoutTopBorder extends StatelessWidget {
                 EditableItemCell(
                   rowIndex: rowIndex,
                   column: .termA,
-                  draggable: false,
                 ),
                 EditableItemCell(
                   rowIndex: rowIndex,
                   column: .termB,
-                  draggable: !showComment,
                 ),
                 if (showComment)
                   EditableItemCell(
                     rowIndex: rowIndex,
                     column: .comment,
-                    draggable: true,
                   ),
               ],
             ),

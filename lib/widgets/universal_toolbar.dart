@@ -10,10 +10,10 @@ class UniversalToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final appBarColor = Theme.of(context).colorScheme.surfaceContainer;
 
     return Material(
-      color: theme.colorScheme.surfaceContainer,
+      color: appBarColor,
       elevation: 0,
       child: Container(
         width: isVertical ? kToolbarHeight : double.infinity,

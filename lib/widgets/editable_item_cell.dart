@@ -4,22 +4,20 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
-import 'package:vocabulary_table_app/widgets/vocabulary_table_cell.dart';
 
 const _heightFactor = 1.2;
 const _letterSpacing = 0.0;
+const _padding = 6.0;
 
 class EditableItemCell extends StatefulWidget {
   const EditableItemCell({
     super.key,
     required this.rowIndex,
     required this.column,
-    required this.draggable,
   });
 
   final int rowIndex;
   final ColumnName column;
-  final bool draggable;
 
   @override
   State<EditableItemCell> createState() => _EditableItemCellState();
@@ -146,24 +144,22 @@ class _EditableItemCellState extends State<EditableItemCell>
         if (isSelected && appMode == .edit) {
           return _EditableTextCell(
             rowIndex: widget.rowIndex,
-            draggable: widget.draggable,
             focusNode: _editableTextFocus,
             textController: _textController, // Pass the managed instance down
           );
         } else {
-          return InkWell(
-            mouseCursor: SystemMouseCursors.basic,
-            focusNode: _plainTextFocus,
-            onTap: () {
-              if (!_plainTextFocus.hasFocus && !_editableTextFocus.hasFocus) {
-                FocusManager.instance.primaryFocus?.unfocus();
-              }
-            },
-            onDoubleTap: _startEditing,
-            child: _PlainTextCell(
-              text: text,
-              rowIndex: widget.rowIndex,
-              draggable: widget.draggable,
+          return Material(
+            type: .transparency,
+            child: InkWell(
+              mouseCursor: SystemMouseCursors.basic,
+              focusNode: _plainTextFocus,
+              onTap: () {
+                if (!_plainTextFocus.hasFocus && !_editableTextFocus.hasFocus) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                }
+              },
+              onDoubleTap: _startEditing,
+              child: _PlainTextCell(text: text, rowIndex: widget.rowIndex),
             ),
           );
         }
@@ -175,13 +171,11 @@ class _EditableItemCellState extends State<EditableItemCell>
 class _EditableTextCell extends StatelessWidget {
   const _EditableTextCell({
     required this.rowIndex,
-    required this.draggable,
     required this.focusNode,
     required this.textController,
   });
 
   final int rowIndex;
-  final bool draggable;
   final FocusNode focusNode;
   final TextEditingController textController;
 
@@ -195,15 +189,14 @@ class _EditableTextCell extends StatelessWidget {
         final fontSize = TableLayoutController.fontSize * scale;
         final singleLineHeight = fontSize * _heightFactor;
 
-        return VocabularyTableCell(
-          rowIndex: rowIndex,
-          draggable: draggable,
+        return Padding(
+          padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
           child: Padding(
-            padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
+            padding: EdgeInsets.all(_padding * scale),
             child: TextField(
               focusNode: focusNode,
               controller: textController,
-              // override (event) => unfocus()
+              // empty braces to override (event) => unfocus()
               onTapOutside: (event) {},
               minLines: 2,
               maxLines: null,
@@ -226,14 +219,9 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({
-    required this.text,
-    required this.rowIndex,
-    required this.draggable,
-  });
+  const _PlainTextCell({required this.text, required this.rowIndex});
 
   final int rowIndex;
-  final bool draggable;
   final String text;
 
   @override
@@ -241,14 +229,12 @@ class _PlainTextCell extends StatelessWidget {
     final tableLayoutController = GetIt.I<TableLayoutController>();
     return SignalBuilder(
       builder: (context) {
-        final isDragMode = tableLayoutController.appMode.value == AppMode.drag;
         final scale = tableLayoutController.scale.value;
-        return VocabularyTableCell(
-          rowIndex: rowIndex,
-          draggable: draggable,
+        return Padding(
+          padding: EdgeInsets.all(_padding * scale),
           child: Text(
             text,
-            maxLines: isDragMode ? 3 : null,
+            maxLines: null,
             style: TextStyle(
               fontSize: TableLayoutController.fontSize * scale,
               height: _heightFactor,

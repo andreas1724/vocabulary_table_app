@@ -54,7 +54,7 @@ class _VocabularyTableState extends State<VocabularyTable> {
       onPointerSignal: (event) =>
           _handlePointerSignal(event, _tableLayoutController.scale),
       child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+        behavior: .opaque,
         onScaleStart: (details) => _tableLayoutController.scaleStart(),
         onScaleUpdate: (details) =>
             _tableLayoutController.scaleUpdate(details.scale),
