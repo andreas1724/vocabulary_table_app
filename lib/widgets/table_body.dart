@@ -39,6 +39,7 @@ class _TableBodyState extends State<TableBody> {
     return SignalBuilder(
       builder: (context) {
         final vocabularyItems = _vocabularyController.vocabularyItems.value;
+        // ignore: unused_local_variable
         final appMode = _tableLayoutController.appMode.value;
         final isMultiTouch = widget.isMultiTouch.value;
 
@@ -47,7 +48,7 @@ class _TableBodyState extends State<TableBody> {
             : const AlwaysScrollableScrollPhysics();
 
         return CustomScrollView(
-          key: ValueKey(appMode),
+          // Removed `key: ValueKey(appMode)` to preserve scroll offsetkey
           physics: dynamicPhysics,
           slivers: [
             SliverReorderableList(
