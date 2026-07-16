@@ -5,17 +5,19 @@ import 'dart:math' show log, ln2;
 /// The minimum width of a column as a fraction of the total row width.
 const _minColumnRatio = 0.05;
 
-enum AppMode { edit, play }
+enum AppMode { edit, play, drag }
 
 extension AppModeX on AppMode {
   String get title => switch (this) {
     .edit => 'Edit',
     .play => 'Play (TTS)',
+    .drag => 'Drag',
   };
 
   IconData get icon => switch (this) {
     .edit => Icons.edit,
     .play => Icons.play_arrow,
+    .drag => Icons.drag_handle,
   };
 }
 

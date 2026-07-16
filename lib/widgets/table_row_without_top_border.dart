@@ -7,11 +7,9 @@ import 'package:vocabulary_table_app/widgets/editable_item_cell.dart';
 class TableRowWithoutTopBorder extends StatelessWidget {
   const TableRowWithoutTopBorder({
     super.key,
-    required this.rowIndex,
     required this.tableWidth,
   });
 
-  final int rowIndex;
   final double tableWidth;
 
   @override
@@ -45,16 +43,13 @@ class TableRowWithoutTopBorder extends StatelessWidget {
             TableRow(
               children: [
                 EditableItemCell(
-                  rowIndex: rowIndex,
                   column: .termA,
                 ),
                 EditableItemCell(
-                  rowIndex: rowIndex,
                   column: .termB,
                 ),
                 if (showComment)
                   EditableItemCell(
-                    rowIndex: rowIndex,
                     column: .comment,
                   ),
               ],

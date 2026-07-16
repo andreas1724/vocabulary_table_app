@@ -4,19 +4,15 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
+import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 
 const _heightFactor = 1.2;
 const _letterSpacing = 0.0;
 const _padding = 6.0;
 
 class EditableItemCell extends StatefulWidget {
-  const EditableItemCell({
-    super.key,
-    required this.rowIndex,
-    required this.column,
-  });
+  const EditableItemCell({super.key, required this.column});
 
-  final int rowIndex;
   final ColumnName column;
 
   @override
@@ -29,11 +25,12 @@ class _EditableItemCellState extends State<EditableItemCell>
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
+  int _rowIndex = -1;
 
   // Stores the cleanup function for the signal effect
   EffectCleanup? _syncEffectCleanup;
 
-  (int, ColumnName) get _currentLocation => (widget.rowIndex, widget.column);
+  (int, ColumnName) get _currentLocation => (_rowIndex, widget.column);
 
   @override
   void initState() {
@@ -54,33 +51,44 @@ class _EditableItemCellState extends State<EditableItemCell>
 
     // do not call before all late variables are initialized!
     super.initState();
-
-    // Setup an effect to automatically sync the controller when the signal changes externally
-    _syncEffectCleanup = effect(() {
-      final currentText = _vocabularyController
-          .vocabularyItems[widget.rowIndex]
-          .value[widget.column];
-
-      // Update text only if it differs from the controller to prevent feedback loops
-      if (_textController.text != currentText) {
-        _textController.text = currentText;
-      }
-    });
   }
 
   @override
   bool get wantKeepAlive => _editableTextFocus.hasFocus;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newIndex = RowIndexScope.of(context);
+    if (newIndex != _rowIndex) {
+      _rowIndex = newIndex;
+      _setupSyncEffect();
+    }
+  }
+
+  @override
   void didUpdateWidget(EditableItemCell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Handle structural changes (e.g., row shifted via ReorderableListView)
-    if (oldWidget.rowIndex != widget.rowIndex ||
-        oldWidget.column != widget.column) {
+    if (oldWidget.column != widget.column) {
       if (_editableTextFocus.hasFocus) {
         _vocabularyController.selectedCell.value = _currentLocation;
+        _setupSyncEffect();
       }
     }
+  }
+
+  void _setupSyncEffect() {
+    // Clean up previous subscription before creating a new one
+    _syncEffectCleanup?.call();
+
+    _syncEffectCleanup = effect(() {
+      final currentText =
+          _vocabularyController.vocabularyItems[_rowIndex].value[widget.column];
+
+      if (_textController.text != currentText) {
+        _textController.text = currentText;
+      }
+    });
   }
 
   void _onPlainTextFocusChanged() {
@@ -94,7 +102,7 @@ class _EditableItemCellState extends State<EditableItemCell>
     if (!_editableTextFocus.hasFocus) {
       // Save changes immediately back to the model upon losing focus.
       _vocabularyController.updateVocabularyAtLocation((
-        rowIndex: widget.rowIndex,
+        rowIndex: _rowIndex,
         column: widget.column,
       ), _textController.text);
 
@@ -115,6 +123,12 @@ class _EditableItemCellState extends State<EditableItemCell>
   @override
   void dispose() {
     _syncEffectCleanup?.call();
+
+    // Safety check: ensure selectedCell is cleared if widget is disposed while focused
+    if (_vocabularyController.selectedCell.peek() == _currentLocation) {
+      _vocabularyController.selectedCell.value = null;
+    }
+
     _editableTextFocus.removeListener(_onEditableTextFocusChanged);
     _plainTextFocus.removeListener(_onPlainTextFocusChanged);
     _editableTextFocus.dispose();
@@ -134,7 +148,7 @@ class _EditableItemCellState extends State<EditableItemCell>
     return SignalBuilder(
       builder: (context) {
         final itemSignal = _vocabularyController.vocabularyItems
-            .peek()[widget.rowIndex];
+            .peek()[_rowIndex];
         final text = itemSignal.value[widget.column];
 
         final isSelected =
@@ -143,13 +157,12 @@ class _EditableItemCellState extends State<EditableItemCell>
 
         if (isSelected && appMode == .edit) {
           return _EditableTextCell(
-            rowIndex: widget.rowIndex,
+            rowIndex: _rowIndex,
             focusNode: _editableTextFocus,
             textController: _textController, // Pass the managed instance down
           );
         } else {
           return Material(
-            type: .transparency,
             child: InkWell(
               mouseCursor: SystemMouseCursors.basic,
               focusNode: _plainTextFocus,
@@ -158,8 +171,8 @@ class _EditableItemCellState extends State<EditableItemCell>
                   FocusManager.instance.primaryFocus?.unfocus();
                 }
               },
-              onDoubleTap: _startEditing,
-              child: _PlainTextCell(text: text, rowIndex: widget.rowIndex),
+              onDoubleTap: appMode == .edit ? _startEditing : null,
+              child: _PlainTextCell(text: text, rowIndex: _rowIndex),
             ),
           );
         }
@@ -230,11 +243,12 @@ class _PlainTextCell extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final scale = tableLayoutController.scale.value;
+        final appMode = tableLayoutController.appMode.value;
         return Padding(
           padding: EdgeInsets.all(_padding * scale),
           child: Text(
             text,
-            maxLines: null,
+            maxLines: appMode == .drag ? 3 : null,
             style: TextStyle(
               fontSize: TableLayoutController.fontSize * scale,
               height: _heightFactor,

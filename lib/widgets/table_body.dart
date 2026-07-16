@@ -4,6 +4,7 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/utils/custom_delayed_drag_start_listener.dart';
+import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
 /// Extracted private widget class for high-performance rendering and clear structure
@@ -38,6 +39,7 @@ class _TableBodyState extends State<TableBody> {
     return SignalBuilder(
       builder: (context) {
         final vocabularyItems = _vocabularyController.vocabularyItems.value;
+        final appMode = _tableLayoutController.appMode.value;
         final isMultiTouch = widget.isMultiTouch.value;
 
         final dynamicPhysics = isMultiTouch
@@ -45,6 +47,7 @@ class _TableBodyState extends State<TableBody> {
             : const AlwaysScrollableScrollPhysics();
 
         return CustomScrollView(
+          key: ValueKey(appMode),
           physics: dynamicPhysics,
           slivers: [
             SliverReorderableList(
@@ -57,16 +60,11 @@ class _TableBodyState extends State<TableBody> {
                 final vocabularyItem = vocabularyItems[index];
                 final id = vocabularyItem.peek().id;
 
-                // Explicit DragStartListener is required when building custom sliver lists
-                return CustomDelayedDragStartListener(
+                return _DraggableRowWrapper(
                   key: ValueKey(id),
                   index: index,
-                  delay: const Duration(milliseconds: 50),
-                  child: _DraggableRowWrapper(
-                    index: index,
-                    tableWidth: widget.tableWidth,
-                    draggedItemIndex: _draggedItemIndex,
-                  ),
+                  tableWidth: widget.tableWidth,
+                  draggedItemIndex: _draggedItemIndex,
                 );
               },
             ),
@@ -79,24 +77,19 @@ class _TableBodyState extends State<TableBody> {
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
     const targetElevation = 6.0;
 
-    return AnimatedBuilder(
-      animation: animation,
-      child:
-          child, // Pass child here to avoid rebuilding the dragged row on every frame
-      builder: (context, animatedChild) {
-        return SignalBuilder(
-          builder: (context) {
-            final scale = _tableLayoutController.scale.value;
-            final borderWidth = _tableLayoutController.borderWidth.value;
-            final borderColor = Theme.of(context).colorScheme.outlineVariant;
-
+    return SignalBuilder(
+      builder: (context) {
+        final scale = _tableLayoutController.scale.value;
+        final borderWidth = _tableLayoutController.borderWidth.value;
+        final borderColor = Theme.of(context).colorScheme.outlineVariant;
+        return AnimatedBuilder(
+          animation: animation,
+          child: child,
+          builder: (context, animatedChild) {
             // Interpolate elevation smoothly during the pickup animation
             final currentElevation = targetElevation * scale * animation.value;
-
             return Material(
               elevation: currentElevation,
-              color: Theme.of(context).colorScheme.tertiaryContainer,
-              shadowColor: Theme.of(context).colorScheme.shadow,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -138,7 +131,10 @@ class _DraggableRowWrapper extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        TableRowWithoutTopBorder(rowIndex: index, tableWidth: tableWidth),
+        RowIndexScope(
+          rowIndex: index,
+          child: TableRowWithoutTopBorder(tableWidth: tableWidth),
+        ),
         SignalBuilder(
           builder: (context) {
             // If NO item is being dragged, hide all top borders to prevent overlaps.
@@ -147,10 +143,10 @@ class _DraggableRowWrapper extends StatelessWidget {
             if (draggedItemIndex.value == null) {
               return const SizedBox.shrink();
             }
-    
+
             final borderWidth = tableLayoutController.borderWidth.value;
             final borderColor = Theme.of(context).colorScheme.outlineVariant;
-    
+
             return Positioned(
               top: -borderWidth,
               left: 0,
