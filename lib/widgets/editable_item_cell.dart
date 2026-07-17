@@ -125,7 +125,7 @@ class _EditableItemCellState extends State<EditableItemCell>
   void dispose() {
     _syncEffectCleanup?.call();
 
-    // Safety check: ensure selectedCell is cleared if widget is disposed while focused
+    // Safety check: ensure selectedCell is cleared if widget is disposed while selected
     if (_vocabularyController.selectedCell.peek() == _currentLocation) {
       _vocabularyController.selectedCell.value = null;
     }

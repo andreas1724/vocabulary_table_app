@@ -42,6 +42,14 @@ class TableLayoutController {
 
   final appMode = signal<AppMode>(.edit);
 
+  void nextMode() {
+    const values = AppMode.values;
+    final currentIndex = appMode.peek().index;
+    final length = values.length;
+    final nextIndex = (currentIndex + 1) % length;
+    appMode.value = values[nextIndex];
+  }
+
   late final borderWidth = computed(() => scale.value * _standardBorderWidth);
 
   final _ratio1 = signal(1.0 / 3.0);

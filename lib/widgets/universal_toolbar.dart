@@ -38,10 +38,10 @@ class UniversalToolbar extends StatelessWidget {
                       direction: isVertical ? .vertical : .horizontal,
                       mainAxisSize: .min,
                       // The children are completely independent and const!
-                      children: [
-                        const _CommentsToggle(),
-                        _ModeSelector(isVertical),
-                        const _SettingsButton(),
+                      children: const [
+                        _CommentsToggle(),
+                        _ModeToggler(),
+                        _SettingsButton(),
                       ],
                     ),
                   ],
@@ -68,7 +68,7 @@ class _ToolbarTitle extends StatelessWidget {
       'Vocabulary',
       style: Theme.of(context).textTheme.titleLarge,
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      overflow: .ellipsis,
     );
 
     const extraSpace = 8.0;
@@ -106,8 +106,44 @@ class _CommentsToggle extends StatelessWidget {
   }
 }
 
+class _ModeToggler extends StatefulWidget {
+  // ignore: unused_element_parameter
+  const _ModeToggler({super.key});
+
+  @override
+  State<_ModeToggler> createState() => __ModeTogglerState();
+}
+
+class __ModeTogglerState extends State<_ModeToggler> {
+  late final _tableLayoutController = GetIt.I<TableLayoutController>();
+  final _focusNode = FocusNode(debugLabel: 'comments toggle');
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SignalBuilder(
+      builder: (context) {
+        final currentMode = _tableLayoutController.appMode.value;
+        return IconButton(
+          focusNode: _focusNode,
+          onPressed: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+            _tableLayoutController.nextMode();
+          },
+          icon: Icon(currentMode.icon),
+        );
+      },
+    );
+  }
+}
+
 class _ModeSelector extends StatefulWidget {
-  const _ModeSelector(this.isVertical);
+  const _ModeSelector({required this.isVertical});
 
   final bool isVertical;
 
@@ -116,6 +152,7 @@ class _ModeSelector extends StatefulWidget {
 }
 
 class _ModeSelectorState extends State<_ModeSelector> {
+  late final _tableLayoutController = GetIt.I<TableLayoutController>();
   final _focusNodeModeSelector = FocusNode(debugLabel: 'menu button');
 
   @override
@@ -126,13 +163,12 @@ class _ModeSelectorState extends State<_ModeSelector> {
 
   @override
   Widget build(BuildContext context) {
-    final tableLayoutController = GetIt.I<TableLayoutController>();
     final theme = Theme.of(context);
     const iconWidth = 40.0;
 
     return SignalBuilder(
       builder: (context) {
-        final currentMode = tableLayoutController.appMode.value;
+        final currentMode = _tableLayoutController.appMode.value;
 
         return MenuAnchor(
           alignmentOffset: widget.isVertical
@@ -156,7 +192,7 @@ class _ModeSelectorState extends State<_ModeSelector> {
             final isSelected = currentMode == mode;
 
             return MenuItemButton(
-              onPressed: () => tableLayoutController.appMode.value = mode,
+              onPressed: () => _tableLayoutController.appMode.value = mode,
               child: Row(
                 mainAxisSize: .min,
                 children: [
