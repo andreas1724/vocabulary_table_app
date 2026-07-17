@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -172,7 +173,11 @@ class _EditableItemCellState extends State<EditableItemCell>
                 }
               },
               onDoubleTap: appMode == .edit ? _startEditing : null,
-              child: _PlainTextCell(text: text, rowIndex: _rowIndex),
+              child: _PlainTextCell(
+                text: text,
+                column: widget.column,
+                rowIndex: _rowIndex,
+              ),
             ),
           );
         }
@@ -232,9 +237,14 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({required this.text, required this.rowIndex});
+  const _PlainTextCell({
+    required this.text,
+    required this.column,
+    required this.rowIndex,
+  });
 
   final int rowIndex;
+  final ColumnName column;
   final String text;
 
   @override
@@ -244,19 +254,67 @@ class _PlainTextCell extends StatelessWidget {
       builder: (context) {
         final scale = tableLayoutController.scale.value;
         final appMode = tableLayoutController.appMode.value;
+        final showComment = tableLayoutController.showComment.value;
+        final isDragMode = appMode == .drag;
+        final showHandle =
+            isDragMode &&
+            ((showComment && column == .comment) ||
+                (!showComment && column == .termB));
+
         return Padding(
-          padding: EdgeInsets.all(_padding * scale),
-          child: Text(
-            text,
-            maxLines: appMode == .drag ? 3 : null,
-            style: TextStyle(
-              fontSize: TableLayoutController.fontSize * scale,
-              height: _heightFactor,
-              letterSpacing: _letterSpacing,
-            ),
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: .start,
+            children: [
+              Expanded(
+                child: Text(
+                  text,
+                  maxLines: appMode == .drag ? 3 : null,
+                  style: TextStyle(
+                    fontSize: TableLayoutController.fontSize * scale,
+                    height: _heightFactor,
+                    letterSpacing: _letterSpacing,
+                  ),
+                ),
+              ),
+              if (showHandle)
+                _ResponsiveDragHandle(scale: scale, rowIndex: rowIndex),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _ResponsiveDragHandle extends StatelessWidget {
+  const _ResponsiveDragHandle({required this.scale, required this.rowIndex});
+
+  final double scale;
+  final int rowIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    const dragHandleSize = 17.0;
+    final dragHandleColor = Theme.of(context).colorScheme.secondary;
+
+    final isMobile =
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
+
+    return ReorderableDragStartListener(
+      index: rowIndex,
+      child: Container(
+        color: Colors.transparent,
+        padding: EdgeInsets.only(left: isMobile ? 32.0 : scale * 4.0),
+        child: Center(
+          child: Icon(
+            Icons.drag_handle,
+            size: dragHandleSize * scale,
+            color: dragHandleColor,
+          ),
+        ),
+      ),
     );
   }
 }

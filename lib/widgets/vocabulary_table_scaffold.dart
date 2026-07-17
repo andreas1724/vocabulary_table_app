@@ -5,10 +5,7 @@ import 'package:vocabulary_table_app/controller/orientation_controller.dart';
 import 'package:vocabulary_table_app/widgets/universal_toolbar.dart';
 
 class VocabularyTableScaffold extends StatefulWidget {
-  const VocabularyTableScaffold({
-    super.key,
-    required this.child,
-  });
+  const VocabularyTableScaffold({super.key, required this.child});
 
   final Widget child;
 
@@ -24,6 +21,7 @@ class _VocabularyTableScaffoldState extends State<VocabularyTableScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    const padding = 4.0;
     return Scaffold(
       body: GestureDetector(
         behavior: .opaque,
@@ -32,15 +30,26 @@ class _VocabularyTableScaffoldState extends State<VocabularyTableScaffold> {
           child: SignalBuilder(
             builder: (context) {
               final isLandscape = _orientationController.isLandscape.value;
-        
+
               return Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Flex(
-                  direction: isLandscape ? .horizontal : .vertical,
-                  children: [
-                    UniversalToolbar(isVertical: isLandscape),
-                    Expanded(child: widget.child),
-                  ],
+                padding: const EdgeInsets.all(padding),
+                child: FocusTraversalGroup(
+                  policy: OrderedTraversalPolicy(),
+                  child: Flex(
+                    direction: isLandscape ? .horizontal : .vertical,
+                    children: [
+                      FocusTraversalOrder(
+                        order: const NumericFocusOrder(1),
+                        child: UniversalToolbar(isVertical: isLandscape),
+                      ),
+                      Expanded(
+                        child: FocusTraversalOrder(
+                          order: const NumericFocusOrder(2),
+                          child: widget.child,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

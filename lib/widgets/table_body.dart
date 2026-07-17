@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
-import 'package:vocabulary_table_app/utils/custom_delayed_drag_start_listener.dart';
 import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 

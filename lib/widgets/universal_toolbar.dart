@@ -39,9 +39,9 @@ class UniversalToolbar extends StatelessWidget {
                       mainAxisSize: .min,
                       // The children are completely independent and const!
                       children: [
-                        _CommentsToggle(),
+                        const _CommentsToggle(),
                         _ModeSelector(isVertical),
-                        _SettingsButton(),
+                        const _SettingsButton(),
                       ],
                     ),
                   ],
@@ -136,8 +136,8 @@ class _ModeSelectorState extends State<_ModeSelector> {
 
         return MenuAnchor(
           alignmentOffset: widget.isVertical
-              ? Offset((kToolbarHeight + iconWidth) / 2, -iconWidth)
-              : Offset(0, (kToolbarHeight - iconWidth) / 2),
+              ? const Offset((kToolbarHeight + iconWidth) / 2, -iconWidth)
+              : const Offset(0, (kToolbarHeight - iconWidth) / 2),
           childFocusNode: _focusNodeModeSelector,
           builder: (context, menuController, child) {
             return IconButton(

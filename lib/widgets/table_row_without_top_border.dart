@@ -5,10 +5,7 @@ import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/widgets/editable_item_cell.dart';
 
 class TableRowWithoutTopBorder extends StatelessWidget {
-  const TableRowWithoutTopBorder({
-    super.key,
-    required this.tableWidth,
-  });
+  const TableRowWithoutTopBorder({super.key, required this.tableWidth});
 
   final double tableWidth;
 
@@ -42,16 +39,9 @@ class TableRowWithoutTopBorder extends StatelessWidget {
           children: [
             TableRow(
               children: [
-                EditableItemCell(
-                  column: .termA,
-                ),
-                EditableItemCell(
-                  column: .termB,
-                ),
-                if (showComment)
-                  EditableItemCell(
-                    column: .comment,
-                  ),
+                const EditableItemCell(column: .termA),
+                const EditableItemCell(column: .termB),
+                if (showComment) const EditableItemCell(column: .comment),
               ],
             ),
           ],

@@ -1,1 +1,21 @@
 include: package:flutter_lints/flutter.yaml
+linter:
+  rules:
+    # --- Performance ---
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+
+    # --- Error Prevention & Safety ---
+    avoid_print: true
+    avoid_dynamic_calls: true
+    unawaited_futures: true
+    
+    # --- Readability & Maintainability ---
+    prefer_final_locals: true
+    prefer_final_fields: true
+    always_declare_return_types: true
+    
+    # --- Flutter & Formatting ---
+    use_key_in_widget_constructors: true
+    require_trailing_commas: true
