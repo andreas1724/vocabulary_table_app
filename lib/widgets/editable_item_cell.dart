@@ -20,16 +20,12 @@ class EditableItemCell extends StatefulWidget {
   State<EditableItemCell> createState() => _EditableItemCellState();
 }
 
-class _EditableItemCellState extends State<EditableItemCell>
-    with AutomaticKeepAliveClientMixin {
+class _EditableItemCellState extends State<EditableItemCell> {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
   int _rowIndex = -1;
-
-  // Stores the cleanup function for the signal effect
-  EffectCleanup? _syncEffectCleanup;
 
   (int, ColumnName) get _currentLocation => (_rowIndex, widget.column);
 
@@ -55,41 +51,9 @@ class _EditableItemCellState extends State<EditableItemCell>
   }
 
   @override
-  bool get wantKeepAlive => _editableTextFocus.hasFocus;
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final newIndex = RowIndexScope.of(context);
-    if (newIndex != _rowIndex) {
-      _rowIndex = newIndex;
-      _setupSyncEffect();
-    }
-  }
-
-  @override
-  void didUpdateWidget(EditableItemCell oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.column != widget.column) {
-      if (_editableTextFocus.hasFocus) {
-        _vocabularyController.selectedCell.value = _currentLocation;
-        _setupSyncEffect();
-      }
-    }
-  }
-
-  void _setupSyncEffect() {
-    // Clean up previous subscription before creating a new one
-    _syncEffectCleanup?.call();
-
-    _syncEffectCleanup = effect(() {
-      final currentText =
-          _vocabularyController.vocabularyItems[_rowIndex].value[widget.column];
-
-      if (_textController.text != currentText) {
-        _textController.text = currentText;
-      }
-    });
+    _rowIndex = RowIndexScope.of(context);
   }
 
   void _onPlainTextFocusChanged() {
@@ -99,14 +63,7 @@ class _EditableItemCellState extends State<EditableItemCell>
   }
 
   void _onEditableTextFocusChanged() {
-    updateKeepAlive();
     if (!_editableTextFocus.hasFocus) {
-      // Save changes immediately back to the model upon losing focus.
-      _vocabularyController.updateVocabularyAtLocation((
-        rowIndex: _rowIndex,
-        column: widget.column,
-      ), _textController.text);
-
       if (_vocabularyController.selectedCell.peek() == _currentLocation) {
         _vocabularyController.selectedCell.value = null;
       }
@@ -114,17 +71,21 @@ class _EditableItemCellState extends State<EditableItemCell>
   }
 
   void _startEditing() {
+    final currentText = _vocabularyController.vocabularyItems
+        .peek()[_rowIndex]
+        .peek()[widget.column];
+
+    _textController.text = currentText;
     _textController.selection = TextSelection.collapsed(
       offset: _textController.text.length,
     );
+
     _vocabularyController.selectedCell.value = _currentLocation;
     _editableTextFocus.requestFocus();
   }
 
   @override
   void dispose() {
-    _syncEffectCleanup?.call();
-
     // Safety check: ensure selectedCell is cleared if widget is disposed while selected
     if (_vocabularyController.selectedCell.peek() == _currentLocation) {
       _vocabularyController.selectedCell.value = null;
@@ -142,8 +103,6 @@ class _EditableItemCellState extends State<EditableItemCell>
 
   @override
   Widget build(BuildContext context) {
-    // required in this Mixin
-    super.build(context);
     final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return SignalBuilder(
@@ -159,8 +118,9 @@ class _EditableItemCellState extends State<EditableItemCell>
         if (isSelected && appMode == .edit) {
           return _EditableTextCell(
             rowIndex: _rowIndex,
+            column: widget.column,
             focusNode: _editableTextFocus,
-            textController: _textController, // Pass the managed instance down
+            textController: _textController,
           );
         } else {
           return Material(
@@ -189,17 +149,20 @@ class _EditableItemCellState extends State<EditableItemCell>
 class _EditableTextCell extends StatelessWidget {
   const _EditableTextCell({
     required this.rowIndex,
+    required this.column,
     required this.focusNode,
     required this.textController,
   });
 
   final int rowIndex;
+  final ColumnName column;
   final FocusNode focusNode;
   final TextEditingController textController;
 
   @override
   Widget build(BuildContext context) {
     final tableLayoutController = GetIt.I<TableLayoutController>();
+    final vocabularyController = GetIt.I<VocabularyController>();
 
     return SignalBuilder(
       builder: (context) {
@@ -216,6 +179,11 @@ class _EditableTextCell extends StatelessWidget {
               controller: textController,
               // empty braces to override (event) => unfocus()
               onTapOutside: (event) {},
+              onChanged: (value) =>
+                  vocabularyController.updateVocabularyAtLocation((
+                    rowIndex: rowIndex,
+                    column: column,
+                  ), value),
               minLines: 2,
               maxLines: null,
               style: TextStyle(
