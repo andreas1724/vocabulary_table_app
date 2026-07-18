@@ -33,23 +33,14 @@ class _VocabularyTableScaffoldState extends State<VocabularyTableScaffold> {
 
               return Padding(
                 padding: const EdgeInsets.all(padding),
-                child: FocusTraversalGroup(
-                  policy: OrderedTraversalPolicy(),
-                  child: Flex(
-                    direction: isLandscape ? .horizontal : .vertical,
-                    children: [
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(1),
-                        child: UniversalToolbar(isVertical: isLandscape),
-                      ),
-                      Expanded(
-                        child: FocusTraversalOrder(
-                          order: const NumericFocusOrder(2),
-                          child: widget.child,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Flex(
+                  direction: isLandscape ? .horizontal : .vertical,
+                  children: [
+                    UniversalToolbar(isVertical: isLandscape),
+                    Expanded(
+                      child: widget.child,
+                    ),
+                  ],
                 ),
               );
             },
