@@ -27,23 +27,26 @@ class _VocabularyTableScaffoldState extends State<VocabularyTableScaffold> {
         behavior: .opaque,
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: SafeArea(
-          child: SignalBuilder(
-            builder: (context) {
-              final isLandscape = _orientationController.isLandscape.value;
-
-              return Padding(
-                padding: const EdgeInsets.all(padding),
-                child: Flex(
-                  direction: isLandscape ? .horizontal : .vertical,
-                  children: [
-                    UniversalToolbar(isVertical: isLandscape),
-                    Expanded(
-                      child: widget.child,
-                    ),
-                  ],
-                ),
-              );
-            },
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: SignalBuilder(
+              builder: (context) {
+                final isLandscape = _orientationController.isLandscape.value;
+            
+                return Padding(
+                  padding: const EdgeInsets.all(padding),
+                  child: Flex(
+                    direction: isLandscape ? .horizontal : .vertical,
+                    children: [
+                      UniversalToolbar(isVertical: isLandscape),
+                      Expanded(
+                        child: widget.child,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

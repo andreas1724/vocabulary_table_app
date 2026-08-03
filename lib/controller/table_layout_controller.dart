@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'dart:math' show log, ln2;
 
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
+
 /// The minimum width of a column as a fraction of the total row width.
 const _minColumnRatio = 0.05;
 
@@ -152,6 +154,17 @@ class TableLayoutController {
     );
 
     _ratio2.value = clampedBoundary - r1;
+  }
+
+  /// Generates a unique numeric order per cell.
+  /// Multiplier of 10 creates enough space for the columns to stay sequential.
+  double focusOrder(int rowIndex, ColumnName columnName) {
+    final colIndex = switch (columnName) {
+      .termA => 1.0,
+      .termB => 2.0,
+      .comment => 3.0,
+    };
+    return (rowIndex * 10) + colIndex;
   }
 }
 

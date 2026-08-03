@@ -12,43 +12,45 @@ class UniversalToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final appBarColor = Theme.of(context).colorScheme.surfaceContainer;
 
-    return Material(
-      color: appBarColor,
-      elevation: 0,
-      child: Container(
-        width: isVertical ? kToolbarHeight : double.infinity,
-        height: isVertical ? double.infinity : kToolbarHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              scrollDirection: isVertical ? .vertical : .horizontal,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: isVertical ? 0 : constraints.maxWidth,
-                  minHeight: isVertical ? constraints.maxHeight : 0,
+    return ExcludeFocus(
+      child: Material(
+        color: appBarColor,
+        elevation: 0,
+        child: Container(
+          width: isVertical ? kToolbarHeight : double.infinity,
+          height: isVertical ? double.infinity : kToolbarHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: isVertical ? .vertical : .horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: isVertical ? 0 : constraints.maxWidth,
+                    minHeight: isVertical ? constraints.maxHeight : 0,
+                  ),
+                  child: Flex(
+                    direction: isVertical ? .vertical : .horizontal,
+                    mainAxisAlignment: .spaceBetween,
+                    crossAxisAlignment: .center,
+                    children: [
+                      _ToolbarTitle(isVertical: isVertical),
+                      Flex(
+                        direction: isVertical ? .vertical : .horizontal,
+                        mainAxisSize: .min,
+                        // The children are completely independent and const!
+                        children: const [
+                          _CommentsToggle(),
+                          _ModeToggler(),
+                          _SettingsButton(),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                child: Flex(
-                  direction: isVertical ? .vertical : .horizontal,
-                  mainAxisAlignment: .spaceBetween,
-                  crossAxisAlignment: .center,
-                  children: [
-                    _ToolbarTitle(isVertical: isVertical),
-                    Flex(
-                      direction: isVertical ? .vertical : .horizontal,
-                      mainAxisSize: .min,
-                      // The children are completely independent and const!
-                      children: const [
-                        _CommentsToggle(),
-                        _ModeToggler(),
-                        _SettingsButton(),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

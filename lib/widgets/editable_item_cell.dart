@@ -20,14 +20,34 @@ class EditableItemCell extends StatefulWidget {
   State<EditableItemCell> createState() => _EditableItemCellState();
 }
 
-class _EditableItemCellState extends State<EditableItemCell> {
+class _EditableItemCellState extends State<EditableItemCell>
+    with AutomaticKeepAliveClientMixin {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
+  late EffectCleanup _keepAliveEffect;
+
   int _rowIndex = -1;
 
-  (int, ColumnName) get _currentLocation => (_rowIndex, widget.column);
+  (int rowIndex, ColumnName columnName) get _currentLocation =>
+      (_rowIndex, widget.column);
+
+  @override
+  bool get wantKeepAlive {
+    if (_editableTextFocus.hasFocus || _plainTextFocus.hasFocus) {
+      return true;
+    }
+
+    final selected = _vocabularyController.selectedCell.peek();
+
+    if (selected == null) {
+      return false;
+    }
+
+    final selectedRow = selected.$1;
+    return _rowIndex >= selectedRow - 1 && _rowIndex <= selectedRow + 1;
+  }
 
   @override
   void initState() {
@@ -45,6 +65,11 @@ class _EditableItemCellState extends State<EditableItemCell> {
         return .ignored;
       },
     )..addListener(_onEditableTextFocusChanged);
+
+    _keepAliveEffect = effect(() {
+      _vocabularyController.selectedCell.value;
+      if (mounted) updateKeepAlive();
+    });
 
     // do not call before all late variables are initialized!
     super.initState();
@@ -70,7 +95,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
     }
   }
 
-  void _startEditing() {
+  Future<void> _startEditing() async {
     final currentText = _vocabularyController.vocabularyItems
         .peek()[_rowIndex]
         .peek()[widget.column];
@@ -81,6 +106,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
     );
 
     _vocabularyController.selectedCell.value = _currentLocation;
+    updateKeepAlive();
+
     _editableTextFocus.requestFocus();
   }
 
@@ -91,18 +118,18 @@ class _EditableItemCellState extends State<EditableItemCell> {
       _vocabularyController.selectedCell.value = null;
     }
 
+    _keepAliveEffect.call();
     _editableTextFocus.removeListener(_onEditableTextFocusChanged);
     _plainTextFocus.removeListener(_onPlainTextFocusChanged);
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
-
-    // Crucial: dispose UI element locally.
     _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return SignalBuilder(
@@ -114,33 +141,38 @@ class _EditableItemCellState extends State<EditableItemCell> {
         final isSelected =
             _vocabularyController.selectedCell.value == _currentLocation;
         final appMode = tableLayoutController.appMode.value;
-
-        if (isSelected && appMode == .edit) {
-          return _EditableTextCell(
-            rowIndex: _rowIndex,
-            column: widget.column,
-            focusNode: _editableTextFocus,
-            textController: _textController,
-          );
-        } else {
-          return Material(
-            child: InkWell(
-              mouseCursor: SystemMouseCursors.basic,
-              focusNode: _plainTextFocus,
-              onTap: () {
-                if (!_plainTextFocus.hasFocus && !_editableTextFocus.hasFocus) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                }
-              },
-              onDoubleTap: appMode == .edit ? _startEditing : null,
-              child: _PlainTextCell(
-                text: text,
-                column: widget.column,
-                rowIndex: _rowIndex,
-              ),
-            ),
-          );
-        }
+        final focusOrder = tableLayoutController.focusOrder(
+          _rowIndex,
+          widget.column,
+        );
+        return FocusTraversalOrder(
+          order: NumericFocusOrder(focusOrder),
+          child: isSelected && appMode == .edit
+              ? _EditableTextCell(
+                  rowIndex: _rowIndex,
+                  column: widget.column,
+                  focusNode: _editableTextFocus,
+                  textController: _textController,
+                )
+              : Material(
+                  child: InkWell(
+                    mouseCursor: SystemMouseCursors.basic,
+                    focusNode: _plainTextFocus,
+                    onTap: () {
+                      if (!_plainTextFocus.hasFocus &&
+                          !_editableTextFocus.hasFocus) {
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      }
+                    },
+                    onDoubleTap: appMode == .edit ? _startEditing : null,
+                    child: _PlainTextCell(
+                      text: text,
+                      column: widget.column,
+                      rowIndex: _rowIndex,
+                    ),
+                  ),
+                ),
+        );
       },
     );
   }
