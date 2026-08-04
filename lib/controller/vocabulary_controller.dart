@@ -9,7 +9,7 @@ class VocabularyController {
       );
 
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
-  final selectedCell = signal<(int, ColumnName)?>(null);
+  final selectedCell = signal<(int rowIndex, ColumnName)?>(null);
 
   late final vocabularyItems = _vocabularyItems.readonly();
 

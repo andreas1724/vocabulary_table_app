@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
@@ -49,6 +50,7 @@ class _TableBodyState extends State<TableBody> {
         return CustomScrollView(
           // Removed `key: ValueKey(appMode)` to preserve scroll offsetkey
           physics: dynamicPhysics,
+          scrollCacheExtent: const ScrollCacheExtent.pixels(2000),
           slivers: [
             SliverReorderableList(
               itemCount: vocabularyItems.length,
@@ -129,7 +131,7 @@ class _DraggableRowWrapper extends StatelessWidget {
     final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return Stack(
-      clipBehavior: Clip.none,
+      clipBehavior: .none,
       children: [
         RowIndexScope(
           rowIndex: index,

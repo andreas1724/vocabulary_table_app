@@ -20,34 +20,16 @@ class EditableItemCell extends StatefulWidget {
   State<EditableItemCell> createState() => _EditableItemCellState();
 }
 
-class _EditableItemCellState extends State<EditableItemCell>
-    with AutomaticKeepAliveClientMixin {
+class _EditableItemCellState extends State<EditableItemCell> {
   late final VocabularyController _vocabularyController;
   late final FocusNode _editableTextFocus;
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
-  late EffectCleanup _keepAliveEffect;
 
   int _rowIndex = -1;
 
   (int rowIndex, ColumnName columnName) get _currentLocation =>
       (_rowIndex, widget.column);
-
-  @override
-  bool get wantKeepAlive {
-    if (_editableTextFocus.hasFocus || _plainTextFocus.hasFocus) {
-      return true;
-    }
-
-    final selected = _vocabularyController.selectedCell.peek();
-
-    if (selected == null) {
-      return false;
-    }
-
-    final selectedRow = selected.$1;
-    return _rowIndex >= selectedRow - 1 && _rowIndex <= selectedRow + 1;
-  }
 
   @override
   void initState() {
@@ -65,11 +47,6 @@ class _EditableItemCellState extends State<EditableItemCell>
         return .ignored;
       },
     )..addListener(_onEditableTextFocusChanged);
-
-    _keepAliveEffect = effect(() {
-      _vocabularyController.selectedCell.value;
-      if (mounted) updateKeepAlive();
-    });
 
     // do not call before all late variables are initialized!
     super.initState();
@@ -106,19 +83,32 @@ class _EditableItemCellState extends State<EditableItemCell>
     );
 
     _vocabularyController.selectedCell.value = _currentLocation;
-    updateKeepAlive();
 
     _editableTextFocus.requestFocus();
   }
 
   @override
-  void dispose() {
-    // Safety check: ensure selectedCell is cleared if widget is disposed while selected
-    if (_vocabularyController.selectedCell.peek() == _currentLocation) {
-      _vocabularyController.selectedCell.value = null;
+  void deactivate() {
+    // Gracefully drop focus right before the Sliver unmounts this off-screen cell.
+    // This prevents the FocusManager from asserting sizes on unmounted render boxes.
+    if (_editableTextFocus.hasFocus) {
+      _editableTextFocus.unfocus();
     }
+    if (_plainTextFocus.hasFocus) {
+      _plainTextFocus.unfocus();
+    }
+    super.deactivate();
+  }
 
-    _keepAliveEffect.call();
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Safety check: ensure selectedCell is cleared if widget is disposed while selected
+      if (_vocabularyController.selectedCell.peek() == _currentLocation) {
+        _vocabularyController.selectedCell.value = null;
+      }
+    });
+
     _editableTextFocus.removeListener(_onEditableTextFocusChanged);
     _plainTextFocus.removeListener(_onPlainTextFocusChanged);
     _editableTextFocus.dispose();
@@ -129,7 +119,6 @@ class _EditableItemCellState extends State<EditableItemCell>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     final tableLayoutController = GetIt.I<TableLayoutController>();
 
     return SignalBuilder(
@@ -206,27 +195,30 @@ class _EditableTextCell extends StatelessWidget {
           padding: EdgeInsets.only(bottom: singleLineHeight * 0.5),
           child: Padding(
             padding: EdgeInsets.all(_padding * scale),
-            child: TextField(
-              focusNode: focusNode,
-              controller: textController,
-              // empty braces to override (event) => unfocus()
-              onTapOutside: (event) {},
-              onChanged: (value) =>
-                  vocabularyController.updateVocabularyAtLocation((
-                    rowIndex: rowIndex,
-                    column: column,
-                  ), value),
-              minLines: 2,
-              maxLines: null,
-              style: TextStyle(
-                fontSize: fontSize,
-                height: _heightFactor,
-                letterSpacing: _letterSpacing,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                isCollapsed: true,
-                isDense: true,
+            child: NotificationListener<KeepAliveNotification>(
+              onNotification: (_) => true,
+              child: TextField(
+                focusNode: focusNode,
+                controller: textController,
+                // empty braces to override (event) => unfocus()
+                onTapOutside: (event) {},
+                onChanged: (value) =>
+                    vocabularyController.updateVocabularyAtLocation((
+                      rowIndex: rowIndex,
+                      column: column,
+                    ), value),
+                minLines: 2,
+                maxLines: null,
+                style: TextStyle(
+                  fontSize: fontSize,
+                  height: _heightFactor,
+                  letterSpacing: _letterSpacing,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isCollapsed: true,
+                  isDense: true,
+                ),
               ),
             ),
           ),
