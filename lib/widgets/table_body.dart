@@ -50,7 +50,7 @@ class _TableBodyState extends State<TableBody> {
         return CustomScrollView(
           // Removed `key: ValueKey(appMode)` to preserve scroll offsetkey
           physics: dynamicPhysics,
-          scrollCacheExtent: const ScrollCacheExtent.pixels(2000),
+          scrollCacheExtent: const ScrollCacheExtent.pixels(2500), // optional
           slivers: [
             SliverReorderableList(
               itemCount: vocabularyItems.length,

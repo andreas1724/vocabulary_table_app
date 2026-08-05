@@ -88,23 +88,11 @@ class _EditableItemCellState extends State<EditableItemCell> {
   }
 
   @override
-  void deactivate() {
-    // Gracefully drop focus right before the Sliver unmounts this off-screen cell.
-    // This prevents the FocusManager from asserting sizes on unmounted render boxes.
-    if (_editableTextFocus.hasFocus) {
-      _editableTextFocus.unfocus();
-    }
-    if (_plainTextFocus.hasFocus) {
-      _plainTextFocus.unfocus();
-    }
-    super.deactivate();
-  }
-
-  @override
   void dispose() {
+    final currentLocation = _currentLocation;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Safety check: ensure selectedCell is cleared if widget is disposed while selected
-      if (_vocabularyController.selectedCell.peek() == _currentLocation) {
+      if (_vocabularyController.selectedCell.peek() == currentLocation) {
         _vocabularyController.selectedCell.value = null;
       }
     });
@@ -123,17 +111,15 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
     return SignalBuilder(
       builder: (context) {
-        final itemSignal = _vocabularyController.vocabularyItems
-            .peek()[_rowIndex];
-        final text = itemSignal.value[widget.column];
-
+        final appMode = tableLayoutController.appMode.value;
         final isSelected =
             _vocabularyController.selectedCell.value == _currentLocation;
-        final appMode = tableLayoutController.appMode.value;
+
         final focusOrder = tableLayoutController.focusOrder(
           _rowIndex,
           widget.column,
         );
+
         return FocusTraversalOrder(
           order: NumericFocusOrder(focusOrder),
           child: isSelected && appMode == .edit
@@ -155,7 +141,6 @@ class _EditableItemCellState extends State<EditableItemCell> {
                     },
                     onDoubleTap: appMode == .edit ? _startEditing : null,
                     child: _PlainTextCell(
-                      text: text,
                       column: widget.column,
                       rowIndex: _rowIndex,
                     ),
@@ -196,6 +181,7 @@ class _EditableTextCell extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(_padding * scale),
             child: NotificationListener<KeepAliveNotification>(
+              // crucial: prevent TextField's underlying EditableText's AutomaticKeepAliveClientMixin
               onNotification: (_) => true,
               child: TextField(
                 focusNode: focusNode,
@@ -229,21 +215,22 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({
-    required this.text,
-    required this.column,
-    required this.rowIndex,
-  });
+  const _PlainTextCell({required this.column, required this.rowIndex});
 
   final int rowIndex;
   final ColumnName column;
-  final String text;
 
   @override
   Widget build(BuildContext context) {
     final tableLayoutController = GetIt.I<TableLayoutController>();
+    final vocabularyController = GetIt.I<VocabularyController>();
+
     return SignalBuilder(
       builder: (context) {
+        final itemSignal = vocabularyController.vocabularyItems
+            .peek()[rowIndex];
+        final text = itemSignal.value[column];
+
         final scale = tableLayoutController.scale.value;
         final appMode = tableLayoutController.appMode.value;
         final showComment = tableLayoutController.showComment.value;
