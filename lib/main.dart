@@ -14,7 +14,7 @@ void main(List<String> args) {
 
   runApp(
     MaterialApp(
-      home: VocabularyTableApp(),
+      home: const VocabularyTableApp(),
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
