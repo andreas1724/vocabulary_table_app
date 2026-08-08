@@ -30,7 +30,7 @@ class WindowMetricsService with WidgetsBindingObserver {
   }
 
   void _checkAndNotify() {
-    final view = PlatformDispatcher.instance.implicitView;
+    final view = PlatformDispatcher.instance.views.firstOrNull;
     if (view == null) return;
 
     final logicalSize = view.physicalSize / view.devicePixelRatio;

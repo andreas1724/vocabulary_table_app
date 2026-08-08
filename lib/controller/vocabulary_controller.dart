@@ -60,7 +60,7 @@ class VocabularyController {
     }
     batch(() {
       final item = _vocabularyItems.removeAt(oldIndex);
-      _vocabularyItems.value.insert(newIndex, item);
+      _vocabularyItems.insert(newIndex, item);
     });
   }
 
