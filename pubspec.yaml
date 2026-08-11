@@ -7,10 +7,15 @@ environment:
   sdk: ^3.12.2
 
 dependencies:
+  csv: ^8.0.0
   flutter:
     sdk: flutter
   get_it: ^9.2.1
   meta: ^1.18.0
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  sembast: ^3.8.9+1
+  sembast_web: ^2.4.5+1
   signals_flutter: ^7.1.0
   uuid: ^4.5.3
 
