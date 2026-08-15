@@ -4,10 +4,10 @@ import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
 
 /// Controller responsible for managing vocabulary state and operations
-class VocabularyController {
+class VocabRepository {
   final CsvParserService _parserService;
 
-  VocabularyController(this._parserService);
+  VocabRepository(this._parserService);
 
   // --- State (Signals) ---
 

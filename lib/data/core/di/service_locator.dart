@@ -4,7 +4,7 @@ import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
 import 'package:vocabulary_table_app/data/services/sembast_local_storage_service.dart';
 import 'package:vocabulary_table_app/data/controllers/books_controller.dart';
-import 'package:vocabulary_table_app/data/controllers/vocabulary_controller.dart';
+import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -17,8 +17,6 @@ Future<void> setupDependencies() async {
   );
 
   // State Management (Signals)
-  getIt.registerLazySingleton<VocabularyController>(
-    () => VocabularyController(getIt()),
-  );
+  getIt.registerLazySingleton<VocabRepository>(() => VocabRepository(getIt()));
   getIt.registerLazySingleton<BooksController>(() => BooksController(getIt()));
 }
