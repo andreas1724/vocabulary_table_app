@@ -1,6 +1,6 @@
 import 'package:csv/csv.dart';
 
-import 'package:vocabulary_table_app/data/models/vocabulary.dart';
+import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 
 class CsvParserService {
   /// Parses the CSV string based on the format:
@@ -16,14 +16,14 @@ class CsvParserService {
     final converter = Csv(fieldDelimiter: ';', dynamicTyping: false);
     final rows = converter.decode(csvContent);
 
-    final vocabularies = <Vocabulary>[];
+    final vocabEntities = <VocabEntity>[];
     String currentChapter = defaultChapter;
     String languageA = 'Language A';
     String languageB = 'Language B';
 
     if (rows.isEmpty) {
       return ParsedCsvResult(
-        vocabularies: vocabularies,
+        vocabEntities: vocabEntities,
         languageA: languageA,
         languageB: languageB,
       );
@@ -59,8 +59,8 @@ class CsvParserService {
         currentChapter = chapterColumn;
       }
 
-      vocabularies.add(
-        Vocabulary(
+      vocabEntities.add(
+        VocabEntity(
           termA: termA,
           termB: termB,
           comment: comment,
@@ -70,7 +70,7 @@ class CsvParserService {
     }
 
     return ParsedCsvResult(
-      vocabularies: vocabularies,
+      vocabEntities: vocabEntities,
       languageA: languageA,
       languageB: languageB,
     );
@@ -80,7 +80,7 @@ class CsvParserService {
   /// To keep the CSV clean and easy to edit manually, it only writes
   /// the chapter name if it differs from the previous row's chapter.
   String generateCsv({
-    required List<Vocabulary> vocabularies,
+    required List<VocabEntity> vocabEntities,
     required String languageA,
     required String languageB,
   }) {
@@ -91,7 +91,7 @@ class CsvParserService {
 
     String lastChapter = '';
 
-    for (final vocab in vocabularies) {
+    for (final vocab in vocabEntities) {
       final String chapterToWrite;
       if (vocab.chapter != lastChapter) {
         chapterToWrite = vocab.chapter;

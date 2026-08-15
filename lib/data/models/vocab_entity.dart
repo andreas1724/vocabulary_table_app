@@ -1,10 +1,10 @@
-class Vocabulary {
+class VocabEntity {
   final String termA;
   final String termB;
   final String comment;
   final String chapter;
 
-  Vocabulary({
+  VocabEntity({
     required this.termA,
     required this.termB,
     required this.comment,
@@ -18,12 +18,12 @@ class Vocabulary {
 }
 
 class ParsedCsvResult {
-  final List<Vocabulary> vocabularies;
+  final List<VocabEntity> vocabEntities;
   final String languageA;
   final String languageB;
 
   ParsedCsvResult({
-    required this.vocabularies,
+    required this.vocabEntities,
     required this.languageA,
     required this.languageB,
   });

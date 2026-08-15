@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vocabulary_table_app/data/models/vocabulary.dart';
+import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
 
 void main() {
@@ -18,17 +18,17 @@ dog;Hund;Noun;Chapter 2
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabularies.length, 2);
+      expect(result.vocabEntities.length, 2);
       expect(result.languageA, 'English');
       expect(result.languageB, 'German');
 
-      expect(result.vocabularies[0].termA, 'house');
-      expect(result.vocabularies[0].termB, 'Haus');
-      expect(result.vocabularies[0].comment, 'Noun');
-      expect(result.vocabularies[0].chapter, 'Chapter 1');
+      expect(result.vocabEntities[0].termA, 'house');
+      expect(result.vocabEntities[0].termB, 'Haus');
+      expect(result.vocabEntities[0].comment, 'Noun');
+      expect(result.vocabEntities[0].chapter, 'Chapter 1');
 
-      expect(result.vocabularies[1].termA, 'dog');
-      expect(result.vocabularies[1].chapter, 'Chapter 2');
+      expect(result.vocabEntities[1].termA, 'dog');
+      expect(result.vocabEntities[1].chapter, 'Chapter 2');
     });
 
     test(
@@ -44,12 +44,12 @@ hello;Hallo;;
 ''';
         final result = parserService.parseCsv(csv);
 
-        expect(result.vocabularies.length, 5);
-        expect(result.vocabularies[0].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularies[1].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularies[2].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularies[3].chapter, 'Chapter 2: Deep Dive');
-        expect(result.vocabularies[4].chapter, 'Chapter 2: Deep Dive');
+        expect(result.vocabEntities.length, 5);
+        expect(result.vocabEntities[0].chapter, 'Chapter 1: Intro');
+        expect(result.vocabEntities[1].chapter, 'Chapter 1: Intro');
+        expect(result.vocabEntities[2].chapter, 'Chapter 1: Intro');
+        expect(result.vocabEntities[3].chapter, 'Chapter 2: Deep Dive');
+        expect(result.vocabEntities[4].chapter, 'Chapter 2: Deep Dive');
       },
     );
 
@@ -64,11 +64,11 @@ dog;Hund
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabularies.length, 2);
-      expect(result.vocabularies[0].termA, 'house');
-      expect(result.vocabularies[1].termA, 'dog');
+      expect(result.vocabEntities.length, 2);
+      expect(result.vocabEntities[0].termA, 'house');
+      expect(result.vocabEntities[1].termA, 'dog');
       expect(
-        result.vocabularies[1].chapter,
+        result.vocabEntities[1].chapter,
         'Chapter 1',
       ); // Inherits from 'house'
     });
@@ -81,45 +81,45 @@ English;German;Comment;Chapter
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabularies.length, 2);
+      expect(result.vocabEntities.length, 2);
 
-      expect(result.vocabularies[0].termA, 'hello; hi');
-      expect(result.vocabularies[0].termB, 'Hallo; Moin');
+      expect(result.vocabEntities[0].termA, 'hello; hi');
+      expect(result.vocabEntities[0].termB, 'Hallo; Moin');
       expect(
-        result.vocabularies[0].comment,
+        result.vocabEntities[0].comment,
         'A common greeting; used every day',
       );
-      expect(result.vocabularies[0].chapter, 'Chapter 1');
+      expect(result.vocabEntities[0].chapter, 'Chapter 1');
 
-      expect(result.vocabularies[1].termA, 'quote "inside"');
-      expect(result.vocabularies[1].termB, 'Zitat "drinnen"');
-      expect(result.vocabularies[1].comment, '');
-      expect(result.vocabularies[1].chapter, 'Chapter 1');
+      expect(result.vocabEntities[1].termA, 'quote "inside"');
+      expect(result.vocabEntities[1].termB, 'Zitat "drinnen"');
+      expect(result.vocabEntities[1].comment, '');
+      expect(result.vocabEntities[1].chapter, 'Chapter 1');
     });
 
     test(
       'generateCsv creates CSV with inherited chapters (empty when same)',
       () {
-        final vocabularies = [
-          Vocabulary(
+        final vocabEntities = [
+          VocabEntity(
             termA: 'house',
             termB: 'Haus',
             comment: 'Noun',
             chapter: 'Chapter 1',
           ),
-          Vocabulary(
+          VocabEntity(
             termA: 'dog',
             termB: 'Hund',
             comment: 'Noun',
             chapter: 'Chapter 1',
           ),
-          Vocabulary(
+          VocabEntity(
             termA: 'run',
             termB: 'rennen',
             comment: 'Verb',
             chapter: 'Chapter 2',
           ),
-          Vocabulary(
+          VocabEntity(
             termA: 'walk',
             termB: 'gehen',
             comment: 'Verb',
@@ -128,7 +128,7 @@ English;German;Comment;Chapter
         ];
 
         final csv = parserService.generateCsv(
-          vocabularies: vocabularies,
+          vocabEntities: vocabEntities,
           languageA: 'English',
           languageB: 'German',
         );
