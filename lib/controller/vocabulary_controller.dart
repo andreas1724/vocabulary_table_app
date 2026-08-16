@@ -41,6 +41,7 @@ class VocabularyController {
       .termA => vocabularyItem.copyWith(termA: updateText),
       .termB => vocabularyItem.copyWith(termB: updateText),
       .comment => vocabularyItem.copyWith(comment: updateText),
+      .chapter => vocabularyItem.copyWith(chapter: updateText),
     };
     updateVocabularyAt(location.rowIndex, updatedItem);
   }
