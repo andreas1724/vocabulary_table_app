@@ -1,6 +1,6 @@
 import 'package:uuid/uuid.dart';
 
-enum ColumnName { termA, termB, comment, chapter }
+enum ColumnName { termA, termB, comment, chapter, id }
 
 const _uuid = Uuid();
 
@@ -44,12 +44,13 @@ class VocabularyItem {
     String? termB,
     String? comment,
     String? chapter,
+    String? id,
   }) => VocabularyItem(
-    id: id,
     termA: termA ?? this.termA,
     termB: termB ?? this.termB,
     comment: comment ?? this.comment,
     chapter: chapter ?? this.chapter,
+    id: id,
   );
 
   String operator [](ColumnName column) => switch (column) {
@@ -57,10 +58,11 @@ class VocabularyItem {
     .termB => termB,
     .comment => comment,
     .chapter => chapter,
+    .id => id,
   };
 
   @override
   String toString() {
-    return 'Vocabulary(id: $id, termA: $termA, termB: $termB, comment: $comment, chapter: $chapter)';
+    return 'VocabularyItem(termA: $termA, termB: $termB, comment: $comment, chapter: $chapter, id: $id)';
   }
 }

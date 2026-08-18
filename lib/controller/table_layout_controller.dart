@@ -164,6 +164,7 @@ class TableLayoutController {
       .termB => 2.0,
       .comment => 3.0,
       .chapter => 4.0,
+      .id => 5.0,
     };
     return (rowIndex * 10) + colIndex;
   }
