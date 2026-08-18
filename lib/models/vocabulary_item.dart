@@ -50,7 +50,7 @@ class VocabularyItem {
     termB: termB ?? this.termB,
     comment: comment ?? this.comment,
     chapter: chapter ?? this.chapter,
-    id: id,
+    id: id ?? this.id,
   );
 
   String operator [](ColumnName column) => switch (column) {

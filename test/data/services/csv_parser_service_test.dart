@@ -18,17 +18,17 @@ dog;Hund;Noun;Chapter 2
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabEntities.length, 2);
+      expect(result.vocabularyItems.length, 2);
       expect(result.languageA, 'English');
       expect(result.languageB, 'German');
 
-      expect(result.vocabEntities[0].termA, 'house');
-      expect(result.vocabEntities[0].termB, 'Haus');
-      expect(result.vocabEntities[0].comment, 'Noun');
-      expect(result.vocabEntities[0].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[0].termA, 'house');
+      expect(result.vocabularyItems[0].termB, 'Haus');
+      expect(result.vocabularyItems[0].comment, 'Noun');
+      expect(result.vocabularyItems[0].chapter, 'Chapter 1');
 
-      expect(result.vocabEntities[1].termA, 'dog');
-      expect(result.vocabEntities[1].chapter, 'Chapter 2');
+      expect(result.vocabularyItems[1].termA, 'dog');
+      expect(result.vocabularyItems[1].chapter, 'Chapter 2');
     });
 
     test(
@@ -44,12 +44,12 @@ hello;Hallo;;
 ''';
         final result = parserService.parseCsv(csv);
 
-        expect(result.vocabEntities.length, 5);
-        expect(result.vocabEntities[0].chapter, 'Chapter 1: Intro');
-        expect(result.vocabEntities[1].chapter, 'Chapter 1: Intro');
-        expect(result.vocabEntities[2].chapter, 'Chapter 1: Intro');
-        expect(result.vocabEntities[3].chapter, 'Chapter 2: Deep Dive');
-        expect(result.vocabEntities[4].chapter, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems.length, 5);
+        expect(result.vocabularyItems[0].chapter, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[1].chapter, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[2].chapter, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[3].chapter, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems[4].chapter, 'Chapter 2: Deep Dive');
       },
     );
 
@@ -64,11 +64,11 @@ dog;Hund
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabEntities.length, 2);
-      expect(result.vocabEntities[0].termA, 'house');
-      expect(result.vocabEntities[1].termA, 'dog');
+      expect(result.vocabularyItems.length, 2);
+      expect(result.vocabularyItems[0].termA, 'house');
+      expect(result.vocabularyItems[1].termA, 'dog');
       expect(
-        result.vocabEntities[1].chapter,
+        result.vocabularyItems[1].chapter,
         'Chapter 1',
       ); // Inherits from 'house'
     });
@@ -81,20 +81,20 @@ English;German;Comment;Chapter
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabEntities.length, 2);
+      expect(result.vocabularyItems.length, 2);
 
-      expect(result.vocabEntities[0].termA, 'hello; hi');
-      expect(result.vocabEntities[0].termB, 'Hallo; Moin');
+      expect(result.vocabularyItems[0].termA, 'hello; hi');
+      expect(result.vocabularyItems[0].termB, 'Hallo; Moin');
       expect(
-        result.vocabEntities[0].comment,
+        result.vocabularyItems[0].comment,
         'A common greeting; used every day',
       );
-      expect(result.vocabEntities[0].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[0].chapter, 'Chapter 1');
 
-      expect(result.vocabEntities[1].termA, 'quote "inside"');
-      expect(result.vocabEntities[1].termB, 'Zitat "drinnen"');
-      expect(result.vocabEntities[1].comment, '');
-      expect(result.vocabEntities[1].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[1].termA, 'quote "inside"');
+      expect(result.vocabularyItems[1].termB, 'Zitat "drinnen"');
+      expect(result.vocabularyItems[1].comment, '');
+      expect(result.vocabularyItems[1].chapter, 'Chapter 1');
     });
 
     test(

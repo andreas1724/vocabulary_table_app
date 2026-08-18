@@ -1,15 +1,15 @@
 import 'package:csv/csv.dart';
 
-import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 class ParsedCsvResult {
   ParsedCsvResult({
-    required this.vocabEntities,
+    required this.vocabularyItems,
     required this.languageA,
     required this.languageB,
   });
 
-  final List<VocabEntity> vocabEntities;
+  final List<VocabularyItem> vocabularyItems;
   final String languageA;
   final String languageB;
 }
@@ -28,14 +28,14 @@ class CsvParserService {
     final converter = Csv(fieldDelimiter: ';', dynamicTyping: false);
     final rows = converter.decode(csvContent);
 
-    final vocabEntities = <VocabEntity>[];
+    final vocabEntities = <VocabularyItem>[];
     String currentChapter = defaultChapter;
     String languageA = 'Language A';
     String languageB = 'Language B';
 
     if (rows.isEmpty) {
       return ParsedCsvResult(
-        vocabEntities: vocabEntities,
+        vocabularyItems: vocabEntities,
         languageA: languageA,
         languageB: languageB,
       );
@@ -72,7 +72,7 @@ class CsvParserService {
       }
 
       vocabEntities.add(
-        VocabEntity(
+        VocabularyItem(
           termA: termA,
           termB: termB,
           comment: comment,
@@ -82,7 +82,7 @@ class CsvParserService {
     }
 
     return ParsedCsvResult(
-      vocabEntities: vocabEntities,
+      vocabularyItems: vocabEntities,
       languageA: languageA,
       languageB: languageB,
     );
@@ -92,7 +92,7 @@ class CsvParserService {
   /// To keep the CSV clean and easy to edit manually, it only writes
   /// the chapter name if it differs from the previous row's chapter.
   String generateCsv({
-    required List<VocabEntity> vocabEntities,
+    required List<VocabularyItem> vocabEntities,
     required String languageA,
     required String languageB,
   }) {

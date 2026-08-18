@@ -1,7 +1,7 @@
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 /// Controller responsible for managing vocabulary state and operations
 class VocabRepository {
@@ -12,7 +12,7 @@ class VocabRepository {
   // --- State (Signals) ---
 
   /// Holds the state of our vocabularies (loading, error, or data)
-  final vocabEntities = asyncSignal<List<VocabEntity>>(AsyncState.data([]));
+  final vocabEntities = asyncSignal<List<VocabularyItem>>(AsyncState.data([]));
 
   /// Holds the name of Language A (extracted from CSV header)
   final languageA = signal<String>('Language A');
@@ -26,7 +26,7 @@ class VocabRepository {
   /// preserving the order in which they appear in the CSV.
   late final chapters = computed(() {
     final state = vocabEntities.value;
-    if (state is! AsyncData<List<VocabEntity>>) return <String>[];
+    if (state is! AsyncData<List<VocabularyItem>>) return <String>[];
 
     final temp = <String>{};
     return state.value.map((v) => v.chapter).where((v) => temp.add(v)).toList();
@@ -51,20 +51,20 @@ class VocabRepository {
 
       languageA.value = parsedResult.languageA;
       languageB.value = parsedResult.languageB;
-      vocabEntities.value = AsyncState.data(parsedResult.vocabEntities);
+      vocabEntities.value = AsyncState.data(parsedResult.vocabularyItems);
     } catch (e, st) {
       vocabEntities.value = AsyncState.error(e, st);
     }
   }
 
   /// Adds a single new vocabulary item
-  void addVocabEntity(VocabEntity vocabEntity) {
+  void addVocabEntity(VocabularyItem vocabularyItem) {
     final currentState = vocabEntities.value;
 
     // Only allow adding if we currently have successfully loaded data
-    if (currentState is AsyncData<List<VocabEntity>>) {
-      final updatedList = List<VocabEntity>.from(currentState.value)
-        ..add(vocabEntity);
+    if (currentState is AsyncData<List<VocabularyItem>>) {
+      final updatedList = List<VocabularyItem>.from(currentState.value)
+        ..add(vocabularyItem);
       vocabEntities.value = AsyncState.data(updatedList);
     } else {
       // Depending on app requirements, you might want to throw an exception here
