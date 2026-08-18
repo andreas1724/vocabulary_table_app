@@ -12,7 +12,9 @@ class VocabRepository {
   // --- State (Signals) ---
 
   /// Holds the state of our vocabularies (loading, error, or data)
-  final vocabEntities = asyncSignal<List<VocabularyItem>>(AsyncState.data([]));
+  final vocabularyItems = asyncSignal<List<VocabularyItem>>(
+    AsyncState.data([]),
+  );
 
   /// Holds the name of Language A (extracted from CSV header)
   final languageA = signal<String>('Language A');
@@ -25,7 +27,7 @@ class VocabRepository {
   /// Returns a list of all unique chapters available in the vocabulary list,
   /// preserving the order in which they appear in the CSV.
   late final chapters = computed(() {
-    final state = vocabEntities.value;
+    final state = vocabularyItems.value;
     if (state is! AsyncData<List<VocabularyItem>>) return <String>[];
 
     final temp = <String>{};
@@ -39,7 +41,7 @@ class VocabRepository {
     String csvContent, {
     String? defaultChapter,
   }) async {
-    vocabEntities.value = AsyncState.loading();
+    vocabularyItems.value = AsyncState.loading();
 
     try {
       // Simulate slight delay if needed, or just parse directly.
@@ -51,21 +53,21 @@ class VocabRepository {
 
       languageA.value = parsedResult.languageA;
       languageB.value = parsedResult.languageB;
-      vocabEntities.value = AsyncState.data(parsedResult.vocabularyItems);
+      vocabularyItems.value = AsyncState.data(parsedResult.vocabularyItems);
     } catch (e, st) {
-      vocabEntities.value = AsyncState.error(e, st);
+      vocabularyItems.value = AsyncState.error(e, st);
     }
   }
 
   /// Adds a single new vocabulary item
   void addVocabularyItem(VocabularyItem vocabularyItem) {
-    final currentState = vocabEntities.value;
+    final currentState = vocabularyItems.value;
 
     // Only allow adding if we currently have successfully loaded data
     if (currentState is AsyncData<List<VocabularyItem>>) {
       final updatedList = List<VocabularyItem>.from(currentState.value)
         ..add(vocabularyItem);
-      vocabEntities.value = AsyncState.data(updatedList);
+      vocabularyItems.value = AsyncState.data(updatedList);
     } else {
       // Depending on app requirements, you might want to throw an exception here
       // throw StateError('Cannot add vocabulary while data is loading or in error state.');
@@ -74,6 +76,6 @@ class VocabRepository {
 
   /// Clears all data
   void clear() {
-    vocabEntities.value = AsyncState.data([]);
+    vocabularyItems.value = AsyncState.data([]);
   }
 }

@@ -28,14 +28,14 @@ class CsvParserService {
     final converter = Csv(fieldDelimiter: ';', dynamicTyping: false);
     final rows = converter.decode(csvContent);
 
-    final vocabEntities = <VocabularyItem>[];
+    final vocabularyItems = <VocabularyItem>[];
     String currentChapter = defaultChapter;
     String languageA = 'Language A';
     String languageB = 'Language B';
 
     if (rows.isEmpty) {
       return ParsedCsvResult(
-        vocabularyItems: vocabEntities,
+        vocabularyItems: vocabularyItems,
         languageA: languageA,
         languageB: languageB,
       );
@@ -71,7 +71,7 @@ class CsvParserService {
         currentChapter = chapterColumn;
       }
 
-      vocabEntities.add(
+      vocabularyItems.add(
         VocabularyItem(
           termA: termA,
           termB: termB,
@@ -82,7 +82,7 @@ class CsvParserService {
     }
 
     return ParsedCsvResult(
-      vocabularyItems: vocabEntities,
+      vocabularyItems: vocabularyItems,
       languageA: languageA,
       languageB: languageB,
     );
@@ -92,7 +92,7 @@ class CsvParserService {
   /// To keep the CSV clean and easy to edit manually, it only writes
   /// the chapter name if it differs from the previous row's chapter.
   String generateCsv({
-    required List<VocabularyItem> vocabEntities,
+    required List<VocabularyItem> vocabularyItems,
     required String languageA,
     required String languageB,
   }) {
@@ -103,7 +103,7 @@ class CsvParserService {
 
     String lastChapter = '';
 
-    for (final vocab in vocabEntities) {
+    for (final vocab in vocabularyItems) {
       final String chapterToWrite;
       if (vocab.chapter != lastChapter) {
         chapterToWrite = vocab.chapter;

@@ -15,9 +15,9 @@ void main() {
     });
 
     test('initial state is AsyncData with empty list', () {
-      expect(repository.vocabEntities.value.isLoading, false);
-      expect(repository.vocabEntities.value.hasError, false);
-      expect(repository.vocabEntities.value.value, isEmpty);
+      expect(repository.vocabularyItems.value.isLoading, false);
+      expect(repository.vocabularyItems.value.hasError, false);
+      expect(repository.vocabularyItems.value.value, isEmpty);
     });
 
     test(
@@ -28,11 +28,11 @@ void main() {
         // Initially, we can wait for the future
         await repository.loadFromCsvString(csv);
 
-        expect(repository.vocabEntities.value.isLoading, false);
-        expect(repository.vocabEntities.value.hasError, false);
-        expect(repository.vocabEntities.value.value, isNotNull);
-        expect(repository.vocabEntities.value.value!.length, 1);
-        expect(repository.vocabEntities.value.value!.first.termA, 'house');
+        expect(repository.vocabularyItems.value.isLoading, false);
+        expect(repository.vocabularyItems.value.hasError, false);
+        expect(repository.vocabularyItems.value.value, isNotNull);
+        expect(repository.vocabularyItems.value.value!.length, 1);
+        expect(repository.vocabularyItems.value.value!.first.termA, 'house');
       },
     );
 
@@ -42,7 +42,7 @@ void main() {
         // 1. Force an error state to verify it DOES NOT add
         // To do this, we can clear the state to empty and then manually inject an error,
         // or just mock an error. We'll simply set it to an error state directly.
-        repository.vocabEntities.value = AsyncState.error(
+        repository.vocabularyItems.value = AsyncState.error(
           'Forced error',
           StackTrace.empty,
         );
@@ -57,15 +57,15 @@ void main() {
         );
 
         // State should still be error, not data
-        expect(repository.vocabEntities.value.hasError, true);
-        expect(repository.vocabEntities.value.value, isNull);
+        expect(repository.vocabularyItems.value.hasError, true);
+        expect(repository.vocabularyItems.value.value, isNull);
 
         // 2. Now load successfully and verify it DOES add
         await repository.loadFromCsvString(
           'English;German;Comment;Chapter\ndog;Hund;;Chapter 1',
         );
 
-        expect(repository.vocabEntities.value.value!.length, 1);
+        expect(repository.vocabularyItems.value.value!.length, 1);
 
         repository.addVocabularyItem(
           VocabularyItem(
@@ -76,8 +76,8 @@ void main() {
           ),
         );
 
-        expect(repository.vocabEntities.value.value!.length, 2);
-        expect(repository.vocabEntities.value.value!.last.termA, 'cat');
+        expect(repository.vocabularyItems.value.value!.length, 2);
+        expect(repository.vocabularyItems.value.value!.last.termA, 'cat');
       },
     );
 

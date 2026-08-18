@@ -128,7 +128,7 @@ English;German;Comment;Chapter
         ];
 
         final csv = parserService.generateCsv(
-          vocabEntities: vocabularyItems,
+          vocabularyItems: vocabularyItems,
           languageA: 'English',
           languageB: 'German',
         );
