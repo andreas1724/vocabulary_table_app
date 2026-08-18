@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:sembast_web/sembast_web.dart';
 
-import 'package:vocabulary_table_app/data/models/book.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 

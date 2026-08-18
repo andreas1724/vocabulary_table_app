@@ -28,3 +28,4 @@ linter:
     # --- Flutter & Formatting ---
     use_key_in_widget_constructors: true
     require_trailing_commas: true
+    sort_constructors_first: true

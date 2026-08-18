@@ -1,4 +1,4 @@
-import 'package:vocabulary_table_app/data/models/book.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 
 abstract class LocalStorageService {
   /// Returns a list of all cached books (metadata only)

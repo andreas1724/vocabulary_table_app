@@ -1,6 +1,6 @@
 import 'package:signals_flutter/signals_flutter.dart';
 
-import 'package:vocabulary_table_app/data/models/book.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 
 /// Controller responsible for managing local books list and persistence

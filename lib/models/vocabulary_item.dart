@@ -13,6 +13,16 @@ class VocabularyItem {
     this.chapter = '',
   }) : id = id ?? _uuid.v4();
 
+  factory VocabularyItem.fromJson(Map<String, dynamic> json) {
+    return VocabularyItem(
+      id: json['id'] as String,
+      termA: json['termA'] as String,
+      termB: json['termB'] as String,
+      comment: json['comment'] as String,
+      chapter: json['chapter'] as String,
+    );
+  }
+
   final String id;
   final String termA;
   final String termB;
@@ -27,16 +37,6 @@ class VocabularyItem {
       'comment': comment,
       'chapter': chapter,
     };
-  }
-
-  factory VocabularyItem.fromJson(Map<String, dynamic> json) {
-    return VocabularyItem(
-      id: json['id'] as String,
-      termA: json['termA'] as String,
-      termB: json['termB'] as String,
-      comment: json['comment'] as String,
-      chapter: json['chapter'] as String,
-    );
   }
 
   VocabularyItem copyWith({

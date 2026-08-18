@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sembast/sembast_memory.dart';
-import 'package:vocabulary_table_app/data/models/book.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/data/services/sembast_local_storage_service.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 

@@ -7,6 +7,14 @@ class BookMetadata {
     required this.modifiedTime,
   });
 
+  factory BookMetadata.fromJson(Map<String, dynamic> json) {
+    return BookMetadata(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      modifiedTime: DateTime.parse(json['modifiedTime'] as String),
+    );
+  }
+
   final String id; // Represents the Google Drive File ID or a local UUID
   final String title;
   final DateTime modifiedTime;
@@ -17,14 +25,6 @@ class BookMetadata {
       'title': title,
       'modifiedTime': modifiedTime.toIso8601String(),
     };
-  }
-
-  factory BookMetadata.fromJson(Map<String, dynamic> json) {
-    return BookMetadata(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      modifiedTime: DateTime.parse(json['modifiedTime'] as String),
-    );
   }
 }
 
