@@ -19,7 +19,7 @@ class VocabularyItem {
   final String comment;
   final String chapter;
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'termA': termA,
@@ -29,13 +29,13 @@ class VocabularyItem {
     };
   }
 
-  factory VocabularyItem.fromMap(Map<String, dynamic> map) {
+  factory VocabularyItem.fromJson(Map<String, dynamic> json) {
     return VocabularyItem(
-      id: map['id'] as String,
-      termA: map['termA'] as String,
-      termB: map['termB'] as String,
-      comment: map['comment'] as String,
-      chapter: map['chapter'] as String,
+      id: json['id'] as String,
+      termA: json['termA'] as String,
+      termB: json['termB'] as String,
+      comment: json['comment'] as String,
+      chapter: json['chapter'] as String,
     );
   }
 
