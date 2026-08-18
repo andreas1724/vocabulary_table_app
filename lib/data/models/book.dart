@@ -1,3 +1,5 @@
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
+
 class BookMetadata {
   BookMetadata({
     required this.id,
@@ -27,8 +29,8 @@ class BookMetadata {
 }
 
 class Book {
-  Book({required this.metadata, required this.csvContent});
+  Book({required this.metadata, required this.items});
 
   final BookMetadata metadata;
-  final String csvContent;
+  final List<VocabularyItem> items;
 }

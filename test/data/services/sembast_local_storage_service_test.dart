@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:vocabulary_table_app/data/models/book.dart';
 import 'package:vocabulary_table_app/data/services/sembast_local_storage_service.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 void main() {
   group('SembastLocalStorageService Tests', () {
@@ -29,7 +30,7 @@ void main() {
           title: 'English Vocabs',
           modifiedTime: now,
         ),
-        csvContent: 'English;German\nhouse;Haus',
+        items: [VocabularyItem(termA: 'house', termB: 'Haus')],
       );
 
       await storageService.saveBook(book);
@@ -48,7 +49,7 @@ void main() {
           title: 'Spanish Vocabs',
           modifiedTime: DateTime.now(),
         ),
-        csvContent: 'Spanish;German\nhola;hallo',
+        items: [VocabularyItem(termA: 'hola', termB: 'hallo')],
       );
 
       await storageService.saveBook(book);
@@ -57,7 +58,8 @@ void main() {
 
       expect(retrievedBook, isNotNull);
       expect(retrievedBook!.metadata.title, 'Spanish Vocabs');
-      expect(retrievedBook.csvContent, 'Spanish;German\nhola;hallo');
+      expect(retrievedBook.items, isNotEmpty);
+      expect(retrievedBook.items.first.termA, 'hola');
     });
 
     test(
@@ -78,7 +80,10 @@ void main() {
       );
 
       await storageService.saveBook(
-        Book(metadata: metadata, csvContent: 'old content'),
+        Book(
+          metadata: metadata,
+          items: [VocabularyItem(termA: 'old', termB: 'content')],
+        ),
       );
 
       // Update the book
@@ -88,7 +93,10 @@ void main() {
         modifiedTime: DateTime.now(),
       );
       await storageService.saveBook(
-        Book(metadata: updatedMetadata, csvContent: 'new content'),
+        Book(
+          metadata: updatedMetadata,
+          items: [VocabularyItem(termA: 'new', termB: 'content')],
+        ),
       );
 
       // Verify updates
@@ -97,7 +105,7 @@ void main() {
       expect(books.first.title, 'New Title');
 
       final content = await storageService.getBookContent('file_update');
-      expect(content!.csvContent, 'new content');
+      expect(content!.items.first.termA, 'new');
     });
 
     test('deletes a book', () async {
@@ -107,7 +115,7 @@ void main() {
           title: 'To be deleted',
           modifiedTime: DateTime.now(),
         ),
-        csvContent: 'content',
+        items: [],
       );
 
       await storageService.saveBook(book);

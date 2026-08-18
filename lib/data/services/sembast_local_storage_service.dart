@@ -6,6 +6,7 @@ import 'package:sembast_web/sembast_web.dart';
 
 import 'package:vocabulary_table_app/data/models/book.dart';
 import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 class SembastLocalStorageService implements LocalStorageService {
   /// Optional parameters are used for injecting an in-memory database during testing.
@@ -22,9 +23,9 @@ class SembastLocalStorageService implements LocalStorageService {
   }
 
   // We use two stores to keep things fast:
-  // One for metadata (list view) and one for the heavy CSV strings.
+  // One for metadata (list view) and one for the vocabulary items.
   final _metadataStore = stringMapStoreFactory.store('metadata');
-  final _contentStore = StoreRef<String, String>('csv_content');
+  final _contentStore = StoreRef<String, List<dynamic>>('vocab_content');
 
   Future<Database> _initDb() async {
     if (factoryOverride != null) {
@@ -65,9 +66,18 @@ class SembastLocalStorageService implements LocalStorageService {
       return null;
     }
 
+    final items = contentRecord
+        .map(
+          (json) =>
+              VocabularyItem.fromJson(Map<String, dynamic>.from(json as Map)),
+        )
+        .toList();
+
     return Book(
-      metadata: BookMetadata.fromJson(metaRecord),
-      csvContent: contentRecord,
+      metadata: BookMetadata.fromJson(
+        Map<String, dynamic>.from(metaRecord as Map),
+      ),
+      items: items,
     );
   }
 
@@ -79,8 +89,9 @@ class SembastLocalStorageService implements LocalStorageService {
     await db.transaction((txn) async {
       // Save metadata
       await _metadataStore.record(id).put(txn, book.metadata.toJson());
-      // Save heavy CSV content
-      await _contentStore.record(id).put(txn, book.csvContent);
+
+      final itemsJson = book.items.map((item) => item.toJson()).toList();
+      await _contentStore.record(id).put(txn, itemsJson);
     });
   }
 

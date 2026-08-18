@@ -3,6 +3,7 @@ import 'package:sembast/sembast_memory.dart';
 import 'package:vocabulary_table_app/data/controllers/books_controller.dart';
 import 'package:vocabulary_table_app/data/models/book.dart';
 import 'package:vocabulary_table_app/data/services/sembast_local_storage_service.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 void main() {
   group('BooksController Tests', () {
@@ -33,7 +34,7 @@ void main() {
             title: 'Test Book',
             modifiedTime: DateTime.now(),
           ),
-          csvContent: 'a;b',
+          items: [VocabularyItem(termA: 'a', termB: 'b')],
         ),
       );
 
@@ -50,7 +51,7 @@ void main() {
           title: 'My Vocabs',
           modifiedTime: DateTime.now(),
         ),
-        csvContent: 'x;y',
+        items: [VocabularyItem(termA: 'x', termB: 'y')],
       );
 
       await controller.saveBook(book);
@@ -73,7 +74,7 @@ void main() {
             title: 'Old Title',
             modifiedTime: DateTime.now(),
           ),
-          csvContent: 'x;y',
+          items: [],
         );
 
         await controller.saveBook(initialBook);
@@ -86,7 +87,7 @@ void main() {
             title: 'New Title',
             modifiedTime: DateTime.now(),
           ),
-          csvContent: 'x;y;z',
+          items: [VocabularyItem(termA: 'x', termB: 'y', comment: 'z')],
         );
 
         await controller.saveBook(updatedBook);
@@ -103,7 +104,7 @@ void main() {
           title: 'Delete Me',
           modifiedTime: DateTime.now(),
         ),
-        csvContent: 'x;y',
+        items: [],
       );
 
       await controller.saveBook(book);
