@@ -58,4 +58,9 @@ class VocabularyItem {
     .comment => comment,
     .chapter => chapter,
   };
+
+  @override
+  String toString() {
+    return 'Vocabulary(id: $id, termA: $termA, termB: $termB, comment: $comment, chapter: $chapter)';
+  }
 }
