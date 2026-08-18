@@ -2,6 +2,18 @@ import 'package:csv/csv.dart';
 
 import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 
+class ParsedCsvResult {
+  ParsedCsvResult({
+    required this.vocabEntities,
+    required this.languageA,
+    required this.languageB,
+  });
+
+  final List<VocabEntity> vocabEntities;
+  final String languageA;
+  final String languageB;
+}
+
 class CsvParserService {
   /// Parses the CSV string based on the format:
   /// LanguageA;LanguageB;Comment;Chapter

@@ -16,15 +16,3 @@ class VocabEntity {
     return 'Vocabulary(termA: $termA, termB: $termB, comment: $comment, chapter: $chapter)';
   }
 }
-
-class ParsedCsvResult {
-  ParsedCsvResult({
-    required this.vocabEntities,
-    required this.languageA,
-    required this.languageB,
-  });
-
-  final List<VocabEntity> vocabEntities;
-  final String languageA;
-  final String languageB;
-}
