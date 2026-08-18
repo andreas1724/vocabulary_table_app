@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
-import 'package:vocabulary_table_app/data/models/vocab_entity.dart';
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
+import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 void main() {
   group('VocabRepository Tests', () {
@@ -47,8 +47,8 @@ void main() {
           StackTrace.empty,
         );
 
-        repository.addVocabEntity(
-          VocabEntity(
+        repository.addVocabularyItem(
+          VocabularyItem(
             termA: 'cat',
             termB: 'Katze',
             comment: '',
@@ -67,8 +67,8 @@ void main() {
 
         expect(repository.vocabEntities.value.value!.length, 1);
 
-        repository.addVocabEntity(
-          VocabEntity(
+        repository.addVocabularyItem(
+          VocabularyItem(
             termA: 'cat',
             termB: 'Katze',
             comment: '',

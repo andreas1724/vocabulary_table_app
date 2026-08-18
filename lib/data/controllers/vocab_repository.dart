@@ -58,7 +58,7 @@ class VocabRepository {
   }
 
   /// Adds a single new vocabulary item
-  void addVocabEntity(VocabularyItem vocabularyItem) {
+  void addVocabularyItem(VocabularyItem vocabularyItem) {
     final currentState = vocabEntities.value;
 
     // Only allow adding if we currently have successfully loaded data
