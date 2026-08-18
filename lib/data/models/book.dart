@@ -1,13 +1,13 @@
 class BookMetadata {
-  final String id; // Represents the Google Drive File ID or a local UUID
-  final String title;
-  final DateTime modifiedTime;
-
   BookMetadata({
     required this.id,
     required this.title,
     required this.modifiedTime,
   });
+
+  final String id; // Represents the Google Drive File ID or a local UUID
+  final String title;
+  final DateTime modifiedTime;
 
   Map<String, dynamic> toJson() {
     return {
@@ -27,8 +27,8 @@ class BookMetadata {
 }
 
 class Book {
+  Book({required this.metadata, required this.csvContent});
+
   final BookMetadata metadata;
   final String csvContent;
-
-  Book({required this.metadata, required this.csvContent});
 }

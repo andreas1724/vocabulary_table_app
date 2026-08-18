@@ -8,6 +8,9 @@ import 'package:vocabulary_table_app/data/models/book.dart';
 import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 
 class SembastLocalStorageService implements LocalStorageService {
+  /// Optional parameters are used for injecting an in-memory database during testing.
+  SembastLocalStorageService({this.factoryOverride, this.dbPathOverride});
+
   final DatabaseFactory? factoryOverride;
   final String? dbPathOverride;
 
@@ -22,9 +25,6 @@ class SembastLocalStorageService implements LocalStorageService {
   // One for metadata (list view) and one for the heavy CSV strings.
   final _metadataStore = stringMapStoreFactory.store('metadata');
   final _contentStore = StoreRef<String, String>('csv_content');
-
-  /// Optional parameters are used for injecting an in-memory database during testing.
-  SembastLocalStorageService({this.factoryOverride, this.dbPathOverride});
 
   Future<Database> _initDb() async {
     if (factoryOverride != null) {

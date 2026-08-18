@@ -5,12 +5,12 @@ import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 
 /// Controller responsible for managing local books list and persistence
 class BooksController {
-  final LocalStorageService _storageService;
-
   BooksController(this._storageService);
 
+  final LocalStorageService _storageService;
+
   // --- State (Signals) ---
-  
+
   /// Holds the state of the locally available vocabulary books (metadata only)
   final books = asyncSignal<List<BookMetadata>>(AsyncState.data([]));
 
@@ -31,12 +31,12 @@ class BooksController {
   Future<void> saveBook(Book book) async {
     try {
       await _storageService.saveBook(book);
-      
+
       final state = books.value;
       if (state is AsyncData<List<BookMetadata>>) {
         final currentBooks = state.requireValue;
         final index = currentBooks.indexWhere((b) => b.id == book.metadata.id);
-        
+
         final updatedList = List<BookMetadata>.from(currentBooks);
         if (index != -1) {
           // Update existing book
@@ -59,7 +59,7 @@ class BooksController {
   Future<void> deleteBook(String id) async {
     try {
       await _storageService.deleteBook(id);
-      
+
       final state = books.value;
       if (state is AsyncData<List<BookMetadata>>) {
         final currentBooks = state.requireValue;
