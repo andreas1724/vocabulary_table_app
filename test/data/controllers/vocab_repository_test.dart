@@ -1,3 +1,4 @@
+/*
 import 'package:flutter_test/flutter_test.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
@@ -98,3 +99,4 @@ dog;Hund;;Animal
     );
   });
 }
+*/

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
+import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
+import 'package:vocabulary_table_app/data/core/di/service_locator.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table_app.dart';
 
@@ -27,9 +30,23 @@ void main(List<String> args) {
   );
 }
 
-void setUpDependencies() {
-  GetIt.I.registerLazySingleton(
-    () => VocabularyController(vocabularyItems: _vocabularies),
+Future<void> setUpDependencies() async {
+  // 1. Initialize core services and the repository
+  await setupDependencies(); // Aufruf aus service_locator.dart
+
+  // 2. Register the VocabularyController with a dummy book for UI testing
+  GetIt.I.registerLazySingleton<VocabularyController>(
+    () => VocabularyController(
+      repository: GetIt.I<VocabRepository>(),
+      book: Book(
+        metadata: BookMetadata(
+          id: 'dummy-test-book',
+          title: 'Test Vokabeln',
+          modifiedTime: DateTime.now(),
+        ),
+        items: _vocabularies,
+      ),
+    ),
   );
 }
 

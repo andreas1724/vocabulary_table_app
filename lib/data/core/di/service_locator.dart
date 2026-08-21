@@ -6,17 +6,21 @@ import 'package:vocabulary_table_app/data/services/sembast_local_storage_service
 import 'package:vocabulary_table_app/data/controllers/books_controller.dart';
 import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
 
-final getIt = GetIt.instance;
-
 Future<void> setupDependencies() async {
   // Services
-  getIt.registerLazySingleton<CsvParserService>(() => CsvParserService());
+  GetIt.I.registerLazySingleton<CsvParserService>(() => CsvParserService());
 
-  getIt.registerLazySingleton<LocalStorageService>(
+  GetIt.I.registerLazySingleton<LocalStorageService>(
     () => SembastLocalStorageService(),
   );
 
   // State Management (Signals)
-  getIt.registerLazySingleton<VocabRepository>(() => VocabRepository(getIt()));
-  getIt.registerLazySingleton<BooksController>(() => BooksController(getIt()));
+  GetIt.I.registerLazySingleton<VocabRepository>(
+    () => VocabRepository(
+      parserService: GetIt.I<CsvParserService>(),
+      storageService: GetIt.I<LocalStorageService>(),
+    ),
+  );
+  
+  GetIt.I.registerLazySingleton<BooksController>(() => BooksController(GetIt.I()));
 }

@@ -1,17 +1,59 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'package:signals_flutter/signals_flutter.dart';
+import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
+import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 import 'package:vocabulary_table_app/utils/list_signal_extension.dart';
 
 class VocabularyController {
-  VocabularyController({required List<VocabularyItem> vocabularyItems})
-    : _vocabularyItems = listSignal(
-        vocabularyItems.map((item) => signal(item)).toList(),
-      );
+  VocabularyController({
+    required VocabRepository repository,
+    required Book book,
+  })  : _repository = repository,
+        _metadata = book.metadata,
+        _vocabularyItems = listSignal(
+          book.items.map((item) => signal(item)).toList(),
+        );
+
+  final VocabRepository _repository;
+  BookMetadata _metadata;
 
   final ListSignal<Signal<VocabularyItem>> _vocabularyItems;
   final selectedCell = signal<(int rowIndex, ColumnName)?>(null);
 
+  final languageA = signal<String>('Language A');
+  final languageB = signal<String>('Language B');
+
   late final vocabularyItems = _vocabularyItems.readonly();
+
+  late final chapters = computed(() {
+    final temp = <String>{};
+    return _vocabularyItems
+        .map((signalItem) => signalItem.value.chapter)
+        .where((chapter) => temp.add(chapter))
+        .toList();
+  });
+
+  /// Saves the current state of the vocabulary list to the local database.
+  Future<void> saveBook() async {
+    // Update the modified time to now
+    _metadata = BookMetadata(
+      id: _metadata.id,
+      title: _metadata.title,
+      modifiedTime: DateTime.now(),
+    );
+
+    // Extract raw VocabularyItem values from the signals
+    final itemsToSave = _vocabularyItems.map((s) => s.peek()).toList();
+
+    final updatedBook = Book(
+      metadata: _metadata,
+      items: itemsToSave,
+    );
+
+    await _repository.saveBookLocally(updatedBook);
+  }
 
   void addVocabulary(VocabularyItem item) {
     _vocabularyItems.add(signal(item));

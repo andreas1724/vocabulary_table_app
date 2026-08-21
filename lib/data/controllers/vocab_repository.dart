@@ -1,81 +1,39 @@
-import 'package:signals_flutter/signals_flutter.dart';
-
 import 'package:vocabulary_table_app/data/services/csv_parser_service.dart';
-import 'package:vocabulary_table_app/models/vocabulary_item.dart';
+import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
+import 'package:vocabulary_table_app/models/book.dart';
+
+// ignore_for_file: prefer_initializing_formals
 
 /// Controller responsible for managing vocabulary state and operations
 class VocabRepository {
-  VocabRepository(this._parserService);
+  VocabRepository({
+    required CsvParserService parserService,
+    required LocalStorageService storageService,
+  }) : _parserService = parserService,
+       _storageService = storageService;
 
   final CsvParserService _parserService;
+  final LocalStorageService _storageService;
 
-  // --- State (Signals) ---
-
-  /// Holds the state of our vocabularies (loading, error, or data)
-  final vocabularyItems = asyncSignal<List<VocabularyItem>>(
-    AsyncState.data([]),
-  );
-
-  /// Holds the name of Language A (extracted from CSV header)
-  final languageA = signal<String>('Language A');
-
-  /// Holds the name of Language B (extracted from CSV header)
-  final languageB = signal<String>('Language B');
-
-  // --- Computed Values ---
-
-  /// Returns a list of all unique chapters available in the vocabulary list,
-  /// preserving the order in which they appear in the CSV.
-  late final chapters = computed(() {
-    final state = vocabularyItems.value;
-    if (state is! AsyncData<List<VocabularyItem>>) return <String>[];
-
-    final temp = <String>{};
-    return state.value.map((v) => v.chapter).where((v) => temp.add(v)).toList();
-  });
-
-  // --- Actions / Methods ---
-
-  /// Loads vocabularies from a CSV string
-  Future<void> loadFromCsvString(
+  /// Parses CSV data and returns it without retaining any state.
+  Future<ParsedCsvResult> parseCsv(
     String csvContent, {
     String? defaultChapter,
   }) async {
-    vocabularyItems.value = AsyncState.loading();
-
-    try {
-      // Simulate slight delay if needed, or just parse directly.
-      // Parsing is synchronous, but we make the method async for future Drive API integration
-      final parsedResult = _parserService.parseCsv(
-        csvContent,
-        defaultChapter: defaultChapter ?? 'Unknown Chapter',
-      );
-
-      languageA.value = parsedResult.languageA;
-      languageB.value = parsedResult.languageB;
-      vocabularyItems.value = AsyncState.data(parsedResult.vocabularyItems);
-    } catch (e, st) {
-      vocabularyItems.value = AsyncState.error(e, st);
-    }
+    // Simulate slight delay if needed for future Drive API integration
+    return _parserService.parseCsv(
+      csvContent,
+      defaultChapter: defaultChapter ?? 'Unknown Chapter',
+    );
   }
 
-  /// Adds a single new vocabulary item
-  void addVocabularyItem(VocabularyItem vocabularyItem) {
-    final currentState = vocabularyItems.value;
-
-    // Only allow adding if we currently have successfully loaded data
-    if (currentState is AsyncData<List<VocabularyItem>>) {
-      final updatedList = List<VocabularyItem>.from(currentState.value)
-        ..add(vocabularyItem);
-      vocabularyItems.value = AsyncState.data(updatedList);
-    } else {
-      // Depending on app requirements, you might want to throw an exception here
-      // throw StateError('Cannot add vocabulary while data is loading or in error state.');
-    }
+  /// Saves the complete book (metadata and items) to the local database.
+  Future<void> saveBookLocally(Book book) async {
+    await _storageService.saveBook(book);
   }
 
-  /// Clears all data
-  void clear() {
-    vocabularyItems.value = AsyncState.data([]);
+  /// Retrieves a complete book from the local database by ID.
+  Future<Book?> getBookLocally(String id) async {
+    return _storageService.getBookContent(id);
   }
 }
