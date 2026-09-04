@@ -7,35 +7,43 @@ const _uuid = Uuid();
 class VocabularyItem {
   VocabularyItem({
     String? id,
+    required this.bookId,
     required this.chapter,
     required this.termA,
     required this.termB,
     this.comment = '',
+    this.order = 0,
   }) : id = id ?? _uuid.v4();
 
   factory VocabularyItem.fromJson(Map<String, dynamic> json) {
     return VocabularyItem(
       id: json['id'] as String,
+      bookId: json['bookId'] as String,
       termA: json['termA'] as String,
       termB: json['termB'] as String,
       comment: json['comment'] as String,
       chapter: json['chapter'] as String,
+      order: json['order'] as int? ?? 0,
     );
   }
 
   final String id;
+  final String bookId;
   final String termA;
   final String termB;
   final String comment;
   final String chapter;
+  final int order;
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'bookId': bookId,
       'termA': termA,
       'termB': termB,
       'comment': comment,
       'chapter': chapter,
+      'order': order,
     };
   }
 
@@ -45,12 +53,16 @@ class VocabularyItem {
     String? comment,
     String? chapter,
     String? id,
+    String? bookId,
+    int? order,
   }) => VocabularyItem(
     termA: termA ?? this.termA,
     termB: termB ?? this.termB,
     comment: comment ?? this.comment,
     chapter: chapter ?? this.chapter,
     id: id ?? this.id,
+    bookId: bookId ?? this.bookId,
+    order: order ?? this.order,
   );
 
   String operator [](ColumnName column) => switch (column) {
@@ -63,6 +75,6 @@ class VocabularyItem {
 
   @override
   String toString() {
-    return 'VocabularyItem(termA: $termA, termB: $termB, comment: $comment, chapter: $chapter, id: $id)';
+    return 'VocabularyItem(bookId: $bookId, termA: $termA, termB: $termB, comment: $comment, chapter: $chapter, id: $id, order: $order)';
   }
 }

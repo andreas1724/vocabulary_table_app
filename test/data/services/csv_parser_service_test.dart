@@ -101,25 +101,25 @@ English;German;Comment;Chapter
       'generateCsv creates CSV with inherited chapters (empty when same)',
       () {
         final vocabularyItems = [
-          VocabularyItem(
+          VocabularyItem(bookId: "test", 
             termA: 'house',
             termB: 'Haus',
             comment: 'Noun',
             chapter: 'Chapter 1',
           ),
-          VocabularyItem(
+          VocabularyItem(bookId: "test", 
             termA: 'dog',
             termB: 'Hund',
             comment: 'Noun',
             chapter: 'Chapter 1',
           ),
-          VocabularyItem(
+          VocabularyItem(bookId: "test", 
             termA: 'run',
             termB: 'rennen',
             comment: 'Verb',
             chapter: 'Chapter 2',
           ),
-          VocabularyItem(
+          VocabularyItem(bookId: "test", 
             termA: 'walk',
             termB: 'gehen',
             comment: 'Verb',

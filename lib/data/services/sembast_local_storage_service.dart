@@ -25,7 +25,10 @@ class SembastLocalStorageService implements LocalStorageService {
   // We use two stores to keep things fast:
   // One for metadata (list view) and one for the vocabulary items.
   final _metadataStore = stringMapStoreFactory.store('metadata');
-  final _contentStore = StoreRef<String, List<dynamic>>('vocab_content');
+  
+  // Refactored: _contentStore now stores individual vocabulary items
+  // Key is vocabulary item ID.
+  final _contentStore = stringMapStoreFactory.store('vocabularies');
 
   Future<Database> _initDb() async {
     if (factoryOverride != null) {
@@ -60,16 +63,18 @@ class SembastLocalStorageService implements LocalStorageService {
   Future<Book?> getBookContent(String id) async {
     final db = await _db;
     final metaRecord = await _metadataStore.record(id).get(db);
-    final contentRecord = await _contentStore.record(id).get(db);
 
-    if (metaRecord == null || contentRecord == null) {
+    if (metaRecord == null) {
       return null;
     }
 
-    final items = contentRecord
+    // Find all vocabulary items for this book
+    final finder = Finder(filter: Filter.equals('bookId', id), sortOrders: [SortOrder('order')]);
+    final itemRecords = await _contentStore.find(db, finder: finder);
+
+    final items = itemRecords
         .map(
-          (json) =>
-              VocabularyItem.fromJson(Map<String, dynamic>.from(json as Map)),
+          (record) => VocabularyItem.fromJson(Map<String, dynamic>.from(record.value)),
         )
         .toList();
 
@@ -90,8 +95,17 @@ class SembastLocalStorageService implements LocalStorageService {
       // Save metadata
       await _metadataStore.record(id).put(txn, book.metadata.toJson());
 
-      final itemsJson = book.items.map((item) => item.toJson()).toList();
-      await _contentStore.record(id).put(txn, itemsJson);
+      // Delete all existing vocabulary items for this book
+      final finder = Finder(filter: Filter.equals('bookId', id));
+      await _contentStore.delete(txn, finder: finder);
+
+      // Save new vocabulary items individually
+      for (var i = 0; i < book.items.length; i++) {
+        final item = book.items[i];
+        // Ensure the bookId is matching the book's metadata id and order is set
+        final itemToSave = item.copyWith(bookId: id, order: i);
+        await _contentStore.record(itemToSave.id).put(txn, itemToSave.toJson());
+      }
     });
   }
 
@@ -100,7 +114,71 @@ class SembastLocalStorageService implements LocalStorageService {
     final db = await _db;
     await db.transaction((txn) async {
       await _metadataStore.record(id).delete(txn);
-      await _contentStore.record(id).delete(txn);
+      
+      // Delete all vocabulary items for this book
+      final finder = Finder(filter: Filter.equals('bookId', id));
+      await _contentStore.delete(txn, finder: finder);
+    });
+  }
+
+  @override
+  Stream<List<VocabularyItem>> watchVocabulariesForBook(String bookId) async* {
+    final db = await _db;
+    final finder = Finder(filter: Filter.equals('bookId', bookId), sortOrders: [SortOrder('order')]);
+    final query = _contentStore.query(finder: finder);
+
+    yield* query.onSnapshots(db).map((snapshots) {
+      return snapshots
+          .map((snapshot) => VocabularyItem.fromJson(Map<String, dynamic>.from(snapshot.value)))
+          .toList();
+    });
+  }
+
+  Future<void> _updateBookModifiedTime(Transaction txn, String bookId) async {
+    final metaRecord = await _metadataStore.record(bookId).get(txn);
+    if (metaRecord != null) {
+      final meta = BookMetadata.fromJson(Map<String, dynamic>.from(metaRecord as Map));
+      final updatedMeta = meta.copyWith(modifiedTime: DateTime.now());
+      await _metadataStore.record(bookId).put(txn, updatedMeta.toJson());
+    }
+  }
+
+  @override
+  Future<void> addVocabulary(VocabularyItem item) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      await _contentStore.record(item.id).put(txn, item.toJson());
+      await _updateBookModifiedTime(txn, item.bookId);
+    });
+  }
+
+  @override
+  Future<void> updateVocabulary(VocabularyItem item) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      await _contentStore.record(item.id).put(txn, item.toJson());
+      await _updateBookModifiedTime(txn, item.bookId);
+    });
+  }
+
+  @override
+  Future<void> deleteVocabulary(VocabularyItem item) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      await _contentStore.record(item.id).delete(txn);
+      await _updateBookModifiedTime(txn, item.bookId);
+    });
+  }
+
+  @override
+  Future<void> updateVocabularies(List<VocabularyItem> items) async {
+    if (items.isEmpty) return;
+    final db = await _db;
+    await db.transaction((txn) async {
+      for (final item in items) {
+        await _contentStore.record(item.id).put(txn, item.toJson());
+      }
+      await _updateBookModifiedTime(txn, items.first.bookId);
     });
   }
 }

@@ -74,8 +74,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   Future<void> _startEditing() async {
     final currentText = _vocabularyController.vocabularyItems
-        .peek()[_rowIndex]
-        .peek()[widget.column];
+        .value[_rowIndex][widget.column];
 
     _textController.text = currentText;
     _textController.selection = TextSelection.collapsed(
@@ -228,8 +227,8 @@ class _PlainTextCell extends StatelessWidget {
     return SignalBuilder(
       builder: (context) {
         final itemSignal = vocabularyController.vocabularyItems
-            .peek()[rowIndex];
-        final text = itemSignal.value[column];
+            .value[rowIndex];
+        final text = itemSignal[column];
 
         final scale = tableLayoutController.scale.value;
         final appMode = tableLayoutController.appMode.value;

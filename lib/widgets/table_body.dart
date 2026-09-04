@@ -59,7 +59,7 @@ class _TableBodyState extends State<TableBody> {
               proxyDecorator: _proxyDecorator,
               itemBuilder: (context, index) {
                 final vocabularyItem = vocabularyItems[index];
-                final id = vocabularyItem.peek().id;
+                final id = vocabularyItem.id;
 
                 return _DraggableRowWrapper(
                   key: ValueKey(id),

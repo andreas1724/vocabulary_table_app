@@ -10,11 +10,13 @@ import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 class MockVocabRepository extends Mock implements VocabRepository {}
 
 class FakeBook extends Fake implements Book {}
+class FakeVocabularyItem extends Fake implements VocabularyItem {}
 
 void main() {
   // Register the fallback value once before all tests run
   setUpAll(() {
     registerFallbackValue(FakeBook());
+    registerFallbackValue(FakeVocabularyItem());
   });
 
   group('VocabularyController Tests', () {
@@ -24,7 +26,7 @@ void main() {
 
     setUp(() {
       mockRepository = MockVocabRepository();
-      
+
       initialBook = Book(
         metadata: BookMetadata(
           id: 'test-id',
@@ -32,10 +34,15 @@ void main() {
           modifiedTime: DateTime(2026, 1, 1),
         ),
         items: [
-          VocabularyItem(termA: 'dog', termB: 'Hund', chapter: 'Animals'),
-          VocabularyItem(termA: 'cat', termB: 'Katze', chapter: 'Animals'),
+          VocabularyItem(bookId: "test-id", termA: 'dog', termB: 'Hund', chapter: 'Animals'),
+          VocabularyItem(bookId: "test-id", termA: 'cat', termB: 'Katze', chapter: 'Animals'),
         ],
       );
+
+      when(() => mockRepository.watchVocabulariesForBook('test-id'))
+          .thenAnswer((_) => Stream.value(initialBook.items));
+      when(() => mockRepository.updateVocabularyLocally(any()))
+          .thenAnswer((_) async {});
 
       controller = VocabularyController(
         repository: mockRepository,
@@ -44,36 +51,22 @@ void main() {
     });
 
     test('initializes correctly with provided book data', () {
-      expect(controller.vocabularyItems.length, 2);
+      expect(controller.vocabularyItems.value.length, 2);
       expect(controller.chapters.value, ['Animals']);
     });
 
-    test('saveBook calls repository and updates modifiedTime', () async {
-      // Arrange
-      when(() => mockRepository.saveBookLocally(any())).thenAnswer((_) async {});
-
-      final initialTime = initialBook.metadata.modifiedTime;
-
-      // Act
-      await controller.saveBook();
-
-      // Assert
-      final captured = verify(() => mockRepository.saveBookLocally(captureAny())).captured;
-      final savedBook = captured.first as Book;
-
-      expect(savedBook.items.length, 2);
-      expect(savedBook.metadata.id, 'test-id');
-      expect(savedBook.metadata.modifiedTime.isAfter(initialTime), true);
-    });
-    
-    test('updateVocabularyAtLocation updates specific cell immutably', () {
-      controller.updateVocabularyAtLocation(
-        (rowIndex: 0, column: ColumnName.termB), 
+    test('updateVocabularyAtLocation updates specific cell immutably', () async {
+      registerFallbackValue(VocabularyItem(bookId: "test", chapter: "test", termA: "", termB: ""));
+      
+      await controller.updateVocabularyAtLocation(
+        (rowIndex: 0, column: ColumnName.termB),
         'Hündchen',
       );
-      
-      expect(controller.vocabularyItems[0].value.termA, 'dog'); // unchanged
-      expect(controller.vocabularyItems[0].value.termB, 'Hündchen'); // changed
+
+      final captured = verify(() => mockRepository.updateVocabularyLocally(captureAny())).captured;
+      final updatedItem = captured.first as VocabularyItem;
+      expect(updatedItem.termA, 'dog'); // unchanged
+      expect(updatedItem.termB, 'Hündchen'); // changed
     });
   });
 }

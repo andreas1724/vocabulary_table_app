@@ -1,0 +1,255 @@
+## Core Primitives Quick Start Guide
+
+The signals library exposes five core functions which are the building blocks to model any reactive business logic.
+
+### 1. `signal(initialValue)`
+Creates a new mutable signal container. You read a signal's value or subscribe to updates by accessing `.value`.
+```dart
+final counter = signal(0);
+print(counter.value); // 0
+counter.value = 1; // Mutates value and schedules dependent updates
+```
+
+#### `.peek()`
+Reads a signal's current value *without* subscribing to its mutations.
+```dart
+final counter = signal(0);
+final logCount = signal(0);
+
+effect(() {
+  print(counter.value);
+  // Read using peek to avoid subscribing/triggering loop
+  logCount.value = logCount.peek() + 1;
+});
+```
+
+### 2. `untracked(fn)`
+Executes a callback that reads signals without subscribing to any of them.
+```dart
+final counter = signal(0);
+final count = signal(0);
+
+effect(() {
+  print(counter.value);
+  count.value = untracked(() => count.value + 1);
+});
+```
+
+### 3. `computed(fn)`
+Combines the values of multiple signals into a lazy, memoized derived signal.
+```dart
+final first = signal('John');
+final last = signal('Doe');
+final fullName = computed(() => '${first.value} ${last.value}');
+print(fullName.value); // John Doe
+```
+
+### 4. `effect(fn)`
+Orchestrates immediate synchronous side effects by running a callback and subscribing to any signals read within it.
+```dart
+final name = signal('Jane');
+final dispose = effect(() => print('Hello $name'));
+dispose(); // Clean up subscription
+```
+
+### 5. `batch(fn)`
+Groups multiple signal writes into a single transaction, executing all dependent computed evaluations and effects exactly once at the end.
+```dart
+final a = signal(0);
+final b = signal(0);
+
+batch(() {
+  a.value = 1;
+  b.value = 2;
+});
+```
+
+---
+
+## 1. Widget Rebuild Optimization
+
+### A. `SignalBuilder` (Preferred)
+Provides localized, context-isolated widget rebuilding. Wrap only the smallest possible widgets in `SignalBuilder` to keep rendering extremely high-performance.
+```dart
+SignalBuilder(
+  builder: (context) => Text('Count: ${counter.value}'),
+)
+```
+
+### B. Reactive Component Widgets (`SignalWidget` / `SignalStatefulWidget`)
+In v7, `SignalsMixin` and `BuildContext.watch(context)` are **deprecated** (and will trigger warnings via custom lint rules). Instead of mixins or context extension watches, inherit from `SignalWidget` or `SignalStatefulWidget` for automatic, highly optimized reactive tracking inside standard widget trees:
+
+```dart
+// Reactive Stateless Widget
+class MyWidget extends SignalWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('Count: ${counter.value}');
+  }
+}
+```
+
+---
+
+## 2. High-Frequency Rendering (`SignalCustomPaint`)
+
+For ultra-high-frequency drawing driven by signals, bypass Flutter's heavy widget layout/rebuild lifecycle entirely.
+`SignalCustomPaint` and `SignalPainterWidget` write directly to the GPU via `markNeedsPaint()` calls inside custom proxy render boxes:
+
+```dart
+SignalCustomPaint(
+  painter: MySignalPainter(progressSignal),
+  child: Container(),
+)
+```
+
+---
+
+## 3. Side Effects in Widget Trees (`SignalEffect`)
+
+Use `SignalEffect` / `SignalListener` to trigger asynchronous side-effects (e.g., showing snackbars, navigation, showing modals) cleanly inside the widget lifecycle.
+```dart
+SignalEffect(
+  callback: (context) {
+    if (errorMessage.value != null) {
+      showDialog(context: context, builder: (_) => Alert(errorMessage.value!));
+    }
+  },
+  child: ChildWidget(),
+)
+```
+
+# Flutter Modernization Guide (Dart 3.12+)
+
+This document tracks recent breaking changes and deprecations in the Flutter framework, providing migration paths and modern code examples.
+
+## 1. ReorderableListView: `onReorder` vs. `onReorderItem`
+**Change (v3.41+):** `onReorder` is deprecated in favor of `onReorderItem`.
+**Why:** Previously, developers had to manually adjust `newIndex` when moving items downwards (`if (newIndex > oldIndex) newIndex -= 1;`). The new `onReorderItem` callback handles this adjustment automatically [cite: 1].
+
+### Legacy Code (Deprecated)
+```dart
+ReorderableListView(
+  onReorder: (int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1; // Manual adjustment required
+    }
+    // Swap logic here
+  },
+  children: const [],
+)
+```
+
+### Modern Code
+```dart
+ReorderableListView(
+  onReorderItem: (int oldIndex, int newIndex) {
+    // No index adjustment needed
+    // Swap logic here
+  },
+  children: const [],
+)
+```
+
+## 2. Text Scaling: `textScaleFactor` vs `TextScaler`
+**Change (v3.16+):** `textScaleFactor` (double) is deprecated in favor of the `TextScaler` class.
+**Why:** Android 14 introduced non-linear font scaling to prevent large text from scaling too much and breaking UI layouts. `TextScaler` supports non-linear scaling curves.
+
+### Legacy Code (Deprecated)
+```dart
+Text(
+  'Hello',
+  textScaleFactor: 1.5,
+)
+```
+
+### Modern Code
+```dart
+Text(
+  'Hello',
+  textScaler: const TextScaler.linear(1.5),
+)
+```
+
+## 3. Navigation: `WillPopScope` vs `PopScope`
+**Change (v3.12+):** `WillPopScope` is deprecated in favor of `PopScope`.
+**Why:** To support Android's Predictive Back gesture (allowing users to peek at the previous screen before committing to the pop). `WillPopScope` was synchronous and blocked this gesture.
+
+### Legacy Code (Deprecated)
+```dart
+WillPopScope(
+  onWillPop: () async => false,
+  child: const SizedBox(),
+)
+```
+
+### Modern Code
+```dart
+PopScope(
+  canPop: false,
+  onPopInvokedWithResult: (bool didPop, Object? result) {
+    if (didPop) return;
+    // Handle back button press here
+  },
+  child: const SizedBox(),
+)
+```
+
+## 4. State Management: `MaterialState` vs `WidgetState`
+**Change (v3.22+):** `MaterialState` and related classes are renamed to `WidgetState`.
+**Why:** State management (hover, pressed, focused) is not unique to Material Design. It was moved to the generic widgets layer so Cupertino and other design systems can use it.
+
+### Legacy Code (Deprecated)
+```dart
+TextButton(
+  style: ButtonStyle(
+    backgroundColor: MaterialStateProperty.all(Colors.blue),
+  ),
+  onPressed: () {},
+  child: const Text('Button'),
+)
+```
+
+### Modern Code
+```dart
+TextButton(
+  style: ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(Colors.blue),
+  ),
+  onPressed: () {},
+  child: const Text('Button'),
+)
+```
+
+## 5. UI Layout: `ButtonBar` vs `OverflowBar`
+**Change (v3.24+):** `ButtonBar` is deprecated in favor of `OverflowBar`.
+**Why:** `OverflowBar` provides better flexibility for handling varying screen sizes and accessibility scaling, wrapping its children gracefully when horizontal space runs out.
+
+### Modern Code
+```dart
+OverflowBar(
+  alignment: MainAxisAlignment.end,
+  children: [
+    TextButton(onPressed: () {}, child: const Text('Cancel')),
+    ElevatedButton(onPressed: () {}, child: const Text('Save')),
+  ],
+)
+```
+
+## Appendix: Workspace Rules (Signals)
+When working with the `signals_flutter` package, use `SignalBuilder` exclusively.
+
+```dart
+class CounterWidget extends StatelessWidget {
+  const CounterWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SignalBuilder(
+      builder: (context) => Text('Count: ${counter.value}'),
+    );
+  }
+}
+```

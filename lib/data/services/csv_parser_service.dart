@@ -73,10 +73,12 @@ class CsvParserService {
 
       vocabularyItems.add(
         VocabularyItem(
+          bookId: 'pending', // Pending, will be correctly set by the caller/save operation
           termA: termA,
           termB: termB,
           comment: comment,
           chapter: currentChapter,
+          order: vocabularyItems.length,
         ),
       );
     }

@@ -38,7 +38,12 @@ Future<void> setUpDependencies() async {
   const dummyBookId = 'test-csv-book-id';
   Book? book = await repository.getBookLocally(dummyBookId);
 
-  if (book == null) {
+  if (book == null || book.items.isEmpty) {
+    if (book != null && book.items.isEmpty) {
+      debugPrint('Found empty book shell from previous invalid run, re-parsing...');
+      await repository.deleteBookLocally(dummyBookId);
+    }
+    
     final parsedResult = await repository.parseCsv(rawCsv);
 
     book = Book(
