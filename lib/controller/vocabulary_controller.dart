@@ -16,6 +16,17 @@ class VocabularyController {
       () => _repository.watchVocabulariesForBook(bookId),
       options: AsyncSignalOptions(initialValue: book.items),
     );
+
+    // Watch for updates from the database. When the real data catches up with our
+    // optimistic update, we clear the optimistic state to resume reacting to DB changes.
+    effect(() {
+      final state = _vocabularyItemsStream.value;
+      if (state.hasValue && _optimisticItems.peek() != null) {
+        // Run asynchronously (microtask) to ensure UI immediately switches back to DB stream
+        // without flickering when DB resolves.
+        Future.microtask(() => _optimisticItems.value = null);
+      }
+    });
   }
 
   final VocabRepository _repository;
@@ -23,9 +34,16 @@ class VocabularyController {
 
   late final StreamSignal<List<VocabularyItem>> _vocabularyItemsStream;
   
+  // Holds synchronous updates to bridge the DB writing gap
+  final _optimisticItems = signal<List<VocabularyItem>?>(null);
+
   // Expose the list of vocabulary items reactively
-  // streamSignal.value will contain the AsyncState
+  // Shows optimistic update if present, otherwise reads from stream
   late final vocabularyItems = computed<List<VocabularyItem>>(() {
+    final optimistic = _optimisticItems.value;
+    if (optimistic != null) {
+      return optimistic;
+    }
     final state = _vocabularyItemsStream.value;
     return state.value ?? [];
   });
@@ -115,6 +133,9 @@ class VocabularyController {
         updatedItems.add(items[i]);
       }
     }
+
+    // Set optimistic state so the UI animation is perfectly smooth
+    _optimisticItems.value = items;
 
     if (updatedItems.isNotEmpty) {
       await _repository.updateVocabulariesLocally(updatedItems);

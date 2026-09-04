@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:signals_flutter/signals_flutter.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
