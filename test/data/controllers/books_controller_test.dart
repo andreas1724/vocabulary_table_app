@@ -34,7 +34,7 @@ void main() {
             title: 'Test Book',
             modifiedTime: DateTime.now(),
           ),
-          items: [VocabularyItem(termA: 'a', termB: 'b')],
+          items: [VocabularyItem(chapter: 'chapter 1', termA: 'a', termB: 'b')],
         ),
       );
 
@@ -51,7 +51,7 @@ void main() {
           title: 'My Vocabs',
           modifiedTime: DateTime.now(),
         ),
-        items: [VocabularyItem(termA: 'x', termB: 'y')],
+        items: [VocabularyItem(chapter: 'chapter 1', termA: 'x', termB: 'y')],
       );
 
       await controller.saveBook(book);
@@ -87,7 +87,7 @@ void main() {
             title: 'New Title',
             modifiedTime: DateTime.now(),
           ),
-          items: [VocabularyItem(termA: 'x', termB: 'y', comment: 'z')],
+          items: [VocabularyItem(chapter: 'chapter 1', termA: 'x', termB: 'y', comment: 'z')],
         );
 
         await controller.saveBook(updatedBook);

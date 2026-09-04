@@ -7,10 +7,10 @@ const _uuid = Uuid();
 class VocabularyItem {
   VocabularyItem({
     String? id,
+    required this.chapter,
     required this.termA,
     required this.termB,
     this.comment = '',
-    this.chapter = '',
   }) : id = id ?? _uuid.v4();
 
   factory VocabularyItem.fromJson(Map<String, dynamic> json) {

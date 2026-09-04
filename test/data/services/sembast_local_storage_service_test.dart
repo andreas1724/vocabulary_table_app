@@ -30,7 +30,7 @@ void main() {
           title: 'English Vocabs',
           modifiedTime: now,
         ),
-        items: [VocabularyItem(termA: 'house', termB: 'Haus')],
+        items: [VocabularyItem(chapter: 'chapter 1', termA: 'house', termB: 'Haus')],
       );
 
       await storageService.saveBook(book);
@@ -49,7 +49,7 @@ void main() {
           title: 'Spanish Vocabs',
           modifiedTime: DateTime.now(),
         ),
-        items: [VocabularyItem(termA: 'hola', termB: 'hallo')],
+        items: [VocabularyItem(chapter: 'chapter 1', termA: 'hola', termB: 'hallo')],
       );
 
       await storageService.saveBook(book);
@@ -82,7 +82,7 @@ void main() {
       await storageService.saveBook(
         Book(
           metadata: metadata,
-          items: [VocabularyItem(termA: 'old', termB: 'content')],
+          items: [VocabularyItem(chapter: 'chapter 1', termA: 'old', termB: 'content')],
         ),
       );
 
@@ -95,7 +95,7 @@ void main() {
       await storageService.saveBook(
         Book(
           metadata: updatedMetadata,
-          items: [VocabularyItem(termA: 'new', termB: 'content')],
+          items: [VocabularyItem(chapter: 'chapter 1', termA: 'new', termB: 'content')],
         ),
       );
 
