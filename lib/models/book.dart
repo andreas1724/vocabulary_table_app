@@ -7,23 +7,19 @@ class BookMetadata {
     required this.modifiedTime,
   });
 
-  BookMetadata copyWith({
-    String? id,
-    String? title,
-    DateTime? modifiedTime,
-  }) {
-    return BookMetadata(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      modifiedTime: modifiedTime ?? this.modifiedTime,
-    );
-  }
-
   factory BookMetadata.fromJson(Map<String, dynamic> json) {
     return BookMetadata(
       id: json['id'] as String,
       title: json['title'] as String,
       modifiedTime: DateTime.parse(json['modifiedTime'] as String),
+    );
+  }
+
+  BookMetadata copyWith({String? id, String? title, DateTime? modifiedTime}) {
+    return BookMetadata(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      modifiedTime: modifiedTime ?? this.modifiedTime,
     );
   }
 
