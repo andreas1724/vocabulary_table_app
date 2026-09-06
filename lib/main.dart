@@ -7,6 +7,10 @@ import 'package:vocabulary_table_app/data/core/di/service_locator.dart';
 import 'package:vocabulary_table_app/models/book.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table_app.dart';
 
+/* 
+rm /Users/user/Library/Containers/com.example.vocabularyTableApp/Data/Documents/vocabularies_local.db
+*/
+
 void main(List<String> args) async {
   SignalsObserver.instance = null;
 
@@ -40,16 +44,20 @@ Future<void> setUpDependencies() async {
 
   if (book == null || book.items.isEmpty) {
     if (book != null && book.items.isEmpty) {
-      debugPrint('Found empty book shell from previous invalid run, re-parsing...');
+      debugPrint(
+        'Found empty book shell from previous invalid run, re-parsing...',
+      );
       await repository.deleteBookLocally(dummyBookId);
     }
-    
+
     final parsedResult = await repository.parseCsv(rawCsv);
 
     book = Book(
       metadata: BookMetadata(
         id: dummyBookId,
         title: 'CSV Import Test',
+        languageA: parsedResult.languageA,
+        languageB: parsedResult.languageB,
         modifiedTime: DateTime.now(),
       ),
       items: parsedResult.vocabularyItems,
@@ -69,7 +77,7 @@ Future<void> setUpDependencies() async {
 }
 
 const rawCsv = '''
-English;German;Comment;Chapter
+Englisch;Deutsch
 apple;Apfel;süß;Fruit
 banana;Banane;gelb und krumm
 orange;Orange;saftig

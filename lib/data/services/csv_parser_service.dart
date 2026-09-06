@@ -24,6 +24,7 @@ class CsvParserService {
   }) {
     // 2. Let the csv package do the heavy lifting
     // Use the Csv codec with semicolon as delimiter
+    // A field with semicolon has to be quoted with " (RFC 4180)
     // dynamicTyping: false -> ensure numbers like "1" are parsed as strings
     final converter = Csv(fieldDelimiter: ';', dynamicTyping: false);
     final rows = converter.decode(csvContent);
@@ -73,7 +74,8 @@ class CsvParserService {
 
       vocabularyItems.add(
         VocabularyItem(
-          bookId: 'pending', // Pending, will be correctly set by the caller/save operation
+          bookId:
+              'pending', // Pending, will be correctly set by the caller/save operation
           termA: termA,
           termB: termB,
           comment: comment,

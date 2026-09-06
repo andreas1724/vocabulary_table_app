@@ -28,9 +28,18 @@ void main() {
         metadata: BookMetadata(
           id: 'file_123',
           title: 'English Vocabs',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: now,
         ),
-        items: [VocabularyItem(bookId: "file_999", chapter: 'chapter 1', termA: 'house', termB: 'Haus')],
+        items: [
+          VocabularyItem(
+            bookId: "file_999",
+            chapter: 'chapter 1',
+            termA: 'house',
+            termB: 'Haus',
+          ),
+        ],
       );
 
       await storageService.saveBook(book);
@@ -39,6 +48,8 @@ void main() {
       expect(books.length, 1);
       expect(books.first.id, 'file_123');
       expect(books.first.title, 'English Vocabs');
+      expect(books.first.languageA, 'LanguageA');
+      expect(books.first.languageB, 'LanguageB');
       expect(books.first.modifiedTime.toIso8601String(), now.toIso8601String());
     });
 
@@ -47,9 +58,18 @@ void main() {
         metadata: BookMetadata(
           id: 'file_999',
           title: 'Spanish Vocabs',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: DateTime.now(),
         ),
-        items: [VocabularyItem(bookId: "file_999", chapter: 'chapter 1', termA: 'hola', termB: 'hallo')],
+        items: [
+          VocabularyItem(
+            bookId: "file_999",
+            chapter: 'chapter 1',
+            termA: 'hola',
+            termB: 'hallo',
+          ),
+        ],
       );
 
       await storageService.saveBook(book);
@@ -76,13 +96,22 @@ void main() {
       final metadata = BookMetadata(
         id: 'file_update',
         title: 'Old Title',
+        languageA: 'LanguageA',
+        languageB: 'LanguageB',
         modifiedTime: DateTime.now(),
       );
 
       await storageService.saveBook(
         Book(
           metadata: metadata,
-          items: [VocabularyItem(bookId: "file_update", chapter: 'chapter 1', termA: 'old', termB: 'content')],
+          items: [
+            VocabularyItem(
+              bookId: "file_update",
+              chapter: 'chapter 1',
+              termA: 'old',
+              termB: 'content',
+            ),
+          ],
         ),
       );
 
@@ -90,12 +119,21 @@ void main() {
       final updatedMetadata = BookMetadata(
         id: 'file_update', // Same ID!
         title: 'New Title',
+        languageA: 'LanguageA',
+        languageB: 'LanguageB',
         modifiedTime: DateTime.now(),
       );
       await storageService.saveBook(
         Book(
           metadata: updatedMetadata,
-          items: [VocabularyItem(bookId: "file_update", chapter: 'chapter 1', termA: 'new', termB: 'content')],
+          items: [
+            VocabularyItem(
+              bookId: "file_update",
+              chapter: 'chapter 1',
+              termA: 'new',
+              termB: 'content',
+            ),
+          ],
         ),
       );
 
@@ -113,6 +151,8 @@ void main() {
         metadata: BookMetadata(
           id: 'delete_me',
           title: 'To be deleted',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: DateTime.now(),
         ),
         items: [],

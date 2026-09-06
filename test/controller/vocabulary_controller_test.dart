@@ -30,6 +30,8 @@ void main() {
         metadata: BookMetadata(
           id: 'test-id',
           title: 'My Test Book',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: DateTime(2026, 1, 1),
         ),
         items: [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 
 class UniversalToolbar extends StatelessWidget {
   const UniversalToolbar({super.key, required this.isVertical});
@@ -11,6 +12,7 @@ class UniversalToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appBarColor = Theme.of(context).colorScheme.surfaceContainer;
+    final vocabularyController = GetIt.I<VocabularyController>();
 
     return ExcludeFocus(
       child: Material(
@@ -20,36 +22,31 @@ class UniversalToolbar extends StatelessWidget {
           width: isVertical ? kToolbarHeight : double.infinity,
           height: isVertical ? double.infinity : kToolbarHeight,
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                scrollDirection: isVertical ? .vertical : .horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: isVertical ? 0 : constraints.maxWidth,
-                    minHeight: isVertical ? constraints.maxHeight : 0,
-                  ),
-                  child: Flex(
-                    direction: isVertical ? .vertical : .horizontal,
-                    mainAxisAlignment: .spaceBetween,
-                    crossAxisAlignment: .center,
-                    children: [
-                      _ToolbarTitle(isVertical: isVertical),
-                      Flex(
-                        direction: isVertical ? .vertical : .horizontal,
-                        mainAxisSize: .min,
-                        // The children are completely independent and const!
-                        children: const [
-                          _CommentsToggle(),
-                          _ModeToggler(),
-                          _SettingsButton(),
-                        ],
-                      ),
-                    ],
-                  ),
+          child: Flex(
+            direction: isVertical ? .vertical : .horizontal,
+            mainAxisAlignment: .spaceBetween,
+            crossAxisAlignment: .center,
+            children: [
+              Flexible(
+                child: SignalBuilder(
+                  builder: (context) {
+                    return _ToolbarTitle(
+                      vocabularyController.title.value,
+                      isVertical: isVertical,
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+              Flex(
+                direction: isVertical ? .vertical : .horizontal,
+                mainAxisSize: .min,
+                children: [
+                  const _CommentsToggle(),
+                  const _ModeToggler(),
+                  _ToolbarMenu(isVertical: isVertical),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -60,15 +57,16 @@ class UniversalToolbar extends StatelessWidget {
 // --- Extracted Private Sub-Widgets for the Toolbar ---
 
 class _ToolbarTitle extends StatelessWidget {
-  const _ToolbarTitle({required this.isVertical});
+  const _ToolbarTitle(this.title, {required this.isVertical});
 
+  final String title;
   final bool isVertical;
 
   @override
   Widget build(BuildContext context) {
     final titleWidget = Text(
-      'Vocabulary',
-      style: Theme.of(context).textTheme.titleLarge,
+      title,
+      style: Theme.of(context).textTheme.titleMedium,
       maxLines: 1,
       overflow: .ellipsis,
     );
@@ -108,34 +106,21 @@ class _CommentsToggle extends StatelessWidget {
   }
 }
 
-class _ModeToggler extends StatefulWidget {
+class _ModeToggler extends StatelessWidget {
   // ignore: unused_element_parameter
   const _ModeToggler({super.key});
 
   @override
-  State<_ModeToggler> createState() => __ModeTogglerState();
-}
-
-class __ModeTogglerState extends State<_ModeToggler> {
-  late final _tableLayoutController = GetIt.I<TableLayoutController>();
-  final _focusNode = FocusNode(debugLabel: 'comments toggle');
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final tableLayoutController = GetIt.I<TableLayoutController>();
+
     return SignalBuilder(
       builder: (context) {
-        final currentMode = _tableLayoutController.appMode.value;
+        final currentMode = tableLayoutController.appMode.value;
         return IconButton(
-          focusNode: _focusNode,
           onPressed: () {
             FocusManager.instance.primaryFocus?.unfocus();
-            _tableLayoutController.nextMode();
+            tableLayoutController.nextMode();
           },
           icon: Icon(currentMode.icon),
         );
@@ -144,97 +129,71 @@ class __ModeTogglerState extends State<_ModeToggler> {
   }
 }
 
-class _ModeSelector extends StatefulWidget {
-  const _ModeSelector({required this.isVertical});
-
+class _ToolbarMenu extends StatelessWidget {
+  const _ToolbarMenu({required this.isVertical});
   final bool isVertical;
 
   @override
-  State<_ModeSelector> createState() => _ModeSelectorState();
-}
-
-class _ModeSelectorState extends State<_ModeSelector> {
-  late final _tableLayoutController = GetIt.I<TableLayoutController>();
-  final _focusNodeModeSelector = FocusNode(debugLabel: 'menu button');
-
-  @override
-  void dispose() {
-    _focusNodeModeSelector.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     const iconWidth = 40.0;
-
-    return SignalBuilder(
-      builder: (context) {
-        final currentMode = _tableLayoutController.appMode.value;
-
-        return MenuAnchor(
-          alignmentOffset: widget.isVertical
-              ? const Offset((kToolbarHeight + iconWidth) / 2, -iconWidth)
-              : const Offset(0, (kToolbarHeight - iconWidth) / 2),
-          childFocusNode: _focusNodeModeSelector,
-          builder: (context, menuController, child) {
-            return IconButton(
-              focusNode: _focusNodeModeSelector,
-              constraints: const BoxConstraints.tightFor(
-                width: iconWidth,
-                height: iconWidth,
-              ),
-              onPressed: () => menuController.isOpen
-                  ? menuController.close()
-                  : menuController.open(),
-              icon: Icon(currentMode.icon),
-            );
+    return MenuAnchor(
+      alignmentOffset: isVertical
+          ? const Offset((kToolbarHeight + iconWidth) / 2, -iconWidth)
+          : const Offset(0, (kToolbarHeight - iconWidth) / 2),
+      builder: (context, controller, child) {
+        return IconButton(
+          icon: const Icon(Icons.more_vert),
+          tooltip: 'Menu',
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
           },
-          menuChildren: AppMode.values.map((mode) {
-            final isSelected = currentMode == mode;
-
-            return MenuItemButton(
-              onPressed: () => _tableLayoutController.appMode.value = mode,
-              child: Row(
-                mainAxisSize: .min,
-                children: [
-                  Icon(
-                    mode.icon,
-                    color: isSelected
-                        ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    mode.title,
-                    style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? theme.colorScheme.primary : null,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
         );
       },
+      menuChildren: [
+        MenuItemButton(
+          onPressed: () {
+            // TODO: Implement Open Book action
+          },
+          child: const _MenuRow(title: 'Open Book', icon: Icons.library_books),
+        ),
+        MenuItemButton(
+          onPressed: () {
+            // TODO: Implement Import CSV action
+          },
+          child: const _MenuRow(title: 'Imports CSV', icon: Icons.download),
+        ),
+        MenuItemButton(
+          onPressed: () {
+            // TODO: Implement Export CSV action
+          },
+          child: const _MenuRow(title: 'Export CSV', icon: Icons.upload),
+        ),
+        MenuItemButton(
+          onPressed: () {
+            // TODO: Implement Settings routing
+          },
+          child: const _MenuRow(title: 'Settings', icon: Icons.settings),
+        ),
+      ],
     );
   }
 }
 
-class _SettingsButton extends StatelessWidget {
-  const _SettingsButton();
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({required this.title, required this.icon});
+
+  final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.settings),
-      tooltip: 'Settings',
-      onPressed: () {
-        // TODO: Implement settings routing here
-      },
+    return Row(
+      mainAxisSize: .min,
+      children: [Icon(icon), const SizedBox(width: 12), Text(title)],
     );
   }
 }

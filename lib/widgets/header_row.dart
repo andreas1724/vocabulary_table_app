@@ -3,16 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 
 /// Size for the drag area between columns.
 const _dragHandleWidthMobile = 48.0;
 const _dragHandleWidthDesktop = 24.0;
 
 class HeaderRow extends StatefulWidget {
-  const HeaderRow({
-    super.key,
-    required this.tableWidth,
-  });
+  const HeaderRow({super.key, required this.tableWidth});
 
   final double tableWidth;
 
@@ -22,6 +20,7 @@ class HeaderRow extends StatefulWidget {
 
 class _HeaderRowState extends State<HeaderRow> {
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
+  late final _vocabularyController = GetIt.I<VocabularyController>();
 
   final _containerKey = GlobalKey();
 
@@ -56,42 +55,67 @@ class _HeaderRowState extends State<HeaderRow> {
 
         final borderColor = Theme.of(context).colorScheme.outlineVariant;
         final headerBackground = Theme.of(context).colorScheme.primaryContainer;
-        final headerFontColor = Theme.of(context).colorScheme.onPrimaryContainer;
+        final headerFontColor = Theme.of(
+          context,
+        ).colorScheme.onPrimaryContainer;
+
+        Widget buildCell(Object item) {
+          return ClipRect(
+            child: Padding(
+              padding: EdgeInsets.all(8 * scale),
+              child: switch (item) {
+                final String text => Text(
+                  text,
+                  style: TextStyle(
+                    color: headerFontColor,
+                    fontSize: TableLayoutController.fontSize * scale,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                final IconData icon => Align(
+                  alignment: .centerStart,
+                  child: Icon(
+                    icon,
+                    color: headerFontColor,
+                    size: 20 * scale,
+                  ),
+                ),
+                _ => const SizedBox(),
+              },
+            ),
+          );
+        }
 
         return Stack(
           key: _containerKey,
           children: [
             Container(
               color: headerBackground,
-              child: Table(
-                border: TableBorder.all(color: borderColor, width: borderWidth),
-                columnWidths: {
-                  0: FixedColumnWidth(w1),
-                  1: FixedColumnWidth(w2),
-                  if (showComment) 2: FixedColumnWidth(w3),
+              child: SignalBuilder(
+                builder: (context) {
+                  final languageA = _vocabularyController.languageA.value;
+                  final languageB = _vocabularyController.languageB.value;
+                  return Table(
+                    border: TableBorder.all(
+                      color: borderColor,
+                      width: borderWidth,
+                    ),
+                    columnWidths: {
+                      0: FixedColumnWidth(w1),
+                      1: FixedColumnWidth(w2),
+                      if (showComment) 2: FixedColumnWidth(w3),
+                    },
+                    children: [
+                      TableRow(
+                        children: [
+                          languageA,
+                          languageB,
+                          if (showComment) Icons.speaker_notes,
+                        ].map(buildCell).toList(),
+                      ),
+                    ],
+                  );
                 },
-                children: [
-                  TableRow(
-                    children: ['English', 'German', if (showComment) 'Comment']
-                        .map(
-                          (text) => ClipRect(
-                            child: Padding(
-                              padding: EdgeInsets.all(8 * scale),
-                              child: Text(
-                                text,
-                                style: TextStyle(
-                                  color: headerFontColor,
-                                  fontSize:
-                                      TableLayoutController.fontSize * scale,
-                                  fontWeight: .bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ],
               ),
             ),
 
@@ -118,7 +142,9 @@ class _HeaderRowState extends State<HeaderRow> {
                   if (tableWidth <= 0) return;
                   final localX = _getLocalX(globalPosition);
                   if (localX != null) {
-                    _tableLayoutController.updateSecondHandle(localX / tableWidth);
+                    _tableLayoutController.updateSecondHandle(
+                      localX / tableWidth,
+                    );
                   }
                 },
                 scale: scale,

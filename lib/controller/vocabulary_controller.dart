@@ -9,8 +9,9 @@ class VocabularyController {
   VocabularyController({
     required VocabRepository repository,
     required Book book,
-  })  : _repository = repository,
-        bookId = book.metadata.id {
+  }) : _repository = repository,
+       bookId = book.metadata.id,
+       metadata = signal<BookMetadata>(book.metadata) {
     // Initialize the stream signal from the repository
     _vocabularyItemsStream = streamSignal(
       () => _repository.watchVocabulariesForBook(bookId),
@@ -32,8 +33,16 @@ class VocabularyController {
   final VocabRepository _repository;
   final String bookId;
 
+  // --- State (Signals) ---
+
+  final Signal<BookMetadata> metadata;
+
+  late final languageA = computed(() => metadata.value.languageA);
+  late final languageB = computed(() => metadata.value.languageB);
+  late final title = computed(() => metadata.value.title);
+
   late final StreamSignal<List<VocabularyItem>> _vocabularyItemsStream;
-  
+
   // Holds synchronous updates to bridge the DB writing gap
   final _optimisticItems = signal<List<VocabularyItem>?>(null);
 
@@ -44,14 +53,12 @@ class VocabularyController {
     if (optimistic != null) {
       return optimistic;
     }
+
     final state = _vocabularyItemsStream.value;
     return state.value ?? [];
   });
 
   final selectedCell = signal<(int rowIndex, ColumnName)?>(null);
-
-  final languageA = signal<String>('Language A');
-  final languageB = signal<String>('Language B');
 
   late final chapters = computed(() {
     final temp = <String>{};
@@ -60,6 +67,8 @@ class VocabularyController {
         .where((chapter) => temp.add(chapter))
         .toList();
   });
+
+  // --- Actions ---
 
   Future<void> addVocabulary(VocabularyItem item) async {
     final items = vocabularyItems.value;
@@ -72,7 +81,7 @@ class VocabularyController {
   Future<void> removeVocabularyAt(int index) async {
     final items = vocabularyItems.value;
     if (index < 0 || index >= items.length) return;
-    
+
     final itemToDelete = items[index];
     await _repository.deleteVocabularyLocally(itemToDelete);
   }
@@ -80,11 +89,11 @@ class VocabularyController {
   Future<void> updateVocabularyAt(int index, VocabularyItem item) async {
     final items = vocabularyItems.value;
     if (index < 0 || index >= items.length) return;
-    
+
     // Ensure the item ID matches the existing one at the index
     final existingItem = items[index];
     final itemToUpdate = item.copyWith(id: existingItem.id, bookId: bookId);
-    
+
     await _repository.updateVocabularyLocally(itemToUpdate);
   }
 
@@ -103,9 +112,11 @@ class VocabularyController {
       .termB => vocabularyItem.copyWith(termB: updateText),
       .comment => vocabularyItem.copyWith(comment: updateText),
       .chapter => vocabularyItem.copyWith(chapter: updateText),
-      .id => vocabularyItem.copyWith(id: updateText) // Should not really edit ID but keeping parity
+      .id => vocabularyItem.copyWith(
+        id: updateText,
+      ), // Should not really edit ID but keeping parity
     };
-    
+
     await _repository.updateVocabularyLocally(updatedItem);
   }
 
@@ -113,7 +124,7 @@ class VocabularyController {
   /// newIndex points to the exact target position in the cleaned list after removal.
   Future<void> reorderItem(int oldIndex, int newIndex) async {
     final items = List<VocabularyItem>.from(vocabularyItems.value);
-    
+
     if (oldIndex == newIndex) return;
 
     if (oldIndex < 0 ||
@@ -122,7 +133,7 @@ class VocabularyController {
         newIndex > items.length) {
       return;
     }
-    
+
     final item = items.removeAt(oldIndex);
     items.insert(newIndex, item);
 

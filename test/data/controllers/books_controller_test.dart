@@ -32,9 +32,18 @@ void main() {
           metadata: BookMetadata(
             id: '1',
             title: 'Test Book',
+            languageA: 'LanguageA',
+            languageB: 'LanguageB',
             modifiedTime: DateTime.now(),
           ),
-          items: [VocabularyItem(bookId: "test", chapter: 'chapter 1', termA: 'a', termB: 'b')],
+          items: [
+            VocabularyItem(
+              bookId: "test",
+              chapter: 'chapter 1',
+              termA: 'a',
+              termB: 'b',
+            ),
+          ],
         ),
       );
 
@@ -49,9 +58,18 @@ void main() {
         metadata: BookMetadata(
           id: 'new_book',
           title: 'My Vocabs',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: DateTime.now(),
         ),
-        items: [VocabularyItem(bookId: "test", chapter: 'chapter 1', termA: 'x', termB: 'y')],
+        items: [
+          VocabularyItem(
+            bookId: "test",
+            chapter: 'chapter 1',
+            termA: 'x',
+            termB: 'y',
+          ),
+        ],
       );
 
       await controller.saveBook(book);
@@ -72,6 +90,8 @@ void main() {
           metadata: BookMetadata(
             id: id,
             title: 'Old Title',
+            languageA: 'LanguageA',
+            languageB: 'LanguageB',
             modifiedTime: DateTime.now(),
           ),
           items: [],
@@ -85,9 +105,19 @@ void main() {
           metadata: BookMetadata(
             id: id,
             title: 'New Title',
+            languageA: 'LanguageA',
+            languageB: 'LanguageB',
             modifiedTime: DateTime.now(),
           ),
-          items: [VocabularyItem(bookId: "test", chapter: 'chapter 1', termA: 'x', termB: 'y', comment: 'z')],
+          items: [
+            VocabularyItem(
+              bookId: "test",
+              chapter: 'chapter 1',
+              termA: 'x',
+              termB: 'y',
+              comment: 'z',
+            ),
+          ],
         );
 
         await controller.saveBook(updatedBook);
@@ -102,6 +132,8 @@ void main() {
         metadata: BookMetadata(
           id: 'del',
           title: 'Delete Me',
+          languageA: 'LanguageA',
+          languageB: 'LanguageB',
           modifiedTime: DateTime.now(),
         ),
         items: [],
