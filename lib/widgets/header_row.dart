@@ -59,12 +59,12 @@ class _HeaderRowState extends State<HeaderRow> {
           context,
         ).colorScheme.onPrimaryContainer;
 
-        Widget buildCell(Object item) {
+        Widget buildCell(String? item) {
           return ClipRect(
             child: Padding(
               padding: EdgeInsets.all(8 * scale),
               child: switch (item) {
-                final String text => Text(
+                final String text? => Text(
                   text,
                   style: TextStyle(
                     color: headerFontColor,
@@ -72,15 +72,7 @@ class _HeaderRowState extends State<HeaderRow> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                final IconData icon => Align(
-                  alignment: .centerStart,
-                  child: Icon(
-                    icon,
-                    color: headerFontColor,
-                    size: 20 * scale,
-                  ),
-                ),
-                _ => const SizedBox(),
+                null => const SizedBox(),
               },
             ),
           );
@@ -110,7 +102,7 @@ class _HeaderRowState extends State<HeaderRow> {
                         children: [
                           languageA,
                           languageB,
-                          if (showComment) Icons.speaker_notes,
+                          null,
                         ].map(buildCell).toList(),
                       ),
                     ],
