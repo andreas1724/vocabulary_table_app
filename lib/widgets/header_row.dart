@@ -101,7 +101,7 @@ class _HeaderRowState extends State<HeaderRow> {
                         children: [
                           languageA,
                           languageB,
-                          commentHeader,
+                          if (showComment) commentHeader,
                         ].map(buildCell).toList(),
                       ),
                     ],
