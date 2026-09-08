@@ -97,22 +97,28 @@ class SembastLocalStorageService implements LocalStorageService {
   @override
   Future<void> saveBook(Book book) async {
     final id = book.metadata.id;
-
     final db = await _db;
+
+    // Prepare batch data outside the transaction for better performance
+    final keys = <String>[];
+    final values = <Map<String, dynamic>>[];
+
+    for (var i = 0; i < book.items.length; i++) {
+      final itemToSave = book.items[i].copyWith(bookId: id, order: i);
+      keys.add(itemToSave.id);
+      values.add(itemToSave.toJson());
+    }
+
     await db.transaction((txn) async {
-      // Save metadata
       await _metadataStore.record(id).put(txn, book.metadata.toJson());
 
-      // Delete all existing vocabulary items for this book
+      // Delete old entries
       final finder = Finder(filter: Filter.equals('bookId', id));
       await _contentStore.delete(txn, finder: finder);
 
-      // Save new vocabulary items individually
-      for (var i = 0; i < book.items.length; i++) {
-        final item = book.items[i];
-        // Ensure the bookId is matching the book's metadata id and order is set
-        final itemToSave = item.copyWith(bookId: id, order: i);
-        await _contentStore.record(itemToSave.id).put(txn, itemToSave.toJson());
+      // Execute bulk insert for all new entries at once
+      if (keys.isNotEmpty) {
+        await _contentStore.records(keys).put(txn, values);
       }
     });
   }
@@ -190,11 +196,16 @@ class SembastLocalStorageService implements LocalStorageService {
   @override
   Future<void> updateVocabularies(List<VocabularyItem> items) async {
     if (items.isEmpty) return;
+
     final db = await _db;
+
+    // Extract keys and values into parallel lists before locking the transaction
+    final keys = items.map((item) => item.id).toList();
+    final values = items.map((item) => item.toJson()).toList();
+
     await db.transaction((txn) async {
-      for (final item in items) {
-        await _contentStore.record(item.id).put(txn, item.toJson());
-      }
+      // Perform a single, highly optimized batch write
+      await _contentStore.records(keys).put(txn, values);
       await _updateBookModifiedTime(txn, items.first.bookId);
     });
   }
