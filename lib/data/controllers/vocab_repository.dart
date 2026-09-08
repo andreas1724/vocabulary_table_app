@@ -24,7 +24,6 @@ class VocabRepository {
     // Simulate slight delay if needed for future Drive API integration
     return _parserService.parseCsv(
       csvContent,
-      defaultChapter: defaultChapter ?? 'Unknown Chapter',
     );
   }
 

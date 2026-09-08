@@ -55,9 +55,10 @@ Future<void> setUpDependencies() async {
     book = Book(
       metadata: BookMetadata(
         id: dummyBookId,
-        title: 'CSV Import Test',
+        title: parsedResult.title,
         languageA: parsedResult.languageA,
         languageB: parsedResult.languageB,
+        commentHeader: parsedResult.commentHeader,
         modifiedTime: DateTime.now(),
       ),
       items: parsedResult.vocabularyItems,
@@ -77,8 +78,10 @@ Future<void> setUpDependencies() async {
 }
 
 const rawCsv = '''
-Englisch;Deutsch
-apple;Apfel;süß;Fruit
+Vokabelheft zum Testen
+Englisch;Deutsch;Kommentar
+Fruit
+apple;Apfel;süß
 banana;Banane;gelb und krumm
 orange;Orange;saftig
 strawberry;Erdbeere;rot und lecker
@@ -88,7 +91,8 @@ watermelon;Wassermelone;erfrischend im Sommer
 peach;Pfirsich;weiche Schale
 lemon;Zitrone;sehr sauer
 I like fresh fruit;Ich mag frisches Obst;vollständiger Satz
-house;Haus;Wohngebäude;Building
+Building
+house;Haus;Wohngebäude
 church;Kirche;religiöses Bauwerk
 skyscraper;Wolkenkratzer;sehr hoch
 apartment;Wohnung;im Mehrfamilienhaus
@@ -98,7 +102,8 @@ school;Schule;Ort zum Lernen
 bridge;Brücke;überquert Flüsse
 castle;Burg;historisches Bauwerk
 We build a new house;Wir bauen ein neues Haus;vollständiger Satz
-car;Auto;vier Räder;Vehicle
+Vehicle
+car;Auto;vier Räder
 bicycle;Fahrrad;zwei Räder
 train;Zug;auf Schienen
 bus;Bus;öffentlicher Nahverkehr
@@ -108,7 +113,8 @@ subway;U-Bahn;fährt unterirdisch
 boat;Boot;auf dem Wasser
 truck;Lastwagen;schwerer Transport
 The train arrives on time;Der Zug kommt pünktlich an;vollständiger Satz
-dog;Hund;treuer Begleiter;Animal
+Animal
+dog;Hund;treuer Begleiter
 cat;Katze;eigenwilliger Charakter
 horse;Pferd;großes Nutztier
 cow;Kuh;gibt Milch
@@ -118,7 +124,8 @@ elephant;Elefant;langer Rüssel
 bird;Vogel;kann fliegen
 rabbit;Hase;lange Ohren
 The brown dog barks loudly;Der braune Hund bellt laut;vollständiger Satz
-bread;Brot;frisch gebacken;Food
+Food
+bread;Brot;frisch gebacken
 butter;Butter;aus Milch
 cheese;Käse;herzhaft
 egg;Ei;vom Huhn
@@ -128,7 +135,8 @@ soup;Suppe;warm serviert
 salad;Salat;frisch zubereitet
 meat;Fleisch;Proteinquelle
 She cooks dinner every evening;Sie kocht jeden Abend Abendessen;vollständiger Satz
-water;Wasser;lebensnotwendig;Beverage
+Beverage
+water;Wasser;lebensnotwendig
 milk;Milch;weißes Getränk
 coffee;Kaffee;macht morgens wach
 tea;Tee;heiß aufgebrüht
@@ -138,7 +146,8 @@ wine;Wein;aus Trauben
 lemonade;Limonade;erfrischend süß
 mineral water;Mineralwasser;mit Kohlensäure
 Do you want some coffee;Möchtest du etwas Kaffee trinken;vollständiger Satz
-shirt;Hemd;elegantes Oberteil;Clothing
+Clothing
+shirt;Hemd;elegantes Oberteil
 trousers;Hose;für die Beine
 jacket;Jacke;hält warm
 shoes;Schuhe;für die Füße
@@ -148,7 +157,8 @@ coat;Mantel;für den Winter
 socks;Socken;in den Schuhen
 sweater;Pullover;weicher Strick
 He wears a warm jacket;Er trägt eine warme Jacke;vollständiger Satz
-head;Kopf;oberer Körperteil;Body Part
+Body Part
+head;Kopf;oberer Körperteil
 arm;Arm;zum Greifen
 hand;Hand;fünf Finger
 leg;Bein;zum Gehen
@@ -158,7 +168,8 @@ ear;Ohr;zum Hören
 nose;Nase;zum Riechen
 mouth;Mund;zum Sprechen
 My left leg hurts today;Mein linkes Bein schmerzt heute;vollständiger Satz
-table;Tisch;vier Beine;Furniture
+Furniture
+table;Tisch;vier Beine
 chair;Stuhl;zum Sitzen
 bed;Bett;zum Schlafen
 sofa;Sofa;bequem im Wohnzimmer
@@ -168,7 +179,8 @@ desk;Schreibtisch;zum Arbeiten
 lamp;Lampe;spendet Licht
 carpet;Teppich;auf dem Boden
 The wooden table is heavy;Der Holztisch ist sehr schwer;vollständiger Satz
-mother;Mutter;weiblicher Elternteil;Family
+Family
+mother;Mutter;weiblicher Elternteil
 father;Vater;männlicher Elternteil
 brother;Bruder;männliches Geschwisterteil
 sister;Schwester;weibliches Geschwisterteil
@@ -178,7 +190,8 @@ grandfather;Großvater;Opa
 grandmother;Großmutter;Oma
 uncle;Onkel;Bruder der Eltern
 My whole family lives here;Meine ganze Familie lebt hier;vollständiger Satz
-doctor;Arzt;behandelt Kranke;Profession
+Profession
+doctor;Arzt;behandelt Kranke
 teacher;Lehrer;unterrichtet Schüler
 engineer;Ingenieur;technischer Beruf
 lawyer;Anwalt;Rechtsberatung
@@ -188,7 +201,8 @@ pilot;Pilot;steuert Flugzeuge
 cook;Koch;bereitet Speisen zu
 police officer;Polizist;sorgt für Sicherheit
 The friendly doctor helps patients;Der freundliche Arzt hilft Patienten;vollständiger Satz
-happy;glücklich;gute Laune;Emotion
+Emotion
+happy;glücklich;gute Laune
 sad;traurig;Niedergeschlagenheit
 angry;wütend;großer Zorn
 tired;müde;braucht Schlaf
@@ -198,7 +212,8 @@ proud;stolz;auf einen Erfolg
 surprised;überrascht;unerwartetes Ereignis
 calm;ruhig;völlig entspannt
 We are all very happy;Wir sind alle sehr glücklich;vollständiger Satz
-sun;Sonne;hell am Himmel;Weather
+Weather
+sun;Sonne;hell am Himmel
 rain;Regen;Wassertropfen
 snow;Schnee;weiß im Winter
 wind;Wind;bewegte Luft
@@ -208,7 +223,8 @@ fog;Nebel;schlechte Sicht
 frost;Frost;unter dem Gefrierpunkt
 thunder;Donner;nach dem Blitz
 The dark clouds bring rain;Die dunklen Wolken bringen Regen;vollständiger Satz
-tree;Baum;Holzstamm und Blätter;Nature
+Nature
+tree;Baum;Holzstamm und Blätter
 flower;Blume;blüht im Frühling
 forest;Wald;viele Bäume
 mountain;Berg;hohe Erhebung
@@ -218,7 +234,8 @@ sea;Meer;große Wasserfläche
 meadow;Wiese;voller Gras
 stone;Stein;hartes Mineral
 The green tree grows fast;Der grüne Baum wächst schnell;vollständiger Satz
-computer;Computer;für die Arbeit;Technology
+Technology
+computer;Computer;für die Arbeit
 keyboard;Tastatur;zum Tippen
 screen;Bildschirm;visuelle Anzeige
 mouse;Maus;Zeigegerät
@@ -228,7 +245,8 @@ cable;Kabel;leitet Strom
 printer;Drucker;bringt Text aufs Papier
 camera;Kamera;macht Fotos
 The modern computer works fast;Der moderne Computer arbeitet schnell;vollständiger Satz
-soccer;Fußball;mit dem Ball;Sport
+Sport
+soccer;Fußball;mit dem Ball
 swimming;Schwimmen;im Wasser
 running;Laufen;Ausdauersport
 tennis;Tennis;mit Schläger und Netz
@@ -238,7 +256,8 @@ skiing;Skifahren;Sport auf Schnee
 volleyball;Volleyball;über das Netz
 gymnastics;Turnen;Beweglichkeit und Kraft
 They play tennis every Sunday;Sie spielen jeden Sonntag Tennis;vollständiger Satz
-red;rot;Signalfarbe;Color
+Color
+red;rot;Signalfarbe
 blue;blau;Farbe des Himmels
 green;grün;Farbe der Natur
 yellow;gelb;Farbe der Sonne
@@ -248,7 +267,8 @@ brown;braun;Farbe der Erde
 grey;grau;Mischung aus Schwarz und Weiß
 purple;lila;edle Farbe
 The bright blue sky shines;Der helle blaue Himmel strahlt;vollständiger Satz
-book;Buch;gedruckter Text;School
+School
+book;Buch;gedruckter Text
 pen;Stift;zum Schreiben
 notebook;Notizheft;für Aufzeichnungen
 ruler;Lineal;zum Messen
@@ -258,7 +278,8 @@ pencil;Bleistift;aus Graphit
 schoolbag;Schultasche;für alle Unterlagen
 calculator;Taschenrechner;für mathematische Aufgaben
 The diligent student reads daily;Der fleißige Schüler liest täglich;vollständiger Satz
-knife;Messer;zum Schneiden;Kitchen
+Kitchen
+knife;Messer;zum Schneiden
 fork;Gabel;zum Aufspießen
 spoon;Löffel;für flüssige Speisen
 plate;Teller;für das Essen
@@ -268,7 +289,8 @@ pot;Topf;zum Kochen
 oven;Ofen;zum Backen
 fridge;Kühlschrank;hält Lebensmittel frisch
 Clean the dirty dishes now;Spüle das schmutzige Geschirr ab;vollständiger Satz
-monday;Montag;erster Arbeitstag;Time
+Time
+monday;Montag;erster Arbeitstag
 morning;Morgen;Beginn des Tages
 evening;Abend;Ende des Tages
 night;Nacht;Zeit zum Schlafen

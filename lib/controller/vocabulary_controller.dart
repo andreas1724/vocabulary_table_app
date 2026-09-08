@@ -39,6 +39,7 @@ class VocabularyController {
 
   late final languageA = computed(() => metadata.value.languageA);
   late final languageB = computed(() => metadata.value.languageB);
+  late final commentHeader = computed(() => metadata.value.commentHeader);
   late final title = computed(() => metadata.value.title);
 
   late final StreamSignal<List<VocabularyItem>> _vocabularyItemsStream;

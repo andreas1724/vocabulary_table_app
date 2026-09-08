@@ -28,4 +28,6 @@ abstract class LocalStorageService {
 
   /// Updates multiple vocabulary items in the store and updates the book's modified time
   Future<void> updateVocabularies(List<VocabularyItem> items);
+
+  Future<void> close();
 }

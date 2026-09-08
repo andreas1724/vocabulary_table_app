@@ -5,72 +5,73 @@ import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 class ParsedCsvResult {
   ParsedCsvResult({
     required this.vocabularyItems,
+    required this.title,
     required this.languageA,
     required this.languageB,
+    required this.commentHeader,
   });
 
   final List<VocabularyItem> vocabularyItems;
+  final String title;
   final String languageA;
   final String languageB;
+  final String commentHeader;
 }
 
 class CsvParserService {
+  // Use the Csv codec with semicolon as delimiter
+  // A field with semicolon has to be quoted with " (RFC 4180)
+  // dynamicTyping: false -> ensure numbers like "1" are parsed as strings (default)
+  // skipEmptyLines: true -> every row has at least one item (default)
+  CsvParserService({this.fieldDelimiter = ';'})
+    : _converter = Csv(fieldDelimiter: fieldDelimiter);
+
+  final String fieldDelimiter;
+  final Csv _converter;
+
   /// Parses the CSV string based on the format:
-  /// LanguageA;LanguageB;Comment;Chapter
-  /// Empty chapter cells inherit the chapter from the previous row.
-  ParsedCsvResult parseCsv(
-    String csvContent, {
-    String defaultChapter = 'Unknown Chapter',
-  }) {
-    // 2. Let the csv package do the heavy lifting
-    // Use the Csv codec with semicolon as delimiter
-    // A field with semicolon has to be quoted with " (RFC 4180)
-    // dynamicTyping: false -> ensure numbers like "1" are parsed as strings
-    final converter = Csv(fieldDelimiter: ';', dynamicTyping: false);
-    final rows = converter.decode(csvContent);
+  /// LanguageA;LanguageB;Comment
+  ParsedCsvResult parseCsv(String csvContent) {
+
+    final rows = _converter.decode(csvContent);
 
     final vocabularyItems = <VocabularyItem>[];
-    String currentChapter = defaultChapter;
-    String languageA = 'Language A';
-    String languageB = 'Language B';
+    String currentChapter = '';
+    String title = '';
+    String languageA = '';
+    String languageB = '';
+    String commentHeader = '';
 
-    if (rows.isEmpty) {
-      return ParsedCsvResult(
-        vocabularyItems: vocabularyItems,
-        languageA: languageA,
-        languageB: languageB,
-      );
+    // Get metadata from first two rows
+    if (rows.isNotEmpty) {
+      final titleRow = rows[0];
+      title = titleRow[0].toString().trim();
     }
 
-    // Parse header row
-    final headerRow = rows[0];
-    if (headerRow.isNotEmpty) {
+    if (rows.length > 1) {
+      final headerRow = rows[1];
       languageA = headerRow[0].toString().trim();
       if (headerRow.length > 1) {
         languageB = headerRow[1].toString().trim();
       }
+      if (headerRow.length > 2) {
+        commentHeader = headerRow[2].toString().trim();
+      }
     }
 
-    // Start at index 1 to skip the header row
-    for (var i = 1; i < rows.length; i++) {
+    // Vocabulary data starts at 3rd row
+    for (var i = 2; i < rows.length; i++) {
       final row = rows[i];
 
-      // Skip rows that are completely empty or have no semicolon
-      if (row.isEmpty || row.length < 2) continue;
+      // Rows containing only one value -> chapter name. If skipped, the name remains.
+      if (row.length == 1) {
+        currentChapter = row[0].toString().trim();
+        continue;
+      }
 
       final termA = row[0].toString().trim();
       final termB = row[1].toString().trim();
-
-      // If both language columns are empty, it's not a valid vocabulary item
-      if (termA.isEmpty && termB.isEmpty) continue;
-
       final comment = row.length > 2 ? row[2].toString().trim() : '';
-      final chapterColumn = row.length > 3 ? row[3].toString().trim() : '';
-
-      // State update: If a new chapter is defined, remember it
-      if (chapterColumn.isNotEmpty) {
-        currentChapter = chapterColumn;
-      }
 
       vocabularyItems.add(
         VocabularyItem(
@@ -87,8 +88,10 @@ class CsvParserService {
 
     return ParsedCsvResult(
       vocabularyItems: vocabularyItems,
+      title: title,
       languageA: languageA,
       languageB: languageB,
+      commentHeader: commentHeader,
     );
   }
 
@@ -97,30 +100,29 @@ class CsvParserService {
   /// the chapter name if it differs from the previous row's chapter.
   String generateCsv({
     required List<VocabularyItem> vocabularyItems,
+    required String title,
     required String languageA,
     required String languageB,
+    required String commentHeader,
   }) {
-    final rows = <List<dynamic>>[];
+    final rows = <List<String>>[];
+    rows.add([title]);
 
-    // Add header row with dynamic language names
-    rows.add([languageA, languageB, 'Comment', 'Chapter']);
+    // Add row with dynamic header names
+    rows.add([languageA, languageB, commentHeader]);
 
     String lastChapter = '';
 
-    for (final vocab in vocabularyItems) {
-      final String chapterToWrite;
-      if (vocab.chapter != lastChapter) {
-        chapterToWrite = vocab.chapter;
-        lastChapter = vocab.chapter;
-      } else {
-        chapterToWrite = '';
+    for (final vocabulary in vocabularyItems) {
+      if (vocabulary.chapter != lastChapter) {
+        rows.add([vocabulary.chapter]);
+        lastChapter = vocabulary.chapter;
       }
-
-      rows.add([vocab.termA, vocab.termB, vocab.comment, chapterToWrite]);
+      rows.add([vocabulary.termA, vocabulary.termB, vocabulary.comment]);
     }
 
-    // We use lineDelimiter: '\r\n' for better compatibility with Excel/Drive
+    // We use lineDelimiter: '\r\n' for better compatibility with Excel/Drive (default)
     // and fieldDelimiter: ';' as per project requirements.
-    return Csv(fieldDelimiter: ';', lineDelimiter: '\r\n').encode(rows);
+    return _converter.encode(rows);
   }
 }

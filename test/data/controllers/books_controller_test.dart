@@ -34,6 +34,7 @@ void main() {
             title: 'Test Book',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
+            commentHeader: 'Comment',
             modifiedTime: DateTime.now(),
           ),
           items: [
@@ -60,6 +61,7 @@ void main() {
           title: 'My Vocabs',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
+          commentHeader: 'Comment',
           modifiedTime: DateTime.now(),
         ),
         items: [
@@ -92,6 +94,7 @@ void main() {
             title: 'Old Title',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
+            commentHeader: 'Comment',
             modifiedTime: DateTime.now(),
           ),
           items: [],
@@ -107,6 +110,7 @@ void main() {
             title: 'New Title',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
+            commentHeader: 'Comment',
             modifiedTime: DateTime.now(),
           ),
           items: [
@@ -134,6 +138,7 @@ void main() {
           title: 'Delete Me',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
+          commentHeader: 'Comment',
           modifiedTime: DateTime.now(),
         ),
         items: [],

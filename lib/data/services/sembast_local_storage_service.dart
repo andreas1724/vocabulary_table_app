@@ -18,14 +18,18 @@ class SembastLocalStorageService implements LocalStorageService {
   Future<Database>? _dbFuture;
 
   Future<Database> get _db {
-    _dbFuture ??= _initDb();
+    _dbFuture ??= _initDb().catchError((Object error, StackTrace stackTrace) {
+      // Reset the future so subsequent calls can retry instead of permanently failing
+      _dbFuture = null;
+      return Future<Database>.error(error, stackTrace);
+    });
     return _dbFuture!;
   }
 
   // We use two stores to keep things fast:
   // One for metadata (list view) and one for the vocabulary items.
   final _metadataStore = stringMapStoreFactory.store('metadata');
-  
+
   // Refactored: _contentStore now stores individual vocabulary items
   // Key is vocabulary item ID.
   final _contentStore = stringMapStoreFactory.store('vocabularies');
@@ -69,12 +73,16 @@ class SembastLocalStorageService implements LocalStorageService {
     }
 
     // Find all vocabulary items for this book
-    final finder = Finder(filter: Filter.equals('bookId', id), sortOrders: [SortOrder('order')]);
+    final finder = Finder(
+      filter: Filter.equals('bookId', id),
+      sortOrders: [SortOrder('order')],
+    );
     final itemRecords = await _contentStore.find(db, finder: finder);
 
     final items = itemRecords
         .map(
-          (record) => VocabularyItem.fromJson(Map<String, dynamic>.from(record.value)),
+          (record) =>
+              VocabularyItem.fromJson(Map<String, dynamic>.from(record.value)),
         )
         .toList();
 
@@ -114,7 +122,7 @@ class SembastLocalStorageService implements LocalStorageService {
     final db = await _db;
     await db.transaction((txn) async {
       await _metadataStore.record(id).delete(txn);
-      
+
       // Delete all vocabulary items for this book
       final finder = Finder(filter: Filter.equals('bookId', id));
       await _contentStore.delete(txn, finder: finder);
@@ -124,12 +132,19 @@ class SembastLocalStorageService implements LocalStorageService {
   @override
   Stream<List<VocabularyItem>> watchVocabulariesForBook(String bookId) async* {
     final db = await _db;
-    final finder = Finder(filter: Filter.equals('bookId', bookId), sortOrders: [SortOrder('order')]);
+    final finder = Finder(
+      filter: Filter.equals('bookId', bookId),
+      sortOrders: [SortOrder('order')],
+    );
     final query = _contentStore.query(finder: finder);
 
     yield* query.onSnapshots(db).map((snapshots) {
       return snapshots
-          .map((snapshot) => VocabularyItem.fromJson(Map<String, dynamic>.from(snapshot.value)))
+          .map(
+            (snapshot) => VocabularyItem.fromJson(
+              Map<String, dynamic>.from(snapshot.value),
+            ),
+          )
           .toList();
     });
   }
@@ -137,7 +152,9 @@ class SembastLocalStorageService implements LocalStorageService {
   Future<void> _updateBookModifiedTime(Transaction txn, String bookId) async {
     final metaRecord = await _metadataStore.record(bookId).get(txn);
     if (metaRecord != null) {
-      final meta = BookMetadata.fromJson(Map<String, dynamic>.from(metaRecord as Map));
+      final meta = BookMetadata.fromJson(
+        Map<String, dynamic>.from(metaRecord as Map),
+      );
       final updatedMeta = meta.copyWith(modifiedTime: DateTime.now());
       await _metadataStore.record(bookId).put(txn, updatedMeta.toJson());
     }
@@ -180,5 +197,19 @@ class SembastLocalStorageService implements LocalStorageService {
       }
       await _updateBookModifiedTime(txn, items.first.bookId);
     });
+  }
+
+  @override
+  Future<void> close() async {
+    if (_dbFuture != null) {
+      try {
+        final db = await _dbFuture;
+        await db?.close();
+      } catch (_) {
+        // Ignore initialization errors during shutdown
+      } finally {
+        _dbFuture = null;
+      }
+    }
   }
 }

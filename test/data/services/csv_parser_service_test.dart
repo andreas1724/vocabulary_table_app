@@ -12,15 +12,20 @@ void main() {
 
     test('parses a standard CSV row correctly', () {
       const csv = '''
-English;German;Comment;Chapter
-house;Haus;Noun;Chapter 1
-dog;Hund;Noun;Chapter 2
+Learning
+English;German;Comment
+Chapter 1
+house;Haus;Noun
+Chapter 2
+dog;Hund;Noun
 ''';
       final result = parserService.parseCsv(csv);
 
       expect(result.vocabularyItems.length, 2);
+      expect(result.title, 'Learning');
       expect(result.languageA, 'English');
       expect(result.languageB, 'German');
+      expect(result.commentHeader, 'Comment');
 
       expect(result.vocabularyItems[0].termA, 'house');
       expect(result.vocabularyItems[0].termB, 'Haus');
@@ -35,12 +40,15 @@ dog;Hund;Noun;Chapter 2
       'inherits chapter from the previous row when chapter column is empty',
       () {
         const csv = '''
-English;German;Comment;Chapter
-nice;schön;Adj.;Chapter 1: Intro
+Learning
+English;German;Comment
+Chapter 1: Intro
+nice;schön;Adj.
 bright;hell;Adj;
 house;Haus;;
+Chapter 2: Deep Dive
 question;Frage;;Chapter 2: Deep Dive
-hello;Hallo;;
+hello;Hallo
 ''';
         final result = parserService.parseCsv(csv);
 
@@ -53,12 +61,13 @@ hello;Hallo;;
       },
     );
 
-    test('handles empty lines and invalid rows gracefully', () {
+    test('handles empty lines and missing first chapter name', () {
       const csv = '''
-English;German;Comment;Chapter
+Learning
 
-invalid_line_without_semicolons
-house;Haus;;Chapter 1
+English;German;Comment
+
+house;Haus;
       
 dog;Hund
 ''';
@@ -69,14 +78,16 @@ dog;Hund
       expect(result.vocabularyItems[1].termA, 'dog');
       expect(
         result.vocabularyItems[1].chapter,
-        'Chapter 1',
+        '',
       ); // Inherits from 'house'
     });
 
     test('handles complex fields with quotes and semicolons correctly', () {
       const csv = '''
-English;German;Comment;Chapter
-"hello; hi";"Hallo; Moin";"A common greeting; used every day";Chapter 1
+Learning
+English;German
+Chapter 1
+"hello; hi";"Hallo; Moin";"A common greeting; used every day"
 "quote ""inside""";"Zitat ""drinnen""";;
 ''';
       final result = parserService.parseCsv(csv);
@@ -129,23 +140,31 @@ English;German;Comment;Chapter
 
         final csv = parserService.generateCsv(
           vocabularyItems: vocabularyItems,
+          title: 'Learning',
           languageA: 'English',
           languageB: 'German',
+          commentHeader: 'Comment'
         );
 
         // Expected format:
-        // English;German;Comment;Chapter
-        // house;Haus;Noun;Chapter 1
-        // dog;Hund;Noun;
-        // run;rennen;Verb;Chapter 2
-        // walk;gehen;Verb;
+        // Learning
+        // English;German;Comment
+        // Chapter 1
+        // house;Haus;Noun
+        // dog;Hund;Noun
+        // Chapter 2
+        // run;rennen;Verb
+        // walk;gehen;Verb
 
         final lines = csv.split('\r\n');
-        expect(lines[0], 'English;German;Comment;Chapter');
-        expect(lines[1], 'house;Haus;Noun;Chapter 1');
-        expect(lines[2], 'dog;Hund;Noun;');
-        expect(lines[3], 'run;rennen;Verb;Chapter 2');
-        expect(lines[4], 'walk;gehen;Verb;');
+        expect(lines[0], 'Learning');
+        expect(lines[1], 'English;German;Comment');
+        expect(lines[2], 'Chapter 1');
+        expect(lines[3], 'house;Haus;Noun');
+        expect(lines[4], 'dog;Hund;Noun');
+        expect(lines[5], 'Chapter 2');
+        expect(lines[6], 'run;rennen;Verb');
+        expect(lines[7], 'walk;gehen;Verb');
       },
     );
   });

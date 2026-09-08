@@ -6,6 +6,7 @@ class BookMetadata {
     required this.title,
     required this.languageA,
     required this.languageB,
+    required this.commentHeader,
     required this.modifiedTime,
   });
 
@@ -15,23 +16,8 @@ class BookMetadata {
       title: json['title'] as String,
       languageA: json['languageA'] as String,
       languageB: json['languageB'] as String,
+      commentHeader: json['commentHeader'] as String,
       modifiedTime: DateTime.parse(json['modifiedTime'] as String),
-    );
-  }
-
-  BookMetadata copyWith({
-    String? id,
-    String? title,
-    String? languageA,
-    String? languageB,
-    DateTime? modifiedTime,
-  }) {
-    return BookMetadata(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      languageA: languageA ?? this.languageA,
-      languageB: languageB ?? this.languageB,
-      modifiedTime: modifiedTime ?? this.modifiedTime,
     );
   }
 
@@ -39,7 +25,26 @@ class BookMetadata {
   final String title;
   final String languageA;
   final String languageB;
+  final String commentHeader;
   final DateTime modifiedTime;
+
+  BookMetadata copyWith({
+    String? id,
+    String? title,
+    String? languageA,
+    String? languageB,
+    String? commentHeader,
+    DateTime? modifiedTime,
+  }) {
+    return BookMetadata(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      languageA: languageA ?? this.languageA,
+      languageB: languageB ?? this.languageB,
+      commentHeader: commentHeader ?? this.commentHeader,
+      modifiedTime: modifiedTime ?? this.modifiedTime,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -47,6 +52,7 @@ class BookMetadata {
       'title': title,
       'languageA': languageA,
       'languageB': languageB,
+      'commentHeader': commentHeader,
       'modifiedTime': modifiedTime.toIso8601String(),
     };
   }

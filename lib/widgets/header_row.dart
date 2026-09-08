@@ -59,21 +59,18 @@ class _HeaderRowState extends State<HeaderRow> {
           context,
         ).colorScheme.onPrimaryContainer;
 
-        Widget buildCell(String? item) {
+        Widget buildCell(String header) {
           return ClipRect(
             child: Padding(
               padding: EdgeInsets.all(8 * scale),
-              child: switch (item) {
-                final String text? => Text(
-                  text,
-                  style: TextStyle(
-                    color: headerFontColor,
-                    fontSize: TableLayoutController.fontSize * scale,
-                    fontWeight: FontWeight.bold,
-                  ),
+              child: Text(
+                header,
+                style: TextStyle(
+                  color: headerFontColor,
+                  fontSize: TableLayoutController.fontSize * scale,
+                  fontWeight: FontWeight.bold,
                 ),
-                null => const SizedBox(),
-              },
+              ),
             ),
           );
         }
@@ -87,6 +84,8 @@ class _HeaderRowState extends State<HeaderRow> {
                 builder: (context) {
                   final languageA = _vocabularyController.languageA.value;
                   final languageB = _vocabularyController.languageB.value;
+                  final commentHeader =
+                      _vocabularyController.commentHeader.value;
                   return Table(
                     border: TableBorder.all(
                       color: borderColor,
@@ -102,7 +101,7 @@ class _HeaderRowState extends State<HeaderRow> {
                         children: [
                           languageA,
                           languageB,
-                          null,
+                          commentHeader,
                         ].map(buildCell).toList(),
                       ),
                     ],

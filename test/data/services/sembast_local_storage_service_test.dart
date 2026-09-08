@@ -30,6 +30,7 @@ void main() {
           title: 'English Vocabs',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
+          commentHeader: 'Comment',
           modifiedTime: now,
         ),
         items: [
@@ -60,6 +61,7 @@ void main() {
           title: 'Spanish Vocabs',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
+          commentHeader: 'Comment',
           modifiedTime: DateTime.now(),
         ),
         items: [
@@ -98,6 +100,7 @@ void main() {
         title: 'Old Title',
         languageA: 'LanguageA',
         languageB: 'LanguageB',
+        commentHeader: 'Comment',
         modifiedTime: DateTime.now(),
       );
 
@@ -121,6 +124,7 @@ void main() {
         title: 'New Title',
         languageA: 'LanguageA',
         languageB: 'LanguageB',
+        commentHeader: 'Comment',
         modifiedTime: DateTime.now(),
       );
       await storageService.saveBook(
@@ -153,6 +157,7 @@ void main() {
           title: 'To be deleted',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
+          commentHeader: 'Comment',
           modifiedTime: DateTime.now(),
         ),
         items: [],
