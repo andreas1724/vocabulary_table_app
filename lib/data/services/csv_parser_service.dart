@@ -32,7 +32,6 @@ class CsvParserService {
   /// Parses the CSV string based on the format:
   /// LanguageA;LanguageB;Comment
   ParsedCsvResult parseCsv(String csvContent) {
-
     final rows = _converter.decode(csvContent);
 
     final vocabularyItems = <VocabularyItem>[];
@@ -115,10 +114,14 @@ class CsvParserService {
 
     for (final vocabulary in vocabularyItems) {
       if (vocabulary.chapter != lastChapter) {
-        rows.add([vocabulary.chapter]);
+        rows.add([vocabulary.chapter.trim()]);
         lastChapter = vocabulary.chapter;
       }
-      rows.add([vocabulary.termA, vocabulary.termB, vocabulary.comment]);
+      rows.add([
+        vocabulary.termA.trim(),
+        vocabulary.termB.trim(),
+        vocabulary.comment.trim(),
+      ]);
     }
 
     // We use lineDelimiter: '\r\n' for better compatibility with Excel/Drive (default)
