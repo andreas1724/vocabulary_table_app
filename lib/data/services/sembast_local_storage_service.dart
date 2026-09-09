@@ -63,7 +63,7 @@ class SembastLocalStorageService implements LocalStorageService {
         .toList();
   }
 
-  @override
+ @override
   Future<Book?> getBookContent(String id) async {
     final db = await _db;
     final metaRecord = await _metadataStore.record(id).get(db);
@@ -72,24 +72,19 @@ class SembastLocalStorageService implements LocalStorageService {
       return null;
     }
 
-    // Find all vocabulary items for this book
     final finder = Finder(
       filter: Filter.equals('bookId', id),
       sortOrders: [SortOrder('order')],
     );
     final itemRecords = await _contentStore.find(db, finder: finder);
 
-    final items = itemRecords
-        .map(
-          (record) =>
-              VocabularyItem.fromJson(Map<String, dynamic>.from(record.value)),
-        )
-        .toList();
+    final items = itemRecords.map((record) {
+      // Cast directly instead of deep copying
+      return VocabularyItem.fromJson(record.value as Map<String, dynamic>);
+    }).toList();
 
     return Book(
-      metadata: BookMetadata.fromJson(
-        Map<String, dynamic>.from(metaRecord as Map),
-      ),
+      metadata: BookMetadata.fromJson(metaRecord as Map<String, dynamic>),
       items: items,
     );
   }
@@ -142,16 +137,12 @@ class SembastLocalStorageService implements LocalStorageService {
       filter: Filter.equals('bookId', bookId),
       sortOrders: [SortOrder('order')],
     );
-    final query = _contentStore.query(finder: finder);
 
-    yield* query.onSnapshots(db).map((snapshots) {
-      return snapshots
-          .map(
-            (snapshot) => VocabularyItem.fromJson(
-              Map<String, dynamic>.from(snapshot.value),
-            ),
-          )
-          .toList();
+    yield* _contentStore.query(finder: finder).onSnapshots(db).map((snapshots) {
+      return snapshots.map((snapshot) {
+        // Cast directly to avoid GC spikes on stream emissions
+        return VocabularyItem.fromJson(snapshot.value as Map<String, dynamic>);
+      }).toList();
     });
   }
 
