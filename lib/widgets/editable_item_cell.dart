@@ -12,9 +12,9 @@ const _letterSpacing = 0.0;
 const _padding = 6.0;
 
 class EditableItemCell extends StatefulWidget {
-  const EditableItemCell({super.key, required this.column});
+  const EditableItemCell({super.key, required this.colIndex});
 
-  final ColumnName column;
+  final int colIndex;
 
   @override
   State<EditableItemCell> createState() => _EditableItemCellState();
@@ -28,8 +28,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   int _rowIndex = -1;
 
-  (int rowIndex, ColumnName columnName) get _currentLocation =>
-      (_rowIndex, widget.column);
+  (int rowIndex, int colIndex) get _currentLocation =>
+      (_rowIndex, widget.colIndex);
 
   @override
   void initState() {
@@ -73,8 +73,10 @@ class _EditableItemCellState extends State<EditableItemCell> {
   }
 
   Future<void> _startEditing() async {
-    final currentText = _vocabularyController.vocabularyItems
-        .value[_rowIndex][widget.column];
+    final currentText = _vocabularyController
+        .vocabularyItems
+        .value[_rowIndex]
+        .tableColumns[widget.colIndex];
 
     _textController.text = currentText;
     _textController.selection = TextSelection.collapsed(
@@ -116,7 +118,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
         final focusOrder = tableLayoutController.focusOrder(
           _rowIndex,
-          widget.column,
+          widget.colIndex,
         );
 
         return FocusTraversalOrder(
@@ -124,7 +126,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
           child: isSelected && appMode == .edit
               ? _EditableTextCell(
                   rowIndex: _rowIndex,
-                  column: widget.column,
+                  colIndex: widget.colIndex,
                   focusNode: _editableTextFocus,
                   textController: _textController,
                 )
@@ -140,7 +142,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
                     },
                     onDoubleTap: appMode == .edit ? _startEditing : null,
                     child: _PlainTextCell(
-                      column: widget.column,
+                      colIndex: widget.colIndex,
                       rowIndex: _rowIndex,
                     ),
                   ),
@@ -154,13 +156,13 @@ class _EditableItemCellState extends State<EditableItemCell> {
 class _EditableTextCell extends StatelessWidget {
   const _EditableTextCell({
     required this.rowIndex,
-    required this.column,
+    required this.colIndex,
     required this.focusNode,
     required this.textController,
   });
 
   final int rowIndex;
-  final ColumnName column;
+  final int colIndex;
   final FocusNode focusNode;
   final TextEditingController textController;
 
@@ -190,7 +192,7 @@ class _EditableTextCell extends StatelessWidget {
                 onChanged: (value) =>
                     vocabularyController.updateVocabularyAtLocation((
                       rowIndex: rowIndex,
-                      column: column,
+                      colIndex: colIndex,
                     ), value),
                 minLines: 2,
                 maxLines: null,
@@ -214,10 +216,10 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({required this.column, required this.rowIndex});
+  const _PlainTextCell({required this.colIndex, required this.rowIndex});
 
   final int rowIndex;
-  final ColumnName column;
+  final int colIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -226,9 +228,8 @@ class _PlainTextCell extends StatelessWidget {
 
     return SignalBuilder(
       builder: (context) {
-        final itemSignal = vocabularyController.vocabularyItems
-            .value[rowIndex];
-        final text = itemSignal[column];
+        final itemSignal = vocabularyController.vocabularyItems.value[rowIndex];
+        final text = itemSignal.tableColumns[colIndex];
 
         final scale = tableLayoutController.scale.value;
         final appMode = tableLayoutController.appMode.value;
@@ -236,8 +237,7 @@ class _PlainTextCell extends StatelessWidget {
         final isDragMode = appMode == .drag;
         final showHandle =
             isDragMode &&
-            ((showComment && column == .comment) ||
-                (!showComment && column == .termB));
+            ((showComment && colIndex == 2) || (!showComment && colIndex == 1));
 
         return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -295,4 +295,9 @@ class _ResponsiveDragHandle extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on VocabularyItem {
+  // Generates exactly the 3 string columns needed for your UI table
+  List<String> get tableColumns => [termA, termB, comment];
 }

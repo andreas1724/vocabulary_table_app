@@ -158,15 +158,8 @@ class TableLayoutController {
 
   /// Generates a unique numeric order per cell.
   /// Multiplier of 10 creates enough space for the columns to stay sequential.
-  double focusOrder(int rowIndex, ColumnName columnName) {
-    final colIndex = switch (columnName) {
-      .termA => 1.0,
-      .termB => 2.0,
-      .comment => 3.0,
-      .chapter => 4.0,
-      .id => 5.0,
-    };
-    return (rowIndex * 10) + colIndex;
+  double focusOrder(int rowIndex, int column) {
+    return (rowIndex * 10) + column.toDouble();
   }
 }
 

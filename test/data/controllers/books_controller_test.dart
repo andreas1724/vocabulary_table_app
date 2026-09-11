@@ -38,7 +38,7 @@ void main() {
             updatedAt: DateTime.now(),
           ),
           items: [
-            VocabularyItem(
+            VocabularyItem.create(
               bookId: "test",
               chapter: 'chapter 1',
               termA: 'a',
@@ -65,7 +65,7 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         items: [
-          VocabularyItem(
+          VocabularyItem.create(
             bookId: "test",
             chapter: 'chapter 1',
             termA: 'x',
@@ -114,7 +114,7 @@ void main() {
             updatedAt: DateTime.now(),
           ),
           items: [
-            VocabularyItem(
+            VocabularyItem.create(
               bookId: "test",
               chapter: 'chapter 1',
               termA: 'x',

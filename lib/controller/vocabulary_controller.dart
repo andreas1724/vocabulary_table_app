@@ -59,7 +59,7 @@ class VocabularyController {
     return state.value ?? [];
   });
 
-  final selectedCell = signal<(int rowIndex, ColumnName)?>(null);
+  final selectedCell = signal<(int rowIndex, int colIndex)?>(null);
 
   late final chapters = computed(() {
     final temp = <String>{};
@@ -99,7 +99,7 @@ class VocabularyController {
   }
 
   Future<void> updateVocabularyAtLocation(
-    ({int rowIndex, ColumnName column}) location,
+    ({int rowIndex, int colIndex}) location,
     String updateText,
   ) async {
     final items = vocabularyItems.value;
@@ -108,12 +108,12 @@ class VocabularyController {
     }
 
     final vocabularyItem = items[location.rowIndex];
-    final updatedItem = switch (location.column) {
-      .termA => vocabularyItem.copyWith(termA: updateText),
-      .termB => vocabularyItem.copyWith(termB: updateText),
-      .comment => vocabularyItem.copyWith(comment: updateText),
-      .chapter => vocabularyItem.copyWith(chapter: updateText),
-      .id => vocabularyItem.copyWith(
+    final updatedItem = switch (location.colIndex) {
+      0 => vocabularyItem.copyWith(termA: updateText),
+      1 => vocabularyItem.copyWith(termB: updateText),
+      2 => vocabularyItem.copyWith(comment: updateText),
+      3 => vocabularyItem.copyWith(chapter: updateText),
+      _ => vocabularyItem.copyWith(
         id: updateText,
       ), // Should not really edit ID but keeping parity
     };

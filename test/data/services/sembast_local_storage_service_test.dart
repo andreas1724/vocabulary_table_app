@@ -34,7 +34,7 @@ void main() {
           updatedAt: now,
         ),
         items: [
-          VocabularyItem(
+          VocabularyItem.create(
             bookId: "file_999",
             chapter: 'chapter 1',
             termA: 'house',
@@ -65,7 +65,7 @@ void main() {
           updatedAt: DateTime.now(),
         ),
         items: [
-          VocabularyItem(
+          VocabularyItem.create(
             bookId: "file_999",
             chapter: 'chapter 1',
             termA: 'hola',
@@ -108,7 +108,7 @@ void main() {
         Book(
           metadata: metadata,
           items: [
-            VocabularyItem(
+            VocabularyItem.create(
               bookId: "file_update",
               chapter: 'chapter 1',
               termA: 'old',
@@ -131,7 +131,7 @@ void main() {
         Book(
           metadata: updatedMetadata,
           items: [
-            VocabularyItem(
+            VocabularyItem.create(
               bookId: "file_update",
               chapter: 'chapter 1',
               termA: 'new',

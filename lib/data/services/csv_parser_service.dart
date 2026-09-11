@@ -73,7 +73,7 @@ class CsvParserService {
       final comment = row.length > 2 ? row[2].toString().trim() : '';
 
       vocabularyItems.add(
-        VocabularyItem(
+        VocabularyItem.create(
           bookId:
               'pending', // Pending, will be correctly set by the caller/save operation
           termA: termA,

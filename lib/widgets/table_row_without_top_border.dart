@@ -39,9 +39,9 @@ class TableRowWithoutTopBorder extends StatelessWidget {
           children: [
             TableRow(
               children: [
-                const EditableItemCell(column: .termA),
-                const EditableItemCell(column: .termB),
-                if (showComment) const EditableItemCell(column: .comment),
+                const EditableItemCell(colIndex: 0),
+                const EditableItemCell(colIndex: 1),
+                if (showComment) const EditableItemCell(colIndex: 2),
               ],
             ),
           ],
