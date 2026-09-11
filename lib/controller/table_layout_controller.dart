@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'dart:math' show log, ln2;
 
-import 'package:vocabulary_table_app/models/vocabulary_item.dart';
-
 /// The minimum width of a column as a fraction of the total row width.
 const _minColumnRatio = 0.05;
 
