@@ -35,7 +35,7 @@ void main() {
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            modifiedTime: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           items: [
             VocabularyItem(
@@ -62,7 +62,7 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         items: [
           VocabularyItem(
@@ -95,7 +95,7 @@ void main() {
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            modifiedTime: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           items: [],
         );
@@ -111,7 +111,7 @@ void main() {
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            modifiedTime: DateTime.now(),
+            updatedAt: DateTime.now(),
           ),
           items: [
             VocabularyItem(
@@ -139,7 +139,7 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         items: [],
       );

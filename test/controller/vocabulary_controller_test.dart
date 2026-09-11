@@ -9,6 +9,7 @@ import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 class MockVocabRepository extends Mock implements VocabRepository {}
 
 class FakeBook extends Fake implements Book {}
+
 class FakeVocabularyItem extends Fake implements VocabularyItem {}
 
 void main() {
@@ -33,18 +34,30 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
         ),
         items: [
-          VocabularyItem(bookId: "test-id", termA: 'dog', termB: 'Hund', chapter: 'Animals'),
-          VocabularyItem(bookId: "test-id", termA: 'cat', termB: 'Katze', chapter: 'Animals'),
+          VocabularyItem(
+            bookId: "test-id",
+            termA: 'dog',
+            termB: 'Hund',
+            chapter: 'Animals',
+          ),
+          VocabularyItem(
+            bookId: "test-id",
+            termA: 'cat',
+            termB: 'Katze',
+            chapter: 'Animals',
+          ),
         ],
       );
 
-      when(() => mockRepository.watchVocabulariesForBook('test-id'))
-          .thenAnswer((_) => Stream.value(initialBook.items));
-      when(() => mockRepository.updateVocabularyLocally(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockRepository.watchVocabulariesForBook('test-id'),
+      ).thenAnswer((_) => Stream.value(initialBook.items));
+      when(
+        () => mockRepository.updateVocabularyLocally(any()),
+      ).thenAnswer((_) async {});
 
       controller = VocabularyController(
         repository: mockRepository,
@@ -57,18 +70,25 @@ void main() {
       expect(controller.chapters.value, ['Animals']);
     });
 
-    test('updateVocabularyAtLocation updates specific cell immutably', () async {
-      registerFallbackValue(VocabularyItem(bookId: "test", chapter: "test", termA: "", termB: ""));
-      
-      await controller.updateVocabularyAtLocation(
-        (rowIndex: 0, column: ColumnName.termB),
-        'Hündchen',
-      );
+    test(
+      'updateVocabularyAtLocation updates specific cell immutably',
+      () async {
+        registerFallbackValue(
+          VocabularyItem(bookId: "test", chapter: "test", termA: "", termB: ""),
+        );
 
-      final captured = verify(() => mockRepository.updateVocabularyLocally(captureAny())).captured;
-      final updatedItem = captured.first as VocabularyItem;
-      expect(updatedItem.termA, 'dog'); // unchanged
-      expect(updatedItem.termB, 'Hündchen'); // changed
-    });
+        await controller.updateVocabularyAtLocation((
+          rowIndex: 0,
+          column: ColumnName.termB,
+        ), 'Hündchen');
+
+        final captured = verify(
+          () => mockRepository.updateVocabularyLocally(captureAny()),
+        ).captured;
+        final updatedItem = captured.first as VocabularyItem;
+        expect(updatedItem.termA, 'dog'); // unchanged
+        expect(updatedItem.termB, 'Hündchen'); // changed
+      },
+    );
   });
 }

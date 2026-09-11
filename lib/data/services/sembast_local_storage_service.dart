@@ -63,7 +63,7 @@ class SembastLocalStorageService implements LocalStorageService {
         .toList();
   }
 
- @override
+  @override
   Future<Book?> getBookContent(String id) async {
     final db = await _db;
     final metaRecord = await _metadataStore.record(id).get(db);
@@ -152,7 +152,7 @@ class SembastLocalStorageService implements LocalStorageService {
       final meta = BookMetadata.fromJson(
         Map<String, dynamic>.from(metaRecord as Map),
       );
-      final updatedMeta = meta.copyWith(modifiedTime: DateTime.now());
+      final updatedMeta = meta.copyWith(updatedAt: DateTime.now());
       await _metadataStore.record(bookId).put(txn, updatedMeta.toJson());
     }
   }

@@ -1,13 +1,13 @@
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 class BookMetadata {
-  BookMetadata({
+  const BookMetadata({
     required this.id,
     required this.title,
     required this.languageA,
     required this.languageB,
     required this.commentHeader,
-    required this.modifiedTime,
+    required this.updatedAt,
   });
 
   factory BookMetadata.fromJson(Map<String, dynamic> json) {
@@ -17,7 +17,7 @@ class BookMetadata {
       languageA: json['languageA'] as String,
       languageB: json['languageB'] as String,
       commentHeader: json['commentHeader'] as String,
-      modifiedTime: DateTime.parse(json['modifiedTime'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
   }
 
@@ -26,7 +26,7 @@ class BookMetadata {
   final String languageA;
   final String languageB;
   final String commentHeader;
-  final DateTime modifiedTime;
+  final DateTime updatedAt;
 
   BookMetadata copyWith({
     String? id,
@@ -34,7 +34,7 @@ class BookMetadata {
     String? languageA,
     String? languageB,
     String? commentHeader,
-    DateTime? modifiedTime,
+    DateTime? updatedAt,
   }) {
     return BookMetadata(
       id: id ?? this.id,
@@ -42,7 +42,7 @@ class BookMetadata {
       languageA: languageA ?? this.languageA,
       languageB: languageB ?? this.languageB,
       commentHeader: commentHeader ?? this.commentHeader,
-      modifiedTime: modifiedTime ?? this.modifiedTime,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -53,13 +53,13 @@ class BookMetadata {
       'languageA': languageA,
       'languageB': languageB,
       'commentHeader': commentHeader,
-      'modifiedTime': modifiedTime.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 }
 
 class Book {
-  Book({required this.metadata, required this.items});
+  const Book({required this.metadata, required this.items});
 
   final BookMetadata metadata;
   final List<VocabularyItem> items;

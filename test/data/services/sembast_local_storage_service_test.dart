@@ -31,7 +31,7 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: now,
+          updatedAt: now,
         ),
         items: [
           VocabularyItem(
@@ -51,7 +51,7 @@ void main() {
       expect(books.first.title, 'English Vocabs');
       expect(books.first.languageA, 'LanguageA');
       expect(books.first.languageB, 'LanguageB');
-      expect(books.first.modifiedTime.toIso8601String(), now.toIso8601String());
+      expect(books.first.updatedAt.toIso8601String(), now.toIso8601String());
     });
 
     test('retrieves the full book content by ID', () async {
@@ -62,7 +62,7 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         items: [
           VocabularyItem(
@@ -101,7 +101,7 @@ void main() {
         languageA: 'LanguageA',
         languageB: 'LanguageB',
         commentHeader: 'Comment',
-        modifiedTime: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
       await storageService.saveBook(
@@ -125,7 +125,7 @@ void main() {
         languageA: 'LanguageA',
         languageB: 'LanguageB',
         commentHeader: 'Comment',
-        modifiedTime: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
       await storageService.saveBook(
         Book(
@@ -158,7 +158,7 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          modifiedTime: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         items: [],
       );
@@ -173,7 +173,7 @@ void main() {
     });
 
     test(
-      'adds, updates, and deletes an individual vocabulary item and updates book modifiedTime',
+      'adds, updates, and deletes an individual vocabulary item and updates book updatedAt',
       () async {
         // 1. Setup initial book
         final initialTime = DateTime(2025, 1, 1);
@@ -187,7 +187,7 @@ void main() {
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
-              modifiedTime: initialTime,
+              updatedAt: initialTime,
             ),
             items: [],
           ),
@@ -210,13 +210,13 @@ void main() {
         expect(retrievedBook!.items.length, 1);
         expect(retrievedBook.items.first.termA, 'cat');
         expect(
-          retrievedBook.metadata.modifiedTime.isAfter(initialTime),
+          retrievedBook.metadata.updatedAt.isAfter(initialTime),
           isTrue,
-          reason: 'Adding a vocabulary should update the book modifiedTime',
+          reason: 'Adding a vocabulary should update the book updatedAt',
         );
 
         // 3. Update the vocabulary item
-        final timeAfterAdd = retrievedBook.metadata.modifiedTime;
+        final timeAfterAdd = retrievedBook.metadata.updatedAt;
         await Future.delayed(const Duration(milliseconds: 10));
 
         final updatedItem = newItem.copyWith(termB: 'Kater');
@@ -225,13 +225,13 @@ void main() {
         retrievedBook = await storageService.getBookContent(bookId);
         expect(retrievedBook!.items.first.termB, 'Kater');
         expect(
-          retrievedBook.metadata.modifiedTime.isAfter(timeAfterAdd),
+          retrievedBook.metadata.updatedAt.isAfter(timeAfterAdd),
           isTrue,
-          reason: 'Updating a vocabulary should update the book modifiedTime',
+          reason: 'Updating a vocabulary should update the book updatedAt',
         );
 
         // 4. Delete the vocabulary item
-        final timeAfterUpdate = retrievedBook.metadata.modifiedTime;
+        final timeAfterUpdate = retrievedBook.metadata.updatedAt;
         await Future.delayed(const Duration(milliseconds: 10));
 
         await storageService.deleteVocabulary(updatedItem);
@@ -239,15 +239,15 @@ void main() {
         retrievedBook = await storageService.getBookContent(bookId);
         expect(retrievedBook!.items, isEmpty);
         expect(
-          retrievedBook.metadata.modifiedTime.isAfter(timeAfterUpdate),
+          retrievedBook.metadata.updatedAt.isAfter(timeAfterUpdate),
           isTrue,
-          reason: 'Deleting a vocabulary should update the book modifiedTime',
+          reason: 'Deleting a vocabulary should update the book updatedAt',
         );
       },
     );
 
     test(
-      'updateVocabularies performs batch update and updates book modifiedTime',
+      'updateVocabularies performs batch update and updates book updatedAt',
       () async {
         final initialTime = DateTime(2025, 1, 1);
         const bookId = 'batch_test';
@@ -260,7 +260,7 @@ void main() {
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
-              modifiedTime: initialTime,
+              updatedAt: initialTime,
             ),
             items: [
               VocabularyItem(
@@ -281,7 +281,7 @@ void main() {
           ),
         );
 
-        // Delay to ensure the modifiedTime difference is measurable
+        // Delay to ensure the updatedAt difference is measurable
         await Future.delayed(const Duration(milliseconds: 10));
 
         final retrievedBook = await storageService.getBookContent(bookId);
@@ -296,9 +296,9 @@ void main() {
         expect(updatedBook!.items[0].termB, 'Apfel (grün)');
         expect(updatedBook.items[1].termB, 'Banane (gelb)');
         expect(
-          updatedBook.metadata.modifiedTime.isAfter(initialTime),
+          updatedBook.metadata.updatedAt.isAfter(initialTime),
           isTrue,
-          reason: 'Batch update should update the book modifiedTime',
+          reason: 'Batch update should update the book updatedAt',
         );
       },
     );
@@ -316,7 +316,7 @@ void main() {
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
-              modifiedTime: DateTime.now(),
+              updatedAt: DateTime.now(),
             ),
             items: [],
           ),

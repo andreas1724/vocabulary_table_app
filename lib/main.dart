@@ -59,7 +59,7 @@ Future<void> setUpDependencies() async {
         languageA: parsedResult.languageA,
         languageB: parsedResult.languageB,
         commentHeader: parsedResult.commentHeader,
-        modifiedTime: DateTime.now(),
+        updatedAt: DateTime.now(),
       ),
       items: parsedResult.vocabularyItems,
     );
