@@ -28,12 +28,13 @@ void main() {
       mockRepository = MockVocabRepository();
 
       initialBook = Book(
-        metadata: BookMetadata(
+        metadata: BookMetadata.create(
           id: 'test-id',
           title: 'My Test Book',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
+          createdAt: DateTime(2026, 1, 1),
           updatedAt: DateTime(2026, 1, 1),
         ),
         items: [

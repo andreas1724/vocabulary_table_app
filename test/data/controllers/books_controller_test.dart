@@ -29,13 +29,12 @@ void main() {
     test('loadBooks retrieves books from storage', () async {
       await storageService.saveBook(
         Book(
-          metadata: BookMetadata(
+          metadata: BookMetadata.create(
             id: '1',
             title: 'Test Book',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            updatedAt: DateTime.now(),
           ),
           items: [
             VocabularyItem.create(
@@ -56,13 +55,12 @@ void main() {
 
     test('saveBook adds a new book to the signal and storage', () async {
       final book = Book(
-        metadata: BookMetadata(
+        metadata: BookMetadata.create(
           id: 'new_book',
           title: 'My Vocabs',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          updatedAt: DateTime.now(),
         ),
         items: [
           VocabularyItem.create(
@@ -89,13 +87,12 @@ void main() {
       () async {
         const id = 'existing_book';
         final initialBook = Book(
-          metadata: BookMetadata(
+          metadata: BookMetadata.create(
             id: id,
             title: 'Old Title',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            updatedAt: DateTime.now(),
           ),
           items: [],
         );
@@ -105,13 +102,12 @@ void main() {
         expect(controller.books.value.requireValue.first.title, 'Old Title');
 
         final updatedBook = Book(
-          metadata: BookMetadata(
+          metadata: BookMetadata.create(
             id: id,
             title: 'New Title',
             languageA: 'LanguageA',
             languageB: 'LanguageB',
             commentHeader: 'Comment',
-            updatedAt: DateTime.now(),
           ),
           items: [
             VocabularyItem.create(
@@ -133,13 +129,12 @@ void main() {
 
     test('deleteBook removes book from signal and storage', () async {
       final book = Book(
-        metadata: BookMetadata(
+        metadata: BookMetadata.create(
           id: 'del',
           title: 'Delete Me',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          updatedAt: DateTime.now(),
         ),
         items: [],
       );

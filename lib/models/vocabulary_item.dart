@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 const _uuid = Uuid();
 
 class VocabularyItem {
-  VocabularyItem({
+  const VocabularyItem({
     required this.id,
     required this.bookId,
     required this.chapter,

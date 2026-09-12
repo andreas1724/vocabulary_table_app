@@ -23,7 +23,7 @@ void main() {
     });
 
     test('saves a book and retrieves its metadata', () async {
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       final book = Book(
         metadata: BookMetadata(
           id: 'file_123',
@@ -31,11 +31,13 @@ void main() {
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
+          createdAt: now,
           updatedAt: now,
+          cleanedAt: now,
         ),
         items: [
           VocabularyItem.create(
-            bookId: "file_999",
+            bookId: 'file_123',
             chapter: 'chapter 1',
             termA: 'house',
             termB: 'Haus',
@@ -56,13 +58,12 @@ void main() {
 
     test('retrieves the full book content by ID', () async {
       final book = Book(
-        metadata: BookMetadata(
+        metadata: BookMetadata.create(
           id: 'file_999',
           title: 'Spanish Vocabs',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          updatedAt: DateTime.now(),
         ),
         items: [
           VocabularyItem.create(
@@ -95,13 +96,12 @@ void main() {
     );
 
     test('updates an existing book', () async {
-      final metadata = BookMetadata(
+      final metadata = BookMetadata.create(
         id: 'file_update',
         title: 'Old Title',
         languageA: 'LanguageA',
         languageB: 'LanguageB',
         commentHeader: 'Comment',
-        updatedAt: DateTime.now(),
       );
 
       await storageService.saveBook(
@@ -119,13 +119,12 @@ void main() {
       );
 
       // Update the book
-      final updatedMetadata = BookMetadata(
+      final updatedMetadata = BookMetadata.create(
         id: 'file_update', // Same ID!
         title: 'New Title',
         languageA: 'LanguageA',
         languageB: 'LanguageB',
         commentHeader: 'Comment',
-        updatedAt: DateTime.now(),
       );
       await storageService.saveBook(
         Book(
@@ -152,13 +151,12 @@ void main() {
 
     test('deletes a book', () async {
       final book = Book(
-        metadata: BookMetadata(
+        metadata: BookMetadata.create(
           id: 'delete_me',
           title: 'To be deleted',
           languageA: 'LanguageA',
           languageB: 'LanguageB',
           commentHeader: 'Comment',
-          updatedAt: DateTime.now(),
         ),
         items: [],
       );
@@ -187,14 +185,16 @@ void main() {
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
+              createdAt: initialTime,
               updatedAt: initialTime,
+              cleanedAt: initialTime,
             ),
             items: [],
           ),
         );
 
         // 2. Add a new vocabulary item
-        final newItem = VocabularyItem(
+        const newItem = VocabularyItem(
           id: 'item_1',
           bookId: bookId,
           termA: 'cat',
@@ -260,17 +260,19 @@ void main() {
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
+              createdAt: initialTime,
               updatedAt: initialTime,
+              cleanedAt: initialTime,
             ),
             items: [
-              VocabularyItem(
+              const VocabularyItem(
                 id: 'v1',
                 bookId: bookId,
                 termA: 'apple',
                 termB: 'Apfel',
                 chapter: 'Fruits',
               ),
-              VocabularyItem(
+              const VocabularyItem(
                 id: 'v2',
                 bookId: bookId,
                 termA: 'banana',
@@ -310,13 +312,12 @@ void main() {
 
         await storageService.saveBook(
           Book(
-            metadata: BookMetadata(
+            metadata: BookMetadata.create(
               id: bookId,
               title: 'Stream Book',
               languageA: 'EN',
               languageB: 'DE',
               commentHeader: '',
-              updatedAt: DateTime.now(),
             ),
             items: [],
           ),
@@ -342,7 +343,7 @@ void main() {
         // Allow the stream listener to initialize properly before firing events
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final item = VocabularyItem(
+        const item = VocabularyItem(
           id: 's1',
           bookId: bookId,
           termA: 'dog',
