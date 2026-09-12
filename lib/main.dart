@@ -53,15 +53,12 @@ Future<void> setUpDependencies() async {
     final parsedResult = await repository.parseCsv(rawCsv);
 
     book = Book(
-      metadata: BookMetadata(
+      metadata: BookMetadata.create(
         id: dummyBookId,
         title: parsedResult.title,
         languageA: parsedResult.languageA,
         languageB: parsedResult.languageB,
         commentHeader: parsedResult.commentHeader,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        cleanedAt: DateTime.now(),
       ),
       items: parsedResult.vocabularyItems,
     );

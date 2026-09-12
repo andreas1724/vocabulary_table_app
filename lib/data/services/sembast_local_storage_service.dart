@@ -152,7 +152,7 @@ class SembastLocalStorageService implements LocalStorageService {
       final meta = BookMetadata.fromJson(
         Map<String, dynamic>.from(metaRecord as Map),
       );
-      final updatedMeta = meta.copyWith(updatedAt: DateTime.now());
+      final updatedMeta = meta.copyWith(updatedAt: DateTime.now().toUtc());
       await _metadataStore.record(bookId).put(txn, updatedMeta.toJson());
     }
   }
