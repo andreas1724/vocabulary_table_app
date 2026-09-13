@@ -39,7 +39,7 @@ void main() {
           items: [
             VocabularyItem.create(
               bookId: "test",
-              chapter: 'chapter 1',
+              chapterId: 'chapter 1',
               termA: 'a',
               termB: 'b',
             ),
@@ -65,7 +65,7 @@ void main() {
         items: [
           VocabularyItem.create(
             bookId: "test",
-            chapter: 'chapter 1',
+            chapterId: 'chapter 1',
             termA: 'x',
             termB: 'y',
           ),
@@ -112,7 +112,7 @@ void main() {
           items: [
             VocabularyItem.create(
               bookId: "test",
-              chapter: 'chapter 1',
+              chapterId: 'chapter 1',
               termA: 'x',
               termB: 'y',
               comment: 'z',

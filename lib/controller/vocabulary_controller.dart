@@ -64,7 +64,7 @@ class VocabularyController {
   late final chapters = computed(() {
     final temp = <String>{};
     return vocabularyItems.value
-        .map((item) => item.chapter)
+        .map((item) => item.chapterId)
         .where((chapter) => temp.add(chapter))
         .toList();
   });

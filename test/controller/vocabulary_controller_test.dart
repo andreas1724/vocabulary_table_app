@@ -42,13 +42,13 @@ void main() {
             bookId: "test-id",
             termA: 'dog',
             termB: 'Hund',
-            chapter: 'Animals',
+            chapterId: 'Animals',
           ),
           VocabularyItem.create(
             bookId: "test-id",
             termA: 'cat',
             termB: 'Katze',
-            chapter: 'Animals',
+            chapterId: 'Animals',
           ),
         ],
       );
@@ -75,7 +75,12 @@ void main() {
       'updateVocabularyAtLocation updates specific cell immutably',
       () async {
         registerFallbackValue(
-          VocabularyItem.create(bookId: "test", chapter: "test", termA: "", termB: ""),
+          VocabularyItem.create(
+            bookId: "test",
+            chapterId: "test",
+            termA: "",
+            termB: "",
+          ),
         );
 
         await controller.updateVocabularyAtLocation((

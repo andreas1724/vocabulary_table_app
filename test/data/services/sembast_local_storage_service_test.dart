@@ -38,7 +38,7 @@ void main() {
         items: [
           VocabularyItem.create(
             bookId: 'file_123',
-            chapter: 'chapter 1',
+            chapterId: 'chapter 1',
             termA: 'house',
             termB: 'Haus',
           ),
@@ -68,7 +68,7 @@ void main() {
         items: [
           VocabularyItem.create(
             bookId: "file_999",
-            chapter: 'chapter 1',
+            chapterId: 'chapter 1',
             termA: 'hola',
             termB: 'hallo',
           ),
@@ -110,7 +110,7 @@ void main() {
           items: [
             VocabularyItem.create(
               bookId: "file_update",
-              chapter: 'chapter 1',
+              chapterId: 'chapter 1',
               termA: 'old',
               termB: 'content',
             ),
@@ -132,7 +132,7 @@ void main() {
           items: [
             VocabularyItem.create(
               bookId: "file_update",
-              chapter: 'chapter 1',
+              chapterId: 'chapter 1',
               termA: 'new',
               termB: 'content',
             ),
@@ -199,7 +199,7 @@ void main() {
           bookId: bookId,
           termA: 'cat',
           termB: 'Katze',
-          chapter: 'Animals',
+          chapterId: 'Animals',
         );
 
         // Delay slightly to ensure time difference is measurable
@@ -270,14 +270,14 @@ void main() {
                 bookId: bookId,
                 termA: 'apple',
                 termB: 'Apfel',
-                chapter: 'Fruits',
+                chapterId: 'Fruits',
               ),
               const VocabularyItem(
                 id: 'v2',
                 bookId: bookId,
                 termA: 'banana',
                 termB: 'Banane',
-                chapter: 'Fruits',
+                chapterId: 'Fruits',
               ),
             ],
           ),
@@ -348,7 +348,7 @@ void main() {
           bookId: bookId,
           termA: 'dog',
           termB: 'Hund',
-          chapter: 'Animals',
+          chapterId: 'Animals',
         );
 
         // Execute the database operations that trigger the stream

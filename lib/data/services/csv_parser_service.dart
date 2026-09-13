@@ -79,7 +79,7 @@ class CsvParserService {
           termA: termA,
           termB: termB,
           comment: comment,
-          chapter: currentChapter,
+          chapterId: currentChapter,
           order: vocabularyItems.length,
         ),
       );
@@ -113,9 +113,9 @@ class CsvParserService {
     String lastChapter = '';
 
     for (final vocabulary in vocabularyItems) {
-      if (vocabulary.chapter != lastChapter) {
-        rows.add([vocabulary.chapter.trim()]);
-        lastChapter = vocabulary.chapter;
+      if (vocabulary.chapterId != lastChapter) {
+        rows.add([vocabulary.chapterId.trim()]);
+        lastChapter = vocabulary.chapterId;
       }
       rows.add([
         vocabulary.termA.trim(),

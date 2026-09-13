@@ -12,6 +12,7 @@ class BookMetadata {
     required this.commentHeader,
     required this.createdAt,
     required this.updatedAt,
+    this.deletedAt,
     required this.cleanedAt,
   });
 
@@ -23,6 +24,7 @@ class BookMetadata {
     required String commentHeader,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deletedAt,
     DateTime? cleanedAt,
   }) {
     final now = DateTime.now().toUtc();
@@ -34,6 +36,7 @@ class BookMetadata {
       commentHeader: commentHeader,
       createdAt: createdAt ?? now,
       updatedAt: updatedAt ?? now,
+      deletedAt: deletedAt,
       cleanedAt: cleanedAt ?? now,
     );
   }
@@ -46,15 +49,10 @@ class BookMetadata {
       languageA: json['languageA'] as String? ?? '',
       languageB: json['languageB'] as String? ?? '',
       commentHeader: json['commentHeader'] as String? ?? '',
-      createdAt:
-          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
-          now,
-      updatedAt:
-          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
-          now,
-      cleanedAt:
-          DateTime.tryParse(json['cleanedAt'] as String? ?? '') ??
-          now,
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? now,
+      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? now,
+      deletedAt: DateTime.tryParse(json['deletedAt'] as String? ?? ''),
+      cleanedAt: DateTime.tryParse(json['cleanedAt'] as String? ?? '') ?? now,
     );
   }
 
@@ -65,6 +63,7 @@ class BookMetadata {
   final String commentHeader;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? deletedAt;
   final DateTime cleanedAt;
 
   BookMetadata copyWith({
@@ -75,6 +74,7 @@ class BookMetadata {
     String? commentHeader,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deletedAt,
     DateTime? cleanedAt,
   }) {
     return BookMetadata(
@@ -85,6 +85,7 @@ class BookMetadata {
       commentHeader: commentHeader ?? this.commentHeader,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       cleanedAt: cleanedAt ?? this.cleanedAt,
     );
   }
@@ -99,6 +100,7 @@ class BookMetadata {
       // Defensively ensure UTC conversion to guarantee the 'Z' suffix
       'createdAt': createdAt.toUtc().toIso8601String(),
       'updatedAt': updatedAt.toUtc().toIso8601String(),
+      'deletedAt': deletedAt?.toUtc().toIso8601String(),
       'cleanedAt': cleanedAt.toUtc().toIso8601String(),
     };
   }

@@ -30,10 +30,10 @@ dog;Hund;Noun
       expect(result.vocabularyItems[0].termA, 'house');
       expect(result.vocabularyItems[0].termB, 'Haus');
       expect(result.vocabularyItems[0].comment, 'Noun');
-      expect(result.vocabularyItems[0].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[0].chapterId, 'Chapter 1');
 
       expect(result.vocabularyItems[1].termA, 'dog');
-      expect(result.vocabularyItems[1].chapter, 'Chapter 2');
+      expect(result.vocabularyItems[1].chapterId, 'Chapter 2');
     });
 
     test(
@@ -53,11 +53,11 @@ hello;Hallo
         final result = parserService.parseCsv(csv);
 
         expect(result.vocabularyItems.length, 5);
-        expect(result.vocabularyItems[0].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularyItems[1].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularyItems[2].chapter, 'Chapter 1: Intro');
-        expect(result.vocabularyItems[3].chapter, 'Chapter 2: Deep Dive');
-        expect(result.vocabularyItems[4].chapter, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems[0].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[1].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[2].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[3].chapterId, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems[4].chapterId, 'Chapter 2: Deep Dive');
       },
     );
 
@@ -76,10 +76,7 @@ dog;Hund
       expect(result.vocabularyItems.length, 2);
       expect(result.vocabularyItems[0].termA, 'house');
       expect(result.vocabularyItems[1].termA, 'dog');
-      expect(
-        result.vocabularyItems[1].chapter,
-        '',
-      ); // Inherits from 'house'
+      expect(result.vocabularyItems[1].chapterId, ''); // Inherits from 'house'
     });
 
     test('handles complex fields with quotes and semicolons correctly', () {
@@ -100,41 +97,45 @@ Chapter 1
         result.vocabularyItems[0].comment,
         'A common greeting; used every day',
       );
-      expect(result.vocabularyItems[0].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[0].chapterId, 'Chapter 1');
 
       expect(result.vocabularyItems[1].termA, 'quote "inside"');
       expect(result.vocabularyItems[1].termB, 'Zitat "drinnen"');
       expect(result.vocabularyItems[1].comment, '');
-      expect(result.vocabularyItems[1].chapter, 'Chapter 1');
+      expect(result.vocabularyItems[1].chapterId, 'Chapter 1');
     });
 
     test(
       'generateCsv creates CSV with inherited chapters (empty when same)',
       () {
         final vocabularyItems = [
-          VocabularyItem.create(bookId: "test", 
+          VocabularyItem.create(
+            bookId: "test",
             termA: 'house',
             termB: 'Haus',
             comment: 'Noun',
-            chapter: 'Chapter 1',
+            chapterId: 'Chapter 1',
           ),
-          VocabularyItem.create(bookId: "test", 
+          VocabularyItem.create(
+            bookId: "test",
             termA: 'dog',
             termB: 'Hund',
             comment: 'Noun',
-            chapter: 'Chapter 1',
+            chapterId: 'Chapter 1',
           ),
-          VocabularyItem.create(bookId: "test", 
+          VocabularyItem.create(
+            bookId: "test",
             termA: 'run',
             termB: 'rennen',
             comment: 'Verb',
-            chapter: 'Chapter 2',
+            chapterId: 'Chapter 2',
           ),
-          VocabularyItem.create(bookId: "test", 
+          VocabularyItem.create(
+            bookId: "test",
             termA: 'walk',
             termB: 'gehen',
             comment: 'Verb',
-            chapter: 'Chapter 2',
+            chapterId: 'Chapter 2',
           ),
         ];
 
@@ -143,7 +144,7 @@ Chapter 1
           title: 'Learning',
           languageA: 'English',
           languageB: 'German',
-          commentHeader: 'Comment'
+          commentHeader: 'Comment',
         );
 
         // Expected format:
