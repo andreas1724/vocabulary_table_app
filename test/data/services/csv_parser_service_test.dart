@@ -10,7 +10,7 @@ void main() {
       parserService = CsvParserService();
     });
 
-    test('parses a standard CSV row correctly', () {
+    test('parses a standard CSV row correctly and assigns scoped orders', () {
       const csv = '''
 Learning
 English;German;Comment
@@ -18,26 +18,39 @@ Chapter 1
 house;Haus;Noun
 Chapter 2
 dog;Hund;Noun
+cat;Katze;Noun
 ''';
       final result = parserService.parseCsv(csv);
 
-      expect(result.vocabularyItems.length, 2);
+      expect(result.vocabularyItems.length, 3);
       expect(result.title, 'Learning');
       expect(result.languageA, 'English');
       expect(result.languageB, 'German');
       expect(result.commentHeader, 'Comment');
 
-      expect(result.vocabularyItems[0].termA, 'house');
-      expect(result.vocabularyItems[0].termB, 'Haus');
-      expect(result.vocabularyItems[0].comment, 'Noun');
-      expect(result.vocabularyItems[0].chapterId, 'Chapter 1');
+      final house = result.vocabularyItems[0];
+      expect(house.termA, 'house');
+      expect(house.termB, 'Haus');
+      expect(house.comment, 'Noun');
+      expect(house.chapterId, 'Chapter 1');
+      // Verify that the first item in Chapter 1 starts at order 0
+      expect(house.order, 0); 
 
-      expect(result.vocabularyItems[1].termA, 'dog');
-      expect(result.vocabularyItems[1].chapterId, 'Chapter 2');
+      final dog = result.vocabularyItems[1];
+      expect(dog.termA, 'dog');
+      expect(dog.chapterId, 'Chapter 2');
+      // Verify that the order resets to 0 for a new chapter
+      expect(dog.order, 0); 
+
+      final cat = result.vocabularyItems[2];
+      expect(cat.termA, 'cat');
+      expect(cat.chapterId, 'Chapter 2');
+      // Verify that the order increments correctly within the same chapter
+      expect(cat.order, 1); 
     });
 
     test(
-      'inherits chapter from the previous row when chapter column is empty',
+      'inherits chapter and correctly increments order across empty chapter columns',
       () {
         const csv = '''
 Learning
@@ -53,15 +66,25 @@ hello;Hallo
         final result = parserService.parseCsv(csv);
 
         expect(result.vocabularyItems.length, 5);
+        
         expect(result.vocabularyItems[0].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[0].order, 0);
+        
         expect(result.vocabularyItems[1].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[1].order, 1);
+        
         expect(result.vocabularyItems[2].chapterId, 'Chapter 1: Intro');
+        expect(result.vocabularyItems[2].order, 2);
+        
         expect(result.vocabularyItems[3].chapterId, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems[3].order, 0);
+        
         expect(result.vocabularyItems[4].chapterId, 'Chapter 2: Deep Dive');
+        expect(result.vocabularyItems[4].order, 1);
       },
     );
 
-    test('handles empty lines and missing first chapter name', () {
+    test('handles empty lines and missing first chapter name gracefully', () {
       const csv = '''
 Learning
 
@@ -75,8 +98,11 @@ dog;Hund
 
       expect(result.vocabularyItems.length, 2);
       expect(result.vocabularyItems[0].termA, 'house');
+      expect(result.vocabularyItems[0].order, 0);
+      
       expect(result.vocabularyItems[1].termA, 'dog');
       expect(result.vocabularyItems[1].chapterId, ''); // Inherits from 'house'
+      expect(result.vocabularyItems[1].order, 1);
     });
 
     test('handles complex fields with quotes and semicolons correctly', () {
@@ -98,44 +124,65 @@ Chapter 1
         'A common greeting; used every day',
       );
       expect(result.vocabularyItems[0].chapterId, 'Chapter 1');
+      expect(result.vocabularyItems[0].order, 0);
 
       expect(result.vocabularyItems[1].termA, 'quote "inside"');
       expect(result.vocabularyItems[1].termB, 'Zitat "drinnen"');
       expect(result.vocabularyItems[1].comment, '');
       expect(result.vocabularyItems[1].chapterId, 'Chapter 1');
+      expect(result.vocabularyItems[1].order, 1);
     });
 
     test(
       'generateCsv creates CSV with inherited chapters (empty when same)',
       () {
+        final now = DateTime.now().toUtc();
+        
+        // Use explicit instantiation to guarantee structural integrity for the encoder
         final vocabularyItems = [
-          VocabularyItem.create(
-            bookId: "test",
+          VocabularyItem(
+            id: 'v1',
+            bookId: 'test',
             termA: 'house',
             termB: 'Haus',
             comment: 'Noun',
             chapterId: 'Chapter 1',
+            order: 0,
+            createdAt: now,
+            updatedAt: now,
           ),
-          VocabularyItem.create(
-            bookId: "test",
+          VocabularyItem(
+            id: 'v2',
+            bookId: 'test',
             termA: 'dog',
             termB: 'Hund',
             comment: 'Noun',
             chapterId: 'Chapter 1',
+            order: 1,
+            createdAt: now,
+            updatedAt: now,
           ),
-          VocabularyItem.create(
-            bookId: "test",
+          VocabularyItem(
+            id: 'v3',
+            bookId: 'test',
             termA: 'run',
             termB: 'rennen',
             comment: 'Verb',
             chapterId: 'Chapter 2',
+            order: 0,
+            createdAt: now,
+            updatedAt: now,
           ),
-          VocabularyItem.create(
-            bookId: "test",
+          VocabularyItem(
+            id: 'v4',
+            bookId: 'test',
             termA: 'walk',
             termB: 'gehen',
             comment: 'Verb',
             chapterId: 'Chapter 2',
+            order: 1,
+            createdAt: now,
+            updatedAt: now,
           ),
         ];
 
@@ -146,16 +193,6 @@ Chapter 1
           languageB: 'German',
           commentHeader: 'Comment',
         );
-
-        // Expected format:
-        // Learning
-        // English;German;Comment
-        // Chapter 1
-        // house;Haus;Noun
-        // dog;Hund;Noun
-        // Chapter 2
-        // run;rennen;Verb
-        // walk;gehen;Verb
 
         final lines = csv.split('\r\n');
         expect(lines[0], 'Learning');

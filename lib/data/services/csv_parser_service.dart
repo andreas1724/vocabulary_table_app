@@ -1,5 +1,4 @@
 import 'package:csv/csv.dart';
-
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
 
 class ParsedCsvResult {
@@ -24,7 +23,7 @@ class CsvParserService {
   // dynamicTyping: false -> ensure numbers like "1" are parsed as strings (default)
   // skipEmptyLines: true -> every row has at least one item (default)
   CsvParserService({this.fieldDelimiter = ';'})
-    : _converter = Csv(fieldDelimiter: fieldDelimiter);
+      : _converter = Csv(fieldDelimiter: fieldDelimiter);
 
   final String fieldDelimiter;
   final Csv _converter;
@@ -35,27 +34,23 @@ class CsvParserService {
     final rows = _converter.decode(csvContent);
 
     final vocabularyItems = <VocabularyItem>[];
+    
+    // Tracks the independent order index for each chapter
+    final chapterOrderTracker = <String, int>{};
+    
     String currentChapter = '';
     String title = '';
     String languageA = '';
     String languageB = '';
     String commentHeader = '';
 
-    // Get metadata from first two rows
-    if (rows.isNotEmpty) {
-      final titleRow = rows[0];
-      title = titleRow[0].toString().trim();
-    }
-
-    if (rows.length > 1) {
-      final headerRow = rows[1];
-      languageA = headerRow[0].toString().trim();
-      if (headerRow.length > 1) {
-        languageB = headerRow[1].toString().trim();
-      }
-      if (headerRow.length > 2) {
-        commentHeader = headerRow[2].toString().trim();
-      }
+    // Safely extract metadata using Dart 3 pattern matching
+    if (rows case [final titleRow, final headerRow, ...]) {
+      title = titleRow.firstOrNull?.toString().trim() ?? '';
+      
+      languageA = headerRow.firstOrNull?.toString().trim() ?? '';
+      languageB = headerRow.elementAtOrNull(1)?.toString().trim() ?? '';
+      commentHeader = headerRow.elementAtOrNull(2)?.toString().trim() ?? '';
     }
 
     // Vocabulary data starts at 3rd row
@@ -68,19 +63,22 @@ class CsvParserService {
         continue;
       }
 
-      final termA = row[0].toString().trim();
-      final termB = row[1].toString().trim();
-      final comment = row.length > 2 ? row[2].toString().trim() : '';
+      final termA = row.firstOrNull?.toString().trim() ?? '';
+      final termB = row.elementAtOrNull(1)?.toString().trim() ?? '';
+      final comment = row.elementAtOrNull(2)?.toString().trim() ?? '';
+
+      // Determine and increment the localized order for the current chapter
+      final currentOrder = chapterOrderTracker[currentChapter] ?? 0;
+      chapterOrderTracker[currentChapter] = currentOrder + 1;
 
       vocabularyItems.add(
         VocabularyItem.create(
-          bookId:
-              'pending', // Pending, will be correctly set by the caller/save operation
+          bookId: 'pending', // Pending, will be correctly set by the caller/save operation
           termA: termA,
           termB: termB,
           comment: comment,
           chapterId: currentChapter,
-          order: vocabularyItems.length,
+          order: currentOrder,
         ),
       );
     }
@@ -104,11 +102,10 @@ class CsvParserService {
     required String languageB,
     required String commentHeader,
   }) {
-    final rows = <List<String>>[];
-    rows.add([title]);
-
-    // Add row with dynamic header names
-    rows.add([languageA, languageB, commentHeader]);
+    final rows = <List<String>>[
+      [title],
+      [languageA, languageB, commentHeader],
+    ];
 
     String lastChapter = '';
 
