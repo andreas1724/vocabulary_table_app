@@ -5,6 +5,7 @@ const _uuid = Uuid();
 class VocabularyItem {
   const VocabularyItem({
     required this.id,
+    required this.bookId, // Added for NoSQL denormalization
     required this.chapterId,
     required this.termA,
     required this.termB,
@@ -20,6 +21,7 @@ class VocabularyItem {
 
     return VocabularyItem(
       id: json['id'] as String? ?? '',
+      bookId: json['bookId'] as String? ?? '',
       chapterId: json['chapterId'] as String? ?? '',
       termA: json['termA'] as String? ?? '',
       termB: json['termB'] as String? ?? '',
@@ -27,13 +29,13 @@ class VocabularyItem {
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? now,
       updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? now,
       deletedAt: DateTime.tryParse(json['deletedAt'] as String? ?? ''),
-      // Safely parse order, handling potential double values from JSON
       order: (json['order'] as num?)?.toInt() ?? 0,
     );
   }
 
   factory VocabularyItem.create({
     String? id,
+    required String bookId,
     required String chapterId,
     required String termA,
     required String termB,
@@ -47,6 +49,7 @@ class VocabularyItem {
 
     return VocabularyItem(
       id: id ?? _uuid.v4(),
+      bookId: bookId,
       chapterId: chapterId,
       termA: termA,
       termB: termB,
@@ -59,6 +62,7 @@ class VocabularyItem {
   }
 
   final String id;
+  final String bookId;
   final String chapterId;
   final String termA;
   final String termB;
@@ -68,9 +72,34 @@ class VocabularyItem {
   final DateTime? deletedAt;
   final int order;
 
+  VocabularyItem copyWith({
+    String? id,
+    String? bookId,
+    String? chapterId,
+    String? termA,
+    String? termB,
+    String? comment,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+    int? order,
+  }) => VocabularyItem(
+    id: id ?? this.id,
+    bookId: bookId ?? this.bookId,
+    chapterId: chapterId ?? this.chapterId,
+    termA: termA ?? this.termA,
+    termB: termB ?? this.termB,
+    comment: comment ?? this.comment,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt ?? this.deletedAt,
+    order: order ?? this.order,
+  );
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'bookId': bookId,
       'chapterId': chapterId,
       'termA': termA,
       'termB': termB,
@@ -82,30 +111,8 @@ class VocabularyItem {
     };
   }
 
-  VocabularyItem copyWith({
-    String? id,
-    String? chapterId,
-    String? termA,
-    String? termB,
-    String? comment,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? deletedAt,
-    int? order,
-  }) => VocabularyItem(
-    id: id ?? this.id,
-    chapterId: chapterId ?? this.chapterId,
-    termA: termA ?? this.termA,
-    termB: termB ?? this.termB,
-    comment: comment ?? this.comment,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-    deletedAt: deletedAt ?? this.deletedAt,
-    order: order ?? this.order,
-  );
-
   @override
   String toString() {
-    return 'VocabularyItem(termA: $termA, termB: $termB, comment: $comment, id: $id, chapterId: $chapterId, order: $order)';
+    return 'VocabularyItem(id: $id, bookId: $bookId, chapterId: $chapterId, termA: $termA, termB: $termB, order: $order)';
   }
 }

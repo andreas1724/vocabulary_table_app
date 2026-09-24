@@ -9,9 +9,9 @@ class VocabularyController {
   VocabularyController({
     required VocabRepository repository,
     required Book book,
-  }) : _repository = repository,
-       bookId = book.metadata.id,
-       metadata = signal<BookMetadata>(book.metadata) {
+  })  : _repository = repository,
+        bookId = book.metadata.id,
+        metadata = signal<BookMetadata>(book.metadata) {
     // Initialize the stream signal from the repository
     _vocabularyItemsStream = streamSignal(
       () => _repository.watchVocabulariesForBook(bookId),
@@ -36,16 +36,19 @@ class VocabularyController {
   // --- State (Signals) ---
 
   final Signal<BookMetadata> metadata;
+  
+  // Placed variables after constructor to strictly follow sort_constructors_first
+  final Signal<(int rowIndex, int colIndex)?> selectedCell = signal(null);
+  
+  // Holds synchronous updates to bridge the DB writing gap
+  final Signal<List<VocabularyItem>?> _optimisticItems = signal(null);
+
+  late final StreamSignal<List<VocabularyItem>> _vocabularyItemsStream;
 
   late final languageA = computed(() => metadata.value.languageA);
   late final languageB = computed(() => metadata.value.languageB);
   late final commentHeader = computed(() => metadata.value.commentHeader);
   late final title = computed(() => metadata.value.title);
-
-  late final StreamSignal<List<VocabularyItem>> _vocabularyItemsStream;
-
-  // Holds synchronous updates to bridge the DB writing gap
-  final _optimisticItems = signal<List<VocabularyItem>?>(null);
 
   // Expose the list of vocabulary items reactively
   // Shows optimistic update if present, otherwise reads from stream
@@ -55,45 +58,51 @@ class VocabularyController {
       return optimistic;
     }
 
-    final state = _vocabularyItemsStream.value;
-    return state.value ?? [];
+    return _vocabularyItemsStream.value.value ?? [];
   });
 
-  final selectedCell = signal<(int rowIndex, int colIndex)?>(null);
-
+  // Optimized chapter extraction using Dart 3 Set conversion
   late final chapters = computed(() {
-    final temp = <String>{};
-    return vocabularyItems.value
-        .map((item) => item.chapterId)
-        .where((chapter) => temp.add(chapter))
-        .toList();
+    return vocabularyItems.value.map((item) => item.chapterId).toSet().toList();
   });
 
   // --- Actions ---
 
   Future<void> addVocabulary(VocabularyItem item) async {
-    final items = vocabularyItems.value;
+    // Read state without subscribing via peek()
+    final items = vocabularyItems.peek().toList();
     final newOrder = items.length;
-    // Ensure the new item is associated with this book and order is at the end
+    
     final itemToSave = item.copyWith(bookId: bookId, order: newOrder);
+    
+    // Apply optimistic update for instantaneous UI feedback
+    _optimisticItems.value = [...items, itemToSave];
+    
     await _repository.addVocabularyLocally(itemToSave);
   }
 
   Future<void> removeVocabularyAt(int index) async {
-    final items = vocabularyItems.value;
+    final items = vocabularyItems.peek().toList();
     if (index < 0 || index >= items.length) return;
 
-    final itemToDelete = items[index];
+    final itemToDelete = items.removeAt(index);
+    
+    // Apply optimistic update
+    _optimisticItems.value = items;
+    
     await _repository.deleteVocabularyLocally(itemToDelete);
   }
 
   Future<void> updateVocabularyAt(int index, VocabularyItem item) async {
-    final items = vocabularyItems.value;
+    final items = vocabularyItems.peek().toList();
     if (index < 0 || index >= items.length) return;
 
-    // Ensure the item ID matches the existing one at the index
     final existingItem = items[index];
     final itemToUpdate = item.copyWith(id: existingItem.id, bookId: bookId);
+
+    // Apply optimistic update
+    items[index] = itemToUpdate;
+    _optimisticItems.value = items;
 
     await _repository.updateVocabularyLocally(itemToUpdate);
   }
@@ -102,21 +111,27 @@ class VocabularyController {
     ({int rowIndex, int colIndex}) location,
     String updateText,
   ) async {
-    final items = vocabularyItems.value;
+    final items = vocabularyItems.peek().toList();
     if (location.rowIndex < 0 || location.rowIndex >= items.length) {
       return;
     }
 
     final vocabularyItem = items[location.rowIndex];
+    
     final updatedItem = switch (location.colIndex) {
       0 => vocabularyItem.copyWith(termA: updateText),
       1 => vocabularyItem.copyWith(termB: updateText),
       2 => vocabularyItem.copyWith(comment: updateText),
-      3 => vocabularyItem.copyWith(chapter: updateText),
-      _ => vocabularyItem.copyWith(
-        id: updateText,
-      ), // Should not really edit ID but keeping parity
+      3 => vocabularyItem.copyWith(chapterId: updateText),
+      // Crucial security fix: Never manipulate the ID via UI cell editing.
+      _ => null, 
     };
+
+    if (updatedItem == null || updatedItem == vocabularyItem) return;
+
+    // Apply optimistic update
+    items[location.rowIndex] = updatedItem;
+    _optimisticItems.value = items;
 
     await _repository.updateVocabularyLocally(updatedItem);
   }
@@ -124,7 +139,7 @@ class VocabularyController {
   /// oldIndex refers to the item's original position before removal.
   /// newIndex points to the exact target position in the cleaned list after removal.
   Future<void> reorderItem(int oldIndex, int newIndex) async {
-    final items = List<VocabularyItem>.from(vocabularyItems.value);
+    final items = vocabularyItems.peek().toList();
 
     if (oldIndex == newIndex) return;
 
@@ -139,10 +154,13 @@ class VocabularyController {
     items.insert(newIndex, item);
 
     final updatedItems = <VocabularyItem>[];
-    for (var i = 0; i < items.length; i++) {
-      if (items[i].order != i) {
-        items[i] = items[i].copyWith(order: i);
-        updatedItems.add(items[i]);
+    
+    // Use Dart 3 indexed iteration for cleaner access
+    for (final (index, currentItem) in items.indexed) {
+      if (currentItem.order != index) {
+        final updated = currentItem.copyWith(order: index);
+        items[index] = updated; // Keep the optimistic list in perfect sync
+        updatedItems.add(updated);
       }
     }
 

@@ -9,7 +9,7 @@ void main() {
     late SembastLocalStorageService storageService;
 
     setUp(() async {
-      // Use the in-memory factory for fast and isolated unit tests
+      // Use the in-memory factory for fast, isolated, and flake-free unit tests.
       final factory = newDatabaseFactoryMemory();
       storageService = SembastLocalStorageService(
         factoryOverride: factory,
@@ -18,7 +18,7 @@ void main() {
     });
 
     test('initially returns an empty list of books', () async {
-      final books = await storageService.getAllBooks();
+      final books = await storageService.loadBooks();
       expect(books, isEmpty);
     });
 
@@ -47,7 +47,7 @@ void main() {
 
       await storageService.saveBook(book);
 
-      final books = await storageService.getAllBooks();
+      final books = await storageService.loadBooks();
       expect(books.length, 1);
       expect(books.first.id, 'file_123');
       expect(books.first.title, 'English Vocabs');
@@ -118,14 +118,14 @@ void main() {
         ),
       );
 
-      // Update the book
       final updatedMetadata = BookMetadata.create(
-        id: 'file_update', // Same ID!
+        id: 'file_update', // Same ID triggers upsert/update
         title: 'New Title',
         languageA: 'LanguageA',
         languageB: 'LanguageB',
         commentHeader: 'Comment',
       );
+      
       await storageService.saveBook(
         Book(
           metadata: updatedMetadata,
@@ -140,9 +140,8 @@ void main() {
         ),
       );
 
-      // Verify updates
-      final books = await storageService.getAllBooks();
-      expect(books.length, 1); // Should still be only 1 book
+      final books = await storageService.loadBooks();
+      expect(books.length, 1);
       expect(books.first.title, 'New Title');
 
       final content = await storageService.getBookContent('file_update');
@@ -162,19 +161,18 @@ void main() {
       );
 
       await storageService.saveBook(book);
-      expect((await storageService.getAllBooks()).length, 1);
+      expect((await storageService.loadBooks()).length, 1);
 
       await storageService.deleteBook('delete_me');
 
-      expect((await storageService.getAllBooks()).length, 0);
+      expect((await storageService.loadBooks()).length, 0);
       expect(await storageService.getBookContent('delete_me'), isNull);
     });
 
     test(
       'adds, updates, and deletes an individual vocabulary item and updates book updatedAt',
       () async {
-        // 1. Setup initial book
-        final initialTime = DateTime(2025, 1, 1);
+        final initialTime = DateTime(2025, 1, 1).toUtc();
         const bookId = 'vocab_crud_test';
 
         await storageService.saveBook(
@@ -193,16 +191,18 @@ void main() {
           ),
         );
 
-        // 2. Add a new vocabulary item
-        const newItem = VocabularyItem(
+        final now = DateTime.now().toUtc();
+        final newItem = VocabularyItem(
           id: 'item_1',
           bookId: bookId,
           termA: 'cat',
           termB: 'Katze',
           chapterId: 'Animals',
+          createdAt: now,
+          updatedAt: now,
         );
 
-        // Delay slightly to ensure time difference is measurable
+        // Delay slightly to ensure time difference is measurable for the book metadata
         await Future.delayed(const Duration(milliseconds: 10));
         await storageService.addVocabulary(newItem);
 
@@ -215,11 +215,13 @@ void main() {
           reason: 'Adding a vocabulary should update the book updatedAt',
         );
 
-        // 3. Update the vocabulary item
         final timeAfterAdd = retrievedBook.metadata.updatedAt;
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final updatedItem = newItem.copyWith(termB: 'Kater');
+        final updatedItem = newItem.copyWith(
+          termB: 'Kater',
+          updatedAt: DateTime.now().toUtc(),
+        );
         await storageService.updateVocabulary(updatedItem);
 
         retrievedBook = await storageService.getBookContent(bookId);
@@ -230,7 +232,6 @@ void main() {
           reason: 'Updating a vocabulary should update the book updatedAt',
         );
 
-        // 4. Delete the vocabulary item
         final timeAfterUpdate = retrievedBook.metadata.updatedAt;
         await Future.delayed(const Duration(milliseconds: 10));
 
@@ -249,8 +250,10 @@ void main() {
     test(
       'updateVocabularies performs batch update and updates book updatedAt',
       () async {
-        final initialTime = DateTime(2025, 1, 1);
+        final initialTime = DateTime(2025, 1, 1).toUtc();
         const bookId = 'batch_test';
+
+        final itemTime = DateTime.now().toUtc();
 
         await storageService.saveBook(
           Book(
@@ -265,31 +268,42 @@ void main() {
               cleanedAt: initialTime,
             ),
             items: [
-              const VocabularyItem(
+              VocabularyItem(
                 id: 'v1',
                 bookId: bookId,
                 termA: 'apple',
                 termB: 'Apfel',
                 chapterId: 'Fruits',
+                createdAt: itemTime,
+                updatedAt: itemTime,
               ),
-              const VocabularyItem(
+              VocabularyItem(
                 id: 'v2',
                 bookId: bookId,
                 termA: 'banana',
                 termB: 'Banane',
                 chapterId: 'Fruits',
+                createdAt: itemTime,
+                updatedAt: itemTime,
               ),
             ],
           ),
         );
 
-        // Delay to ensure the updatedAt difference is measurable
         await Future.delayed(const Duration(milliseconds: 10));
 
         final retrievedBook = await storageService.getBookContent(bookId);
+        final updateTime = DateTime.now().toUtc();
+        
         final itemsToUpdate = [
-          retrievedBook!.items[0].copyWith(termB: 'Apfel (grün)'),
-          retrievedBook.items[1].copyWith(termB: 'Banane (gelb)'),
+          retrievedBook!.items[0].copyWith(
+            termB: 'Apfel (grün)', 
+            updatedAt: updateTime,
+          ),
+          retrievedBook.items[1].copyWith(
+            termB: 'Banane (gelb)', 
+            updatedAt: updateTime,
+          ),
         ];
 
         await storageService.updateVocabularies(itemsToUpdate);
@@ -325,43 +339,44 @@ void main() {
 
         final stream = storageService.watchVocabulariesForBook(bookId);
 
-        // 1. Assign the Future to a variable WITHOUT awaiting it yet
+        // Assign the Future to a variable WITHOUT awaiting it yet to properly register 
+        // the stream listener before firing database mutations.
         final streamExpectation = expectLater(
           stream,
           emitsInOrder([
-            [], // 1. Initial state (empty list from saveBook)
-            [
-              isA<VocabularyItem>().having((i) => i.termA, 'termA', 'dog'),
-            ], // 2. After addVocabulary
-            [
-              isA<VocabularyItem>().having((i) => i.termA, 'termA', 'hound'),
-            ], // 3. After updateVocabulary
-            [], // 4. After deleteVocabulary
+            [], 
+            [isA<VocabularyItem>().having((i) => i.termA, 'termA', 'dog')], 
+            [isA<VocabularyItem>().having((i) => i.termA, 'termA', 'hound')], 
+            [], 
           ]),
         );
 
-        // Allow the stream listener to initialize properly before firing events
         await Future.delayed(const Duration(milliseconds: 10));
 
-        const item = VocabularyItem(
+        final now = DateTime.now().toUtc();
+        final item = VocabularyItem(
           id: 's1',
           bookId: bookId,
           termA: 'dog',
           termB: 'Hund',
           chapterId: 'Animals',
+          createdAt: now,
+          updatedAt: now,
         );
 
-        // Execute the database operations that trigger the stream
         await storageService.addVocabulary(item);
         await Future.delayed(const Duration(milliseconds: 10));
 
-        final updatedItem = item.copyWith(termA: 'hound');
+        final updatedItem = item.copyWith(
+          termA: 'hound',
+          updatedAt: DateTime.now().toUtc(),
+        );
         await storageService.updateVocabulary(updatedItem);
         await Future.delayed(const Duration(milliseconds: 10));
 
         await storageService.deleteVocabulary(updatedItem);
 
-        // 2. Await the expectation at the very end to verify all events were emitted
+        // Await the expectation at the very end to verify all snapshot events were emitted.
         await streamExpectation;
       },
     );

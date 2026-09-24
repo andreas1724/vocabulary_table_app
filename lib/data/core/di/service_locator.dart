@@ -21,6 +21,8 @@ Future<void> setupDependencies() async {
       storageService: GetIt.I<LocalStorageService>(),
     ),
   );
-  
-  GetIt.I.registerLazySingleton<BooksController>(() => BooksController(GetIt.I()));
+
+  GetIt.I.registerLazySingleton<BooksController>(
+    () => BooksController(storageService: GetIt.I<LocalStorageService>()),
+  );
 }
