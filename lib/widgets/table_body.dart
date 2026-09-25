@@ -6,16 +6,17 @@ import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
-/// Extracted private widget class for high-performance rendering and clear structure
 class TableBody extends StatefulWidget {
   const TableBody({
     super.key,
     required this.tableWidth,
     required this.isMultiTouch,
+    required this.activeChapterId,
   });
 
   final double tableWidth;
   final ReadonlySignal<bool> isMultiTouch;
+  final ReadonlySignal<String?> activeChapterId;
 
   @override
   State<TableBody> createState() => _TableBodyState();
@@ -37,11 +38,15 @@ class _TableBodyState extends State<TableBody> {
   Widget build(BuildContext context) {
     return SignalBuilder(
       builder: (context) {
-        final vocabularyItems = _vocabularyController.vocabularyItems.value;
-        // ignore: unused_local_variable
-        final appMode = _tableLayoutController.appMode.value;
-        final isMultiTouch = widget.isMultiTouch.value;
+        final allItems = _vocabularyController.vocabularyItems.value;
+        final chapterId = widget.activeChapterId.value;
 
+        // 1. Reactive list filtering based on the currently selected chapter
+        final chapterItems = chapterId != null
+            ? allItems.where((item) => item.chapterId == chapterId).toList()
+            : allItems;
+
+        final isMultiTouch = widget.isMultiTouch.value;
         final dynamicPhysics = isMultiTouch
             ? const NeverScrollableScrollPhysics()
             : const AlwaysScrollableScrollPhysics();
@@ -52,18 +57,38 @@ class _TableBodyState extends State<TableBody> {
           // optional: scrollCacheExtent: const ScrollCacheExtent.pixels(2500),
           slivers: [
             SliverReorderableList(
-              itemCount: vocabularyItems.length,
-              onReorderItem: _vocabularyController.reorderItem,
+              itemCount: chapterItems.length,
+              proxyDecorator: _proxyDecorator,
               onReorderStart: (index) => _draggedItemIndex.value = index,
               onReorderEnd: (index) => _draggedItemIndex.value = null,
-              proxyDecorator: _proxyDecorator,
+              onReorderItem: (oldUiIndex, newUiIndex) {
+                // 2. Safe index mapping from the filtered UI list back to the global state list
+                if (oldUiIndex == newUiIndex) return;
+
+                final draggedItem = chapterItems[oldUiIndex];
+                final globalOldIndex = allItems.indexWhere((i) => i.id == draggedItem.id);
+
+                int globalNewIndex;
+                if (newUiIndex >= chapterItems.length) {
+                  // Moved to the very end of the current chapter
+                  final lastItem = chapterItems.last;
+                  globalNewIndex = allItems.indexWhere((i) => i.id == lastItem.id) + 1;
+                } else {
+                  // Find the global index of the item that currently occupies the target position
+                  final targetItem = chapterItems[newUiIndex];
+                  globalNewIndex = allItems.indexWhere((i) => i.id == targetItem.id);
+                }
+
+                _vocabularyController.reorderItem(globalOldIndex, globalNewIndex);
+              },
               itemBuilder: (context, index) {
-                final vocabularyItem = vocabularyItems[index];
-                final id = vocabularyItem.id;
+                final vocabularyItem = chapterItems[index];
+                final globalIndex = allItems.indexWhere((i) => i.id == vocabularyItem.id);
 
                 return _DraggableRowWrapper(
-                  key: ValueKey(id),
-                  index: index,
+                  key: ValueKey(vocabularyItem.id),
+                  uiIndex: index,
+                  globalIndex: globalIndex,
                   tableWidth: widget.tableWidth,
                   draggedItemIndex: _draggedItemIndex,
                 );
@@ -83,16 +108,18 @@ class _TableBodyState extends State<TableBody> {
         final scale = _tableLayoutController.scale.value;
         final borderWidth = _tableLayoutController.borderWidth.value;
         final borderColor = Theme.of(context).colorScheme.outlineVariant;
+        
         return AnimatedBuilder(
           animation: animation,
           child: child,
           builder: (context, animatedChild) {
             // Interpolate elevation smoothly during the pickup animation
             final currentElevation = targetElevation * scale * animation.value;
+            
             return Material(
               elevation: currentElevation,
               child: Stack(
-                clipBehavior: Clip.none,
+                clipBehavior: .none,
                 children: [
                   animatedChild!,
                   Positioned(
@@ -114,14 +141,15 @@ class _TableBodyState extends State<TableBody> {
 
 class _DraggableRowWrapper extends StatelessWidget {
   const _DraggableRowWrapper({
-    // ignore: unused_element_parameter
     super.key,
-    required this.index,
+    required this.uiIndex,
+    required this.globalIndex,
     required this.tableWidth,
     required this.draggedItemIndex,
   });
 
-  final int index;
+  final int uiIndex;
+  final int globalIndex;
   final double tableWidth;
   final ReadonlySignal<int?> draggedItemIndex;
 
@@ -133,29 +161,29 @@ class _DraggableRowWrapper extends StatelessWidget {
       clipBehavior: .none,
       children: [
         RowIndexScope(
-          rowIndex: index,
+          uiIndex: uiIndex,
+          globalIndex: globalIndex,
           child: TableRowWithoutTopBorder(tableWidth: tableWidth),
         ),
-        SignalBuilder(
-          builder: (context) {
-            // If NO item is being dragged, hide all top borders to prevent overlaps.
-            // If ANY item is dragged, show top borders on all items to ensure the
-            // empty gap in the ReorderableListView maintains a top border.
-            if (draggedItemIndex.value == null) {
-              return const SizedBox.shrink();
-            }
+        // FIX: Positioned must strictly wrap the SignalBuilder to be visible to the Stack.
+        Positioned(
+          // Using .peek() here is safe as the border width doesn't dynamically animate 
+          // while this specific row is standing still. It saves a reactive dependency[cite: 13].
+          top: -tableLayoutController.borderWidth.peek(),
+          left: 0,
+          right: 0,
+          height: tableLayoutController.borderWidth.peek(),
+          child: SignalBuilder(
+            builder: (context) {
+              if (draggedItemIndex.value == null) {
+                return const SizedBox.shrink();
+              }
 
-            final borderWidth = tableLayoutController.borderWidth.value;
-            final borderColor = Theme.of(context).colorScheme.outlineVariant;
-
-            return Positioned(
-              top: -borderWidth,
-              left: 0,
-              right: 0,
-              height: borderWidth,
-              child: ColoredBox(color: borderColor),
-            );
-          },
+              return ColoredBox(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              );
+            },
+          ),
         ),
       ],
     );

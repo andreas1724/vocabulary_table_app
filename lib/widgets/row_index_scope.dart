@@ -4,19 +4,21 @@ import 'package:flutter/material.dart';
 class RowIndexScope extends InheritedWidget {
   const RowIndexScope({
     super.key,
-    required this.rowIndex,
+    required this.uiIndex,
+    required this.globalIndex,
     required super.child,
   });
 
-  final int rowIndex;
+  final int uiIndex;
+  final int globalIndex;
 
-  static int of(BuildContext context) {
+  static RowIndexScope of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<RowIndexScope>();
     assert(scope != null, 'No RowIndexScope found in context');
-    return scope!.rowIndex;
+    return scope!;
   }
 
   @override
   bool updateShouldNotify(RowIndexScope oldWidget) =>
-      rowIndex != oldWidget.rowIndex;
+      uiIndex != oldWidget.uiIndex || globalIndex != oldWidget.globalIndex;
 }

@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
+import 'package:vocabulary_table_app/data/controllers/chapter_controller.dart';
 import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
 import 'package:vocabulary_table_app/data/core/di/service_locator.dart';
 import 'package:vocabulary_table_app/models/book.dart';
+import 'package:vocabulary_table_app/models/chapter.dart';
 import 'package:vocabulary_table_app/widgets/vocabulary_table_app.dart';
 
 /* 
 rm /Users/user/Library/Containers/com.example.vocabularyTableApp/Data/Documents/vocabularies_local.db
 */
 
-void main(List<String> args) async {
-  SignalsObserver.instance = null;
-
+void main() async {
+  // Always invoke this first before utilizing framework features
   WidgetsFlutterBinding.ensureInitialized();
+
+  SignalsObserver.instance = null;
 
   await setUpDependencies();
 
@@ -25,7 +28,7 @@ void main(List<String> args) async {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.orangeAccent,
-          brightness: .light,
+          brightness: Brightness.light,
         ),
       ),
       debugShowCheckedModeBanner: false,
@@ -34,27 +37,25 @@ void main(List<String> args) async {
 }
 
 Future<void> setUpDependencies() async {
-  // 1. Initialize core services and the repository
-  await setupDependencies(); // Aufruf aus service_locator.dart
+  await setupDependencies();
 
   final repository = GetIt.I<VocabRepository>();
-
   const dummyBookId = 'test-csv-book-id';
-  Book? book = await repository.getBookLocally(dummyBookId);
 
-  if (book == null || book.items.isEmpty) {
-    if (book != null && book.items.isEmpty) {
-      debugPrint(
-        'Found empty book shell from previous invalid run, re-parsing...',
-      );
-      await repository.deleteBookLocally(dummyBookId);
+  Book? activeBook = await repository.getBookLocally(dummyBookId);
+
+  // If the book does not exist or was corrupted (empty items), purge and re-seed
+  if (activeBook == null || activeBook.items.isEmpty) {
+    if (activeBook != null) {
+      debugPrint('Found empty book shell. Purging existing records...');
+      await repository.deleteBook(dummyBookId, hardDelete: true);
     }
 
     final parsedResult = await repository.parseCsv(rawCsv);
 
-    book = Book(
+    activeBook = Book(
       metadata: BookMetadata.create(
-        id: dummyBookId,
+        id: dummyBookId, // Consider using a UUID package instead of hardcoding in production
         title: parsedResult.title,
         languageA: parsedResult.languageA,
         languageB: parsedResult.languageB,
@@ -63,16 +64,39 @@ Future<void> setUpDependencies() async {
       items: parsedResult.vocabularyItems,
     );
 
-    await repository.saveBookLocally(book);
+    await repository.saveBookLocally(activeBook);
     debugPrint('CSV parsed and securely saved to Sembast.');
+    final uniqueChapterNames = parsedResult.vocabularyItems
+        .map((item) => item.chapterId)
+        .toSet()
+        .toList();
+
+    for (var i = 0; i < uniqueChapterNames.length; i++) {
+      final name = uniqueChapterNames[i];
+      final chapter = Chapter.create(
+        id: name,
+        bookId: dummyBookId,
+        name: name,
+        order: i,
+      );
+      await repository.addChapterLocally(chapter);
+    }
   } else {
     debugPrint(
-      'Loaded existing book from Sembast with ${book.items.length} items.',
+      'Loaded existing book from Sembast with ${activeBook.items.length} items.',
     );
   }
 
+  // At this point, activeBook is guaranteed to be non-null and seeded.
   GetIt.I.registerLazySingleton<VocabularyController>(
-    () => VocabularyController(repository: repository, book: book!),
+    () => VocabularyController(repository: repository, book: activeBook!),
+  );
+
+  GetIt.I.registerLazySingleton<ChapterController>(
+    () => ChapterController(
+      repository: repository,
+      bookId: activeBook!.metadata.id,
+    ),
   );
 }
 

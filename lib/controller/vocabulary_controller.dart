@@ -55,10 +55,11 @@ class VocabularyController {
   late final vocabularyItems = computed<List<VocabularyItem>>(() {
     final optimistic = _optimisticItems.value;
     if (optimistic != null) {
-      return optimistic;
+      return optimistic.toList()..sort((a, b) => a.order.compareTo(b.order));
     }
 
-    return _vocabularyItemsStream.value.value ?? [];
+    final items = _vocabularyItemsStream.value.value ?? [];
+    return items.toList()..sort((a, b) => a.order.compareTo(b.order));
   });
 
   // Optimized chapter extraction using Dart 3 Set conversion

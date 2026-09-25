@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'package:signals_flutter/signals_flutter.dart';
 
 import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';

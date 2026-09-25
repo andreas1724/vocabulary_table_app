@@ -11,8 +11,8 @@ class VocabRepository {
   VocabRepository({
     required CsvParserService parserService,
     required LocalStorageService storageService,
-  })  : _parserService = parserService,
-        _storageService = storageService;
+  }) : _parserService = parserService,
+       _storageService = storageService;
 
   final CsvParserService _parserService;
   final LocalStorageService _storageService;
@@ -40,8 +40,8 @@ class VocabRepository {
   }
 
   /// Deletes a complete book from the local database by ID.
-  Future<void> deleteBookLocally(String id) async {
-    await _storageService.deleteBook(id);
+  Future<void> deleteBook(String id, {bool hardDelete = false}) async {
+    await _storageService.deleteBook(id, hardDelete: hardDelete);
   }
 
   // --- Chapters ---

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
+import 'package:vocabulary_table_app/data/controllers/chapter_controller.dart';
 import 'package:vocabulary_table_app/widgets/header_row.dart';
 import 'package:vocabulary_table_app/widgets/table_body.dart';
 
@@ -15,10 +16,17 @@ class VocabularyTable extends StatefulWidget {
 
 class _VocabularyTableState extends State<VocabularyTable> {
   late final _tableLayoutController = GetIt.I<TableLayoutController>();
+  late final _chapterController = GetIt.I<ChapterController>();
 
   final _activePointerIds = <int>{};
 
   late final _activePointers = signal<int>(0);
+
+  // Memoized signal to automatically extract the first chapter's ID
+  late final _firstChapterId = computed(() {
+    final chapters = _chapterController.chapters.value;
+    return chapters.isNotEmpty ? chapters.first.id : null;
+  });
 
   // Memoized derived state: Only notifies listeners when the boolean result changes.
   late final _isMultiTouch = computed(() => _activePointers.value > 1);
@@ -66,6 +74,7 @@ class _VocabularyTableState extends State<VocabularyTable> {
                 HeaderRow(tableWidth: tableWidth),
                 Expanded(
                   child: TableBody(
+                    activeChapterId: _firstChapterId,
                     tableWidth: tableWidth,
                     // Pass the computed boolean signal instead of the raw integer count
                     isMultiTouch: _isMultiTouch,

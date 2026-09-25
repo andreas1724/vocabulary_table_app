@@ -26,10 +26,11 @@ class _EditableItemCellState extends State<EditableItemCell> {
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
 
-  int _rowIndex = -1;
+  int _globalIndex = -1;
+  int _uiIndex = -1;
 
   (int rowIndex, int colIndex) get _currentLocation =>
-      (_rowIndex, widget.colIndex);
+      (_globalIndex, widget.colIndex);
 
   @override
   void initState() {
@@ -55,7 +56,9 @@ class _EditableItemCellState extends State<EditableItemCell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _rowIndex = RowIndexScope.of(context);
+    final scope = RowIndexScope.of(context);
+    _globalIndex = scope.globalIndex;
+    _uiIndex = scope.uiIndex;
   }
 
   void _onPlainTextFocusChanged() {
@@ -75,7 +78,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
   Future<void> _startEditing() async {
     final currentText = _vocabularyController
         .vocabularyItems
-        .value[_rowIndex]
+        .value[_globalIndex]
         .tableColumns[widget.colIndex];
 
     _textController.text = currentText;
@@ -117,7 +120,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
             _vocabularyController.selectedCell.value == _currentLocation;
 
         final focusOrder = tableLayoutController.focusOrder(
-          _rowIndex,
+          _globalIndex,
           widget.colIndex,
         );
 
@@ -125,7 +128,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
           order: NumericFocusOrder(focusOrder),
           child: isSelected && appMode == .edit
               ? _EditableTextCell(
-                  rowIndex: _rowIndex,
+                  globalIndex: _globalIndex,
                   colIndex: widget.colIndex,
                   focusNode: _editableTextFocus,
                   textController: _textController,
@@ -143,7 +146,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
                     onDoubleTap: appMode == .edit ? _startEditing : null,
                     child: _PlainTextCell(
                       colIndex: widget.colIndex,
-                      rowIndex: _rowIndex,
+                      globalIndex: _globalIndex,
+                      uiIndex: _uiIndex,
                     ),
                   ),
                 ),
@@ -155,13 +159,13 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
 class _EditableTextCell extends StatelessWidget {
   const _EditableTextCell({
-    required this.rowIndex,
+    required this.globalIndex,
     required this.colIndex,
     required this.focusNode,
     required this.textController,
   });
 
-  final int rowIndex;
+  final int globalIndex;
   final int colIndex;
   final FocusNode focusNode;
   final TextEditingController textController;
@@ -191,7 +195,7 @@ class _EditableTextCell extends StatelessWidget {
                 onTapOutside: (event) {},
                 onChanged: (value) =>
                     vocabularyController.updateVocabularyAtLocation((
-                      rowIndex: rowIndex,
+                      rowIndex: globalIndex,
                       colIndex: colIndex,
                     ), value),
                 minLines: 2,
@@ -216,9 +220,10 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({required this.colIndex, required this.rowIndex});
+  const _PlainTextCell({required this.colIndex, required this.globalIndex, required this.uiIndex});
 
-  final int rowIndex;
+  final int globalIndex;
+  final int uiIndex;
   final int colIndex;
 
   @override
@@ -228,7 +233,7 @@ class _PlainTextCell extends StatelessWidget {
 
     return SignalBuilder(
       builder: (context) {
-        final itemSignal = vocabularyController.vocabularyItems.value[rowIndex];
+        final itemSignal = vocabularyController.vocabularyItems.value[globalIndex];
         final text = itemSignal.tableColumns[colIndex];
 
         final scale = tableLayoutController.scale.value;
@@ -256,7 +261,7 @@ class _PlainTextCell extends StatelessWidget {
                 ),
               ),
               if (showHandle)
-                _ResponsiveDragHandle(scale: scale, rowIndex: rowIndex),
+                _ResponsiveDragHandle(scale: scale, uiIndex: uiIndex),
             ],
           ),
         );
@@ -266,10 +271,10 @@ class _PlainTextCell extends StatelessWidget {
 }
 
 class _ResponsiveDragHandle extends StatelessWidget {
-  const _ResponsiveDragHandle({required this.scale, required this.rowIndex});
+  const _ResponsiveDragHandle({required this.scale, required this.uiIndex});
 
   final double scale;
-  final int rowIndex;
+  final int uiIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +286,7 @@ class _ResponsiveDragHandle extends StatelessWidget {
         defaultTargetPlatform == TargetPlatform.android;
 
     return ReorderableDragStartListener(
-      index: rowIndex,
+      index: uiIndex,
       child: Container(
         color: Colors.transparent,
         padding: EdgeInsets.only(left: isMobile ? 32.0 : scale * 4.0),
