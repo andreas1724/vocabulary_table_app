@@ -29,11 +29,13 @@ class _EditableItemCellState extends State<EditableItemCell> {
   int _globalIndex = -1;
   int _uiIndex = -1;
 
+  // Returns a positional record (int, int) to strictly match the selectedCell signal type
   (int rowIndex, int colIndex) get _currentLocation =>
       (_globalIndex, widget.colIndex);
 
   @override
   void initState() {
+    super.initState();
     _vocabularyController = GetIt.I<VocabularyController>();
     _textController = TextEditingController();
 
@@ -69,40 +71,71 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   void _onEditableTextFocusChanged() {
     if (!_editableTextFocus.hasFocus) {
-      if (_vocabularyController.selectedCell.peek() == _currentLocation) {
-        _vocabularyController.selectedCell.value = null;
-      }
+      _saveChanges();
     }
   }
 
-  Future<void> _startEditing() async {
-    final currentText = _vocabularyController
-        .vocabularyItems
-        .value[_globalIndex]
+  void _saveChanges() {
+    final location = _currentLocation;
+    final textToSave = _textController.text;
+
+    // Decouple the state mutation from the current synchronous frame to prevent
+    // "setState called during build" exceptions when focus is lost.
+    Future.microtask(() {
+      _vocabularyController.updateVocabularyAtLocation((
+        rowIndex: location.$1,
+        colIndex: location.$2,
+      ), textToSave);
+
+      if (_vocabularyController.selectedCell.peek() == location) {
+        _vocabularyController.selectedCell.value = null;
+      }
+    });
+  }
+
+  void _startEditing() {
+    final currentText = _vocabularyController.vocabularyItems
+        .peek()[_globalIndex]
         .tableColumns[widget.colIndex];
 
-    _textController.text = currentText;
-    _textController.selection = TextSelection.collapsed(
-      offset: _textController.text.length,
-    );
+    Future.microtask(() {
+      if (!mounted) return;
 
-    _vocabularyController.selectedCell.value = _currentLocation;
+      _textController.text = currentText;
+      _textController.selection = TextSelection.collapsed(
+        offset: _textController.text.length,
+      );
 
-    _editableTextFocus.requestFocus();
+      _vocabularyController.selectedCell.value = _currentLocation;
+      _editableTextFocus.requestFocus();
+    });
   }
 
   @override
   void dispose() {
-    final currentLocation = _currentLocation;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Safety check: ensure selectedCell is cleared if widget is disposed while selected
-      if (_vocabularyController.selectedCell.peek() == currentLocation) {
-        _vocabularyController.selectedCell.value = null;
-      }
-    });
-
     _editableTextFocus.removeListener(_onEditableTextFocusChanged);
     _plainTextFocus.removeListener(_onPlainTextFocusChanged);
+
+    final location = _currentLocation;
+    final textToSave = _textController.text;
+
+    // Rely on our own reactive state rather than the detached focus tree
+    final wasEditing = _vocabularyController.selectedCell.peek() == location;
+
+    if (wasEditing) {
+      // Defer the signal mutation to the next microtask to safely bypass the locked widget tree
+      Future.microtask(() {
+        _vocabularyController.updateVocabularyAtLocation((
+          rowIndex: location.$1,
+          colIndex: location.$2,
+        ), textToSave);
+
+        if (_vocabularyController.selectedCell.peek() == location) {
+          _vocabularyController.selectedCell.value = null;
+        }
+      });
+    }
+
     _editableTextFocus.dispose();
     _plainTextFocus.dispose();
     _textController.dispose();
@@ -173,7 +206,6 @@ class _EditableTextCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tableLayoutController = GetIt.I<TableLayoutController>();
-    final vocabularyController = GetIt.I<VocabularyController>();
 
     return SignalBuilder(
       builder: (context) {
@@ -193,11 +225,7 @@ class _EditableTextCell extends StatelessWidget {
                 controller: textController,
                 // empty braces to override (event) => unfocus()
                 onTapOutside: (event) {},
-                onChanged: (value) =>
-                    vocabularyController.updateVocabularyAtLocation((
-                      rowIndex: globalIndex,
-                      colIndex: colIndex,
-                    ), value),
+                onSubmitted: (_) => focusNode.unfocus(),
                 minLines: 2,
                 maxLines: null,
                 style: TextStyle(
@@ -220,7 +248,11 @@ class _EditableTextCell extends StatelessWidget {
 }
 
 class _PlainTextCell extends StatelessWidget {
-  const _PlainTextCell({required this.colIndex, required this.globalIndex, required this.uiIndex});
+  const _PlainTextCell({
+    required this.colIndex,
+    required this.globalIndex,
+    required this.uiIndex,
+  });
 
   final int globalIndex;
   final int uiIndex;
@@ -233,7 +265,8 @@ class _PlainTextCell extends StatelessWidget {
 
     return SignalBuilder(
       builder: (context) {
-        final itemSignal = vocabularyController.vocabularyItems.value[globalIndex];
+        final itemSignal =
+            vocabularyController.vocabularyItems.value[globalIndex];
         final text = itemSignal.tableColumns[colIndex];
 
         final scale = tableLayoutController.scale.value;
