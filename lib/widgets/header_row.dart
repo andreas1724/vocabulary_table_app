@@ -170,16 +170,16 @@ class _ColumnResizerState extends State<_ColumnResizer> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile =
+    final isTouchPlatform =
         (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.android);
     return Positioned(
-      left: isMobile
+      left: isTouchPlatform
           ? widget.leftPosition - _dragHandleWidthMobile / 2
           : widget.leftPosition - widget.scale * _dragHandleWidthDesktop / 2,
       top: 0,
       bottom: 0,
-      width: isMobile
+      width: isTouchPlatform
           ? _dragHandleWidthMobile
           : widget.scale * _dragHandleWidthDesktop,
       child: GestureDetector(

@@ -10,7 +10,9 @@ import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
 const _heightFactor = 1.2;
 const _letterSpacing = 0.0;
 const _padding = 6.0;
+const _dragHandleSize = 17.0;
 
+/// Must be wrapped in RowIndexScope (InheritedWidget)
 class EditableItemCell extends StatefulWidget {
   const EditableItemCell({super.key, required this.colIndex});
 
@@ -311,10 +313,9 @@ class _ResponsiveDragHandle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const dragHandleSize = 17.0;
     final dragHandleColor = Theme.of(context).colorScheme.secondary;
 
-    final isMobile =
+    final isTouchPlatform =
         defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.android;
 
@@ -322,11 +323,11 @@ class _ResponsiveDragHandle extends StatelessWidget {
       index: uiIndex,
       child: Container(
         color: Colors.transparent,
-        padding: EdgeInsets.only(left: isMobile ? 32.0 : scale * 4.0),
+        padding: EdgeInsets.only(left: isTouchPlatform ? 32.0 : scale * 4.0),
         child: Center(
           child: Icon(
             Icons.drag_handle,
-            size: dragHandleSize * scale,
+            size: _dragHandleSize * scale,
             color: dragHandleColor,
           ),
         ),
