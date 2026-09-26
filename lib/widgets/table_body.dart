@@ -66,31 +66,42 @@ class _TableBodyState extends State<TableBody> {
                 if (oldUiIndex == newUiIndex) return;
 
                 final draggedItem = chapterItems[oldUiIndex];
-                final globalOldIndex = allItems.indexWhere((i) => i.id == draggedItem.id);
+                final globalOldIndex = allItems.indexWhere(
+                  (i) => i.id == draggedItem.id,
+                );
 
                 int globalNewIndex;
                 if (newUiIndex >= chapterItems.length) {
                   // Moved to the very end of the current chapter
                   final lastItem = chapterItems.last;
-                  globalNewIndex = allItems.indexWhere((i) => i.id == lastItem.id) + 1;
+                  globalNewIndex =
+                      allItems.indexWhere((i) => i.id == lastItem.id) + 1;
                 } else {
                   // Find the global index of the item that currently occupies the target position
                   final targetItem = chapterItems[newUiIndex];
-                  globalNewIndex = allItems.indexWhere((i) => i.id == targetItem.id);
+                  globalNewIndex = allItems.indexWhere(
+                    (i) => i.id == targetItem.id,
+                  );
                 }
 
-                _vocabularyController.reorderItem(globalOldIndex, globalNewIndex);
+                _vocabularyController.reorderItem(
+                  globalOldIndex,
+                  globalNewIndex,
+                );
               },
               itemBuilder: (context, index) {
                 final vocabularyItem = chapterItems[index];
-                final globalIndex = allItems.indexWhere((i) => i.id == vocabularyItem.id);
+                final globalIndex = allItems.indexWhere(
+                  (i) => i.id == vocabularyItem.id,
+                );
 
-                return _DraggableRowWrapper(
+                return RowIndexScope(
                   key: ValueKey(vocabularyItem.id),
-                  uiIndex: index,
-                  globalIndex: globalIndex,
-                  tableWidth: widget.tableWidth,
-                  draggedItemIndex: _draggedItemIndex,
+                  row: (globalIndex: globalIndex, uiIndex: index),
+                  child: _DraggableRowWrapper(
+                    tableWidth: widget.tableWidth,
+                    draggedItemIndex: _draggedItemIndex,
+                  ),
                 );
               },
             ),
@@ -108,14 +119,14 @@ class _TableBodyState extends State<TableBody> {
         final scale = _tableLayoutController.scale.value;
         final borderWidth = _tableLayoutController.borderWidth.value;
         final borderColor = Theme.of(context).colorScheme.outlineVariant;
-        
+
         return AnimatedBuilder(
           animation: animation,
           child: child,
           builder: (context, animatedChild) {
             // Interpolate elevation smoothly during the pickup animation
             final currentElevation = targetElevation * scale * animation.value;
-            
+
             return Material(
               elevation: currentElevation,
               child: Stack(
@@ -141,15 +152,12 @@ class _TableBodyState extends State<TableBody> {
 
 class _DraggableRowWrapper extends StatelessWidget {
   const _DraggableRowWrapper({
+    // ignore: unused_element_parameter
     super.key,
-    required this.uiIndex,
-    required this.globalIndex,
     required this.tableWidth,
     required this.draggedItemIndex,
   });
 
-  final int uiIndex;
-  final int globalIndex;
   final double tableWidth;
   final ReadonlySignal<int?> draggedItemIndex;
 
@@ -160,12 +168,9 @@ class _DraggableRowWrapper extends StatelessWidget {
     return Stack(
       clipBehavior: .none,
       children: [
-        RowIndexScope(
-          row: (uiIndex: uiIndex, globalIndex: globalIndex),
-          child: TableRowWithoutTopBorder(tableWidth: tableWidth),
-        ),
+        TableRowWithoutTopBorder(tableWidth: tableWidth),
         Positioned(
-          // Using .peek() here is safe as the border width doesn't dynamically animate 
+          // Using .peek() here is safe as the border width doesn't dynamically animate
           // while this specific row is standing still. It saves a reactive dependency[cite: 13].
           top: -tableLayoutController.borderWidth.peek(),
           left: 0,

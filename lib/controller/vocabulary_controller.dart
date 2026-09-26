@@ -38,7 +38,7 @@ class VocabularyController {
   final Signal<BookMetadata> metadata;
   
   // Placed variables after constructor to strictly follow sort_constructors_first
-  final Signal<(int rowIndex, int colIndex)?> selectedCell = signal(null);
+  final Signal<({int rowIndex, int colIndex})?> selectedCell = signal(null);
   
   // Holds synchronous updates to bridge the DB writing gap
   final Signal<List<VocabularyItem>?> _optimisticItems = signal(null);
