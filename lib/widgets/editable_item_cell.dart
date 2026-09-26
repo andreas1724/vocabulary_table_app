@@ -28,12 +28,11 @@ class _EditableItemCellState extends State<EditableItemCell> {
   late final FocusNode _plainTextFocus;
   late final TextEditingController _textController;
 
-  int _globalIndex = -1;
-  int _uiIndex = -1;
+  late ({int globalIndex, int uiIndex}) _row;
 
   // Returns a positional record (int, int) to strictly match the selectedCell signal type
   (int rowIndex, int colIndex) get _currentLocation =>
-      (_globalIndex, widget.colIndex);
+      (_row.globalIndex, widget.colIndex);
 
   @override
   void initState() {
@@ -60,9 +59,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final scope = RowIndexScope.of(context);
-    _globalIndex = scope.globalIndex;
-    _uiIndex = scope.uiIndex;
+    _row = RowIndexScope.of(context);
   }
 
   void _onPlainTextFocusChanged() {
@@ -97,7 +94,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
 
   void _startEditing() {
     final currentText = _vocabularyController.vocabularyItems
-        .peek()[_globalIndex]
+        .peek()[_row.globalIndex]
         .tableColumns[widget.colIndex];
 
     Future.microtask(() {
@@ -155,7 +152,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
             _vocabularyController.selectedCell.value == _currentLocation;
 
         final focusOrder = tableLayoutController.focusOrder(
-          _globalIndex,
+          _row.globalIndex,
           widget.colIndex,
         );
 
@@ -163,7 +160,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
           order: NumericFocusOrder(focusOrder),
           child: isSelected && appMode == .edit
               ? _EditableTextCell(
-                  globalIndex: _globalIndex,
+                  globalIndex: _row.globalIndex,
                   colIndex: widget.colIndex,
                   focusNode: _editableTextFocus,
                   textController: _textController,
@@ -181,8 +178,8 @@ class _EditableItemCellState extends State<EditableItemCell> {
                     onDoubleTap: appMode == .edit ? _startEditing : null,
                     child: _PlainTextCell(
                       colIndex: widget.colIndex,
-                      globalIndex: _globalIndex,
-                      uiIndex: _uiIndex,
+                      globalIndex: _row.globalIndex,
+                      uiIndex: _row.uiIndex,
                     ),
                   ),
                 ),

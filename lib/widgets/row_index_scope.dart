@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 
 /// Provides the current row index down the widget tree to avoid prop-drilling.
 class RowIndexScope extends InheritedWidget {
-  const RowIndexScope({
-    super.key,
-    required this.uiIndex,
-    required this.globalIndex,
-    required super.child,
-  });
+  const RowIndexScope({super.key, required this.row, required super.child});
 
-  final int uiIndex;
-  final int globalIndex;
+  final ({int globalIndex, int uiIndex}) row;
 
-  static RowIndexScope of(BuildContext context) {
+  static RowIndexScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<RowIndexScope>();
+  }
+
+  static ({int globalIndex, int uiIndex}) of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<RowIndexScope>();
     assert(scope != null, 'No RowIndexScope found in context');
-    return scope!;
+    return scope!.row;
   }
 
   @override
-  bool updateShouldNotify(RowIndexScope oldWidget) =>
-      uiIndex != oldWidget.uiIndex || globalIndex != oldWidget.globalIndex;
+  bool updateShouldNotify(RowIndexScope oldWidget) => row != oldWidget.row;
 }

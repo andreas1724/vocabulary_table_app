@@ -161,11 +161,9 @@ class _DraggableRowWrapper extends StatelessWidget {
       clipBehavior: .none,
       children: [
         RowIndexScope(
-          uiIndex: uiIndex,
-          globalIndex: globalIndex,
+          row: (uiIndex: uiIndex, globalIndex: globalIndex),
           child: TableRowWithoutTopBorder(tableWidth: tableWidth),
         ),
-        // FIX: Positioned must strictly wrap the SignalBuilder to be visible to the Stack.
         Positioned(
           // Using .peek() here is safe as the border width doesn't dynamically animate 
           // while this specific row is standing still. It saves a reactive dependency[cite: 13].
