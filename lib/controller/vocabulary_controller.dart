@@ -9,9 +9,9 @@ class VocabularyController {
   VocabularyController({
     required VocabRepository repository,
     required Book book,
-  })  : _repository = repository,
-        bookId = book.metadata.id,
-        metadata = signal<BookMetadata>(book.metadata) {
+  }) : _repository = repository,
+       bookId = book.metadata.id,
+       metadata = signal<BookMetadata>(book.metadata) {
     // Initialize the stream signal from the repository
     _vocabularyItemsStream = streamSignal(
       () => _repository.watchVocabulariesForBook(bookId),
@@ -36,10 +36,10 @@ class VocabularyController {
   // --- State (Signals) ---
 
   final Signal<BookMetadata> metadata;
-  
+
   // Placed variables after constructor to strictly follow sort_constructors_first
   final Signal<({int rowIndex, int colIndex})?> selectedCell = signal(null);
-  
+
   // Holds synchronous updates to bridge the DB writing gap
   final Signal<List<VocabularyItem>?> _optimisticItems = signal(null);
 
@@ -55,30 +55,24 @@ class VocabularyController {
   late final vocabularyItems = computed<List<VocabularyItem>>(() {
     final optimistic = _optimisticItems.value;
     if (optimistic != null) {
-      return optimistic.toList()..sort((a, b) => a.order.compareTo(b.order));
+      return optimistic..sort((a, b) => a.order.compareTo(b.order));
     }
 
     final items = _vocabularyItemsStream.value.value ?? [];
-    return items.toList()..sort((a, b) => a.order.compareTo(b.order));
-  });
-
-  // Optimized chapter extraction using Dart 3 Set conversion
-  late final chapters = computed(() {
-    return vocabularyItems.value.map((item) => item.chapterId).toSet().toList();
+    return items..sort((a, b) => a.order.compareTo(b.order));
   });
 
   // --- Actions ---
 
   Future<void> addVocabulary(VocabularyItem item) async {
-    // Read state without subscribing via peek()
     final items = vocabularyItems.peek().toList();
     final newOrder = items.length;
-    
+
     final itemToSave = item.copyWith(bookId: bookId, order: newOrder);
-    
+
     // Apply optimistic update for instantaneous UI feedback
     _optimisticItems.value = [...items, itemToSave];
-    
+
     await _repository.addVocabularyLocally(itemToSave);
   }
 
@@ -87,10 +81,10 @@ class VocabularyController {
     if (index < 0 || index >= items.length) return;
 
     final itemToDelete = items.removeAt(index);
-    
+
     // Apply optimistic update
     _optimisticItems.value = items;
-    
+
     await _repository.deleteVocabularyLocally(itemToDelete);
   }
 
@@ -118,14 +112,14 @@ class VocabularyController {
     }
 
     final vocabularyItem = items[location.rowIndex];
-    
+
     final updatedItem = switch (location.colIndex) {
       0 => vocabularyItem.copyWith(termA: updateText),
       1 => vocabularyItem.copyWith(termB: updateText),
       2 => vocabularyItem.copyWith(comment: updateText),
       3 => vocabularyItem.copyWith(chapterId: updateText),
       // Crucial security fix: Never manipulate the ID via UI cell editing.
-      _ => null, 
+      _ => null,
     };
 
     if (updatedItem == null || updatedItem == vocabularyItem) return;
@@ -155,7 +149,7 @@ class VocabularyController {
     items.insert(newIndex, item);
 
     final updatedItems = <VocabularyItem>[];
-    
+
     // Use Dart 3 indexed iteration for cleaner access
     for (final (index, currentItem) in items.indexed) {
       if (currentItem.order != index) {

@@ -42,7 +42,7 @@ void main() {
             bookId: 'test-id',
             termA: 'dog',
             termB: 'Hund',
-            chapterId: 'Animals',
+            chapterId: 'chapter-id',
             order: 0,
           ),
           VocabularyItem.create(
@@ -50,23 +50,28 @@ void main() {
             bookId: 'test-id',
             termA: 'cat',
             termB: 'Katze',
-            chapterId: 'Animals',
+            chapterId: 'chapter-id',
             order: 1,
           ),
         ],
       );
 
       // Stub all necessary stream and async repository interactions
-      when(() => mockRepository.watchVocabulariesForBook(any()))
-          .thenAnswer((_) => Stream.value(initialBook.items));
-      when(() => mockRepository.updateVocabularyLocally(any()))
-          .thenAnswer((_) async {});
-      when(() => mockRepository.addVocabularyLocally(any()))
-          .thenAnswer((_) async {});
-      when(() => mockRepository.deleteVocabularyLocally(any()))
-          .thenAnswer((_) async {});
-      when(() => mockRepository.updateVocabulariesLocally(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockRepository.watchVocabulariesForBook(any()),
+      ).thenAnswer((_) => Stream.value(initialBook.items));
+      when(
+        () => mockRepository.updateVocabularyLocally(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockRepository.addVocabularyLocally(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockRepository.deleteVocabularyLocally(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockRepository.updateVocabulariesLocally(any()),
+      ).thenAnswer((_) async {});
 
       controller = VocabularyController(
         repository: mockRepository,
@@ -80,7 +85,6 @@ void main() {
 
     test('initializes correctly and exposes computed signals', () {
       expect(controller.vocabularyItems.value.length, 2);
-      expect(controller.chapters.value, ['Animals']);
       expect(controller.title.value, 'My Test Book');
       expect(controller.languageA.value, 'LanguageA');
     });
@@ -91,7 +95,7 @@ void main() {
         bookId: 'test-id',
         termA: 'bird',
         termB: 'Vogel',
-        chapterId: 'New Chapter',
+        chapterId: 'chapter-id',
       );
 
       await controller.addVocabulary(newItem);
@@ -99,7 +103,6 @@ void main() {
       // Verify synchronous optimistic UI state
       expect(controller.vocabularyItems.value.length, 3);
       expect(controller.vocabularyItems.value.last.termA, 'bird');
-      expect(controller.chapters.value, contains('New Chapter'));
 
       // Verify repository interaction
       final captured = verify(
@@ -109,19 +112,22 @@ void main() {
       expect(savedItem.order, 2); // Validates correct dynamic ordering
     });
 
-    test('removeVocabularyAt applies optimistic delete and calls repository', () async {
-      final itemToDelete = controller.vocabularyItems.value.first;
+    test(
+      'removeVocabularyAt applies optimistic delete and calls repository',
+      () async {
+        final itemToDelete = controller.vocabularyItems.value.first;
 
-      await controller.removeVocabularyAt(0);
+        await controller.removeVocabularyAt(0);
 
-      // Verify synchronous optimistic UI state
-      expect(controller.vocabularyItems.value.length, 1);
-      expect(controller.vocabularyItems.value.first.termA, 'cat');
+        // Verify synchronous optimistic UI state
+        expect(controller.vocabularyItems.value.length, 1);
+        expect(controller.vocabularyItems.value.first.termA, 'cat');
 
-      verify(
-        () => mockRepository.deleteVocabularyLocally(itemToDelete),
-      ).called(1);
-    });
+        verify(
+          () => mockRepository.deleteVocabularyLocally(itemToDelete),
+        ).called(1);
+      },
+    );
 
     test('removeVocabularyAt ignores invalid indices safely', () async {
       await controller.removeVocabularyAt(-1);
@@ -147,59 +153,68 @@ void main() {
       final captured = verify(
         () => mockRepository.updateVocabularyLocally(captureAny()),
       ).captured;
-      
+
       final updatedItem = captured.first as VocabularyItem;
       // Validates structural integrity enforcement in the controller
-      expect(updatedItem.id, 'item-1'); 
+      expect(updatedItem.id, 'item-1');
       expect(updatedItem.bookId, 'test-id');
     });
 
-    test('updateVocabularyAtLocation updates specific cell immutably', () async {
-      await controller.updateVocabularyAtLocation(
-        (rowIndex: 0, colIndex: 1),
-        'Hündchen',
-      );
+    test(
+      'updateVocabularyAtLocation updates specific cell immutably',
+      () async {
+        await controller.updateVocabularyAtLocation((
+          rowIndex: 0,
+          colIndex: 1,
+        ), 'Hündchen');
 
-      final captured = verify(
-        () => mockRepository.updateVocabularyLocally(captureAny()),
-      ).captured;
-      final updatedItem = captured.first as VocabularyItem;
-      
-      expect(updatedItem.termA, 'dog');
-      expect(updatedItem.termB, 'Hündchen');
-    });
+        final captured = verify(
+          () => mockRepository.updateVocabularyLocally(captureAny()),
+        ).captured;
+        final updatedItem = captured.first as VocabularyItem;
 
-    test('updateVocabularyAtLocation rejects ID modification via cell editing', () async {
-      await controller.updateVocabularyAtLocation(
-        (rowIndex: 0, colIndex: 99), // Invalid/ID column
-        'hacked-id',
-      );
+        expect(updatedItem.termA, 'dog');
+        expect(updatedItem.termB, 'Hündchen');
+      },
+    );
 
-      // The controller should gracefully abort
-      verifyNever(() => mockRepository.updateVocabularyLocally(any()));
-    });
+    test(
+      'updateVocabularyAtLocation rejects ID modification via cell editing',
+      () async {
+        await controller.updateVocabularyAtLocation(
+          (rowIndex: 0, colIndex: 99), // Invalid/ID column
+          'hacked-id',
+        );
 
-    test('reorderItem applies optimistic sorting and batch updates DB', () async {
-      // Reorder index 0 (dog) to index 1 (after cat)
-      await controller.reorderItem(0, 1);
+        // The controller should gracefully abort
+        verifyNever(() => mockRepository.updateVocabularyLocally(any()));
+      },
+    );
 
-      final items = controller.vocabularyItems.value;
-      
-      // Verify optimistic UI sorting
-      expect(items.first.termA, 'cat');
-      expect(items.last.termA, 'dog');
-      
-      // Verify local order field regeneration
-      expect(items.first.order, 0);
-      expect(items.last.order, 1);
+    test(
+      'reorderItem applies optimistic sorting and batch updates DB',
+      () async {
+        // Reorder index 0 (dog) to index 1 (after cat)
+        await controller.reorderItem(0, 1);
 
-      // Verify repository batch interaction
-      final captured = verify(
-        () => mockRepository.updateVocabulariesLocally(captureAny()),
-      ).captured;
-      
-      final batchedItems = captured.first as List<VocabularyItem>;
-      expect(batchedItems.length, 2);
-    });
+        final items = controller.vocabularyItems.value;
+
+        // Verify optimistic UI sorting
+        expect(items.first.termA, 'cat');
+        expect(items.last.termA, 'dog');
+
+        // Verify local order field regeneration
+        expect(items.first.order, 0);
+        expect(items.last.order, 1);
+
+        // Verify repository batch interaction
+        final captured = verify(
+          () => mockRepository.updateVocabulariesLocally(captureAny()),
+        ).captured;
+
+        final batchedItems = captured.first as List<VocabularyItem>;
+        expect(batchedItems.length, 2);
+      },
+    );
   });
 }

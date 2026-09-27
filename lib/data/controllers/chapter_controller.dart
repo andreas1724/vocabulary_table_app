@@ -36,10 +36,11 @@ class ChapterController {
   late final chapters = computed<List<Chapter>>(() {
     final optimistic = _optimisticChapters.value;
     if (optimistic != null) {
-      return optimistic;
+      return optimistic..sort((a, b) => a.order.compareTo(b.order));
     }
 
-    return _chaptersStream.value.value ?? [];
+    final items = _chaptersStream.value.value ?? [];
+    return items..sort((a, b) => a.order.compareTo(b.order));
   });
 
   // --- Actions ---

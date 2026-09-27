@@ -6,9 +6,9 @@ import 'package:vocabulary_table_app/data/services/local_storage_service.dart';
 import 'package:vocabulary_table_app/models/book.dart';
 
 /// Controller responsible for managing local books list and persistence.
-class BooksController {
-  BooksController({required LocalStorageService storageService})
-      : _storageService = storageService;
+class BookController {
+  BookController({required LocalStorageService storageService})
+    : _storageService = storageService;
 
   final LocalStorageService _storageService;
 
@@ -33,18 +33,18 @@ class BooksController {
   /// Saves a book to local storage using optimistic UI updates and graceful rollback.
   Future<void> saveBook(Book book) async {
     // Read state without subscribing to mutations[cite: 6]
-    final currentState = books.peek(); 
+    final currentState = books.peek();
     List<BookMetadata>? rollbackState;
 
     if (currentState is AsyncData<List<BookMetadata>>) {
       rollbackState = currentState.requireValue;
-      
+
       // Use Dart 3 list comprehensions to efficiently replace the existing item
       final updatedList = [
         for (final b in rollbackState)
           if (b.id != book.metadata.id) b,
       ];
-      
+
       updatedList.add(book.metadata);
 
       // Enforce consistent descending sorting based on updatedAt to match Sembast
@@ -72,13 +72,13 @@ class BooksController {
 
     if (currentState is AsyncData<List<BookMetadata>>) {
       rollbackState = currentState.requireValue;
-      
+
       // Apply optimistic deletion efficiently
       final updatedList = [
         for (final b in rollbackState)
           if (b.id != id) b,
       ];
-      
+
       books.value = AsyncState.data(updatedList);
     }
 
