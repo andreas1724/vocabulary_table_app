@@ -6,10 +6,8 @@ import 'package:vocabulary_table_app/data/controllers/vocab_repository.dart';
 import 'package:vocabulary_table_app/models/chapter.dart';
 
 class ChapterController {
-  ChapterController({
-    required VocabRepository repository,
-    required this.bookId,
-  }) : _repository = repository {
+  ChapterController({required VocabRepository repository, required this.bookId})
+    : _repository = repository {
     _chaptersStream = streamSignal(
       () => _repository.watchChaptersForBook(bookId),
       options: const AsyncSignalOptions(initialValue: []),
@@ -36,11 +34,11 @@ class ChapterController {
   late final chapters = computed<List<Chapter>>(() {
     final optimistic = _optimisticChapters.value;
     if (optimistic != null) {
-      return optimistic..sort((a, b) => a.order.compareTo(b.order));
+      return optimistic.toList()..sort((a, b) => a.order.compareTo(b.order));
     }
 
     final items = _chaptersStream.value.value ?? [];
-    return items..sort((a, b) => a.order.compareTo(b.order));
+    return items.toList()..sort((a, b) => a.order.compareTo(b.order));
   });
 
   // --- Actions ---
@@ -48,12 +46,12 @@ class ChapterController {
   Future<void> addChapter(Chapter chapter) async {
     final current = chapters.peek().toList();
     final newOrder = current.length;
-    
+
     final chapterToSave = chapter.copyWith(bookId: bookId, order: newOrder);
-    
+
     // Apply optimistic update
     _optimisticChapters.value = [...current, chapterToSave];
-    
+
     await _repository.addChapterLocally(chapterToSave);
   }
 
@@ -63,10 +61,7 @@ class ChapterController {
     if (index == -1) return;
 
     final existing = current[index];
-    final updatedChapter = chapter.copyWith(
-      id: existing.id, 
-      bookId: bookId,
-    );
+    final updatedChapter = chapter.copyWith(id: existing.id, bookId: bookId);
 
     // Apply optimistic update
     current[index] = updatedChapter;
@@ -77,7 +72,7 @@ class ChapterController {
 
   Future<void> deleteChapter(Chapter chapter) async {
     final current = chapters.peek().toList();
-    
+
     // Optimistically remove the chapter
     current.removeWhere((c) => c.id == chapter.id);
     _optimisticChapters.value = current;
@@ -89,10 +84,10 @@ class ChapterController {
   Future<void> reorderChapter(int oldIndex, int newIndex) async {
     final currentItems = chapters.peek().toList();
 
-    if (oldIndex == newIndex || 
-        oldIndex < 0 || 
-        oldIndex >= currentItems.length || 
-        newIndex < 0 || 
+    if (oldIndex == newIndex ||
+        oldIndex < 0 ||
+        oldIndex >= currentItems.length ||
+        newIndex < 0 ||
         newIndex > currentItems.length) {
       return;
     }
@@ -101,11 +96,11 @@ class ChapterController {
     currentItems.insert(newIndex, item);
 
     final updatedItems = <Chapter>[];
-    
+
     for (final (index, currentChapter) in currentItems.indexed) {
       if (currentChapter.order != index) {
         final updated = currentChapter.copyWith(order: index);
-        currentItems[index] = updated; 
+        currentItems[index] = updated;
         updatedItems.add(updated);
       }
     }
@@ -114,8 +109,8 @@ class ChapterController {
     _optimisticChapters.value = currentItems;
 
     if (updatedItems.isNotEmpty) {
-      // NOTE: Ensure your VocabRepository and LocalStorageService have a 
-      // batch update method for chapters (e.g., `updateChaptersLocally`) 
+      // NOTE: Ensure your VocabRepository and LocalStorageService have a
+      // batch update method for chapters (e.g., `updateChaptersLocally`)
       // similar to `updateVocabulariesLocally` to handle this efficiently.
       await _repository.updateChaptersLocally(updatedItems);
     }
