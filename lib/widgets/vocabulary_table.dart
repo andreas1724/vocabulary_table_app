@@ -69,18 +69,17 @@ class _VocabularyTableState extends State<VocabularyTable> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final tableWidth = constraints.maxWidth;
-            return Column(
-              children: [
-                HeaderRow(tableWidth: tableWidth),
-                Expanded(
-                  child: TableBody(
-                    activeChapterId: _firstChapterId,
-                    tableWidth: tableWidth,
-                    // Pass the computed boolean signal instead of the raw integer count
-                    isMultiTouch: _isMultiTouch,
-                  ),
-                ),
-              ],
+            return NestedScrollView(
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                  SliverToBoxAdapter(child: HeaderRow(tableWidth: tableWidth)),
+                ];
+              },
+              body: TableBody(
+                activeChapterId: _firstChapterId,
+                tableWidth: tableWidth,
+                isMultiTouch: _isMultiTouch,
+              ),
             );
           },
         ),
