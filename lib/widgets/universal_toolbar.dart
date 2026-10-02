@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
+import 'package:vocabulary_table_app/data/controllers/chapter_controller.dart';
 
 class UniversalToolbar extends StatelessWidget {
   const UniversalToolbar({super.key, required this.isVertical});
@@ -13,6 +14,7 @@ class UniversalToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final appBarColor = Theme.of(context).colorScheme.surfaceContainer;
     final vocabularyController = GetIt.I<VocabularyController>();
+    final chapterController = GetIt.I<ChapterController>();
 
     return ExcludeFocus(
       child: Material(
@@ -27,24 +29,41 @@ class UniversalToolbar extends StatelessWidget {
             mainAxisAlignment: .spaceBetween,
             crossAxisAlignment: .center,
             children: [
-              Flexible(
+              Expanded(
                 child: SignalBuilder(
                   builder: (context) {
+                    final chapterId = vocabularyController
+                        .vocabularyItems
+                        .value
+                        .first
+                        .chapterId;
+                    final chapterName =
+                        chapterController.chapters.value
+                            .where((chapter) => chapter.id == chapterId)
+                            .firstOrNull
+                            ?.name ??
+                        '';
                     return _ToolbarTitle(
-                      vocabularyController.title.value,
+                      title: vocabularyController.title.value,
+                      chapterName: chapterName,
                       isVertical: isVertical,
                     );
                   },
                 ),
               ),
-              Flex(
-                direction: isVertical ? .vertical : .horizontal,
-                mainAxisSize: .min,
-                children: [
-                  const _CommentsToggle(),
-                  const _ModeToggler(),
-                  _ToolbarMenu(isVertical: isVertical),
-                ],
+              Flexible(
+                child: SingleChildScrollView(
+                  scrollDirection: isVertical ? .vertical : .horizontal,
+                  child: Flex(
+                    direction: isVertical ? .vertical : .horizontal,
+                    mainAxisSize: .min,
+                    children: [
+                      const _CommentsToggle(),
+                      const _ModeToggler(),
+                      _ToolbarMenu(isVertical: isVertical),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -57,18 +76,41 @@ class UniversalToolbar extends StatelessWidget {
 // --- Extracted Private Sub-Widgets for the Toolbar ---
 
 class _ToolbarTitle extends StatelessWidget {
-  const _ToolbarTitle(this.title, {required this.isVertical});
+  const _ToolbarTitle({
+    required this.title,
+    required this.chapterName,
+    required this.isVertical,
+  });
 
   final String title;
+  final String chapterName;
   final bool isVertical;
 
   @override
   Widget build(BuildContext context) {
-    final titleWidget = Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium,
-      maxLines: 1,
-      overflow: .ellipsis,
+    final titleWidget = Column(
+      mainAxisSize: .min,
+      mainAxisAlignment: .center,
+      children: [
+        Flexible(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall,
+            maxLines: 1,
+            overflow: .ellipsis,
+          ),
+        ),
+        Flexible(
+          child: Text(
+            chapterName,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
+            maxLines: 1,
+            overflow: .ellipsis,
+          ),
+        ),
+      ],
     );
 
     const extraSpace = 8.0;

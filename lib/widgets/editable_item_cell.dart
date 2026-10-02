@@ -5,14 +5,14 @@ import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
 import 'package:vocabulary_table_app/models/vocabulary_item.dart';
-import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
+import 'package:vocabulary_table_app/utils/scope.dart';
 
 const _heightFactor = 1.2;
 const _letterSpacing = 0.0;
 const _padding = 6.0;
 const _dragHandleSize = 17.0;
 
-/// Must be wrapped in RowIndexScope (InheritedWidget)
+/// Must be wrapped in Scope<({int globalIndex, int uiIndex})> (InheritedWidget)
 class EditableItemCell extends StatefulWidget {
   const EditableItemCell({super.key, required this.colIndex});
 
@@ -59,7 +59,7 @@ class _EditableItemCellState extends State<EditableItemCell> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _row = RowIndexScope.of(context);
+    _row = Scope.of<({int globalIndex, int uiIndex})>(context);
   }
 
   void _onPlainTextFocusChanged() {
@@ -245,7 +245,7 @@ class _PlainTextCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final tableLayoutController = GetIt.I<TableLayoutController>();
     final vocabularyController = GetIt.I<VocabularyController>();
-    final row = RowIndexScope.of(context);
+    final row = Scope.of<({int globalIndex, int uiIndex})>(context);
 
     return SignalBuilder(
       builder: (context) {
@@ -277,8 +277,7 @@ class _PlainTextCell extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showHandle)
-                _ResponsiveDragHandle(scale: scale),
+              if (showHandle) _ResponsiveDragHandle(scale: scale),
             ],
           ),
         );
@@ -300,7 +299,7 @@ class _ResponsiveDragHandle extends StatelessWidget {
         defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.android;
 
-    final row = RowIndexScope.of(context);
+    final row = Scope.of<({int globalIndex, int uiIndex})>(context);
 
     return ReorderableDragStartListener(
       index: row.uiIndex,

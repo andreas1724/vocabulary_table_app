@@ -3,7 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:vocabulary_table_app/controller/table_layout_controller.dart';
 import 'package:vocabulary_table_app/controller/vocabulary_controller.dart';
-import 'package:vocabulary_table_app/widgets/row_index_scope.dart';
+import 'package:vocabulary_table_app/utils/scope.dart';
 import 'package:vocabulary_table_app/widgets/table_row_without_top_border.dart';
 
 class TableBody extends StatefulWidget {
@@ -95,9 +95,9 @@ class _TableBodyState extends State<TableBody> {
                   (i) => i.id == vocabularyItem.id,
                 );
 
-                return RowIndexScope(
+                return Scope<({int globalIndex, int uiIndex})>(
                   key: ValueKey(vocabularyItem.id),
-                  row: (globalIndex: globalIndex, uiIndex: index),
+                  value: (globalIndex: globalIndex, uiIndex: index),
                   child: _DraggableRowWrapper(
                     tableWidth: widget.tableWidth,
                     draggedItemIndex: _draggedItemIndex,

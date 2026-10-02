@@ -20,7 +20,7 @@ class VocabularyController {
 
     // Watch for updates from the database. When the real data catches up with our
     // optimistic update, we clear the optimistic state to resume reacting to DB changes.
-    effect(() {
+    _effectDispose = effect(() {
       final state = _vocabularyItemsStream.value;
       if (state.hasValue && _optimisticItems.peek() != null) {
         // Run asynchronously (microtask) to ensure UI immediately switches back to DB stream
@@ -33,11 +33,12 @@ class VocabularyController {
   final VocabRepository _repository;
   final String bookId;
 
+  late final void Function() _effectDispose;
+
   // --- State (Signals) ---
 
   final Signal<BookMetadata> metadata;
 
-  // Placed variables after constructor to strictly follow sort_constructors_first
   final Signal<({int rowIndex, int colIndex})?> selectedCell = signal(null);
 
   // Holds synchronous updates to bridge the DB writing gap
@@ -168,6 +169,8 @@ class VocabularyController {
   }
 
   void dispose() {
+    _effectDispose();
+    languageA.dispose();
     _vocabularyItemsStream.dispose();
   }
 }
